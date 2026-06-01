@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppOracleRouteImport } from './routes/_app.oracle'
 import { Route as AppKnowledgeRouteImport } from './routes/_app.knowledge'
 import { Route as AppHiveRouteImport } from './routes/_app.hive'
+import { Route as AppAuditRouteImport } from './routes/_app.audit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -45,10 +46,16 @@ const AppHiveRoute = AppHiveRouteImport.update({
   path: '/hive',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAuditRoute = AppAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/audit': typeof AppAuditRoute
   '/hive': typeof AppHiveRoute
   '/knowledge': typeof AppKnowledgeRoute
   '/oracle': typeof AppOracleRoute
@@ -56,6 +63,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/audit': typeof AppAuditRoute
   '/hive': typeof AppHiveRoute
   '/knowledge': typeof AppKnowledgeRoute
   '/oracle': typeof AppOracleRoute
@@ -65,20 +73,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/audit': typeof AppAuditRoute
   '/_app/hive': typeof AppHiveRoute
   '/_app/knowledge': typeof AppKnowledgeRoute
   '/_app/oracle': typeof AppOracleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/hive' | '/knowledge' | '/oracle'
+  fullPaths: '/' | '/login' | '/audit' | '/hive' | '/knowledge' | '/oracle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/hive' | '/knowledge' | '/oracle'
+  to: '/' | '/login' | '/audit' | '/hive' | '/knowledge' | '/oracle'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/login'
+    | '/_app/audit'
     | '/_app/hive'
     | '/_app/knowledge'
     | '/_app/oracle'
@@ -134,16 +144,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHiveRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/audit': {
+      id: '/_app/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AppAuditRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAuditRoute: typeof AppAuditRoute
   AppHiveRoute: typeof AppHiveRoute
   AppKnowledgeRoute: typeof AppKnowledgeRoute
   AppOracleRoute: typeof AppOracleRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAuditRoute: AppAuditRoute,
   AppHiveRoute: AppHiveRoute,
   AppKnowledgeRoute: AppKnowledgeRoute,
   AppOracleRoute: AppOracleRoute,
