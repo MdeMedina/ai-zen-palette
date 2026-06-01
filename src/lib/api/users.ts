@@ -1,6 +1,11 @@
 import { USE_MOCKS, apiFetch, delay, mockId } from "./client";
-import { mockBrands, mockUserBrands, mockUsers } from "./mocks/data";
-import type { GlobalRole, User, UUID } from "./types";
+import { mockBrands, mockSessions, mockUserBrands, mockUsers } from "./mocks/data";
+import type {
+  GlobalRole,
+  OperatorDiagnostic,
+  User,
+  UUID,
+} from "./types";
 
 export interface OperatorRow extends User {
   brand_ids: UUID[];
@@ -82,3 +87,103 @@ export async function _allBrandsForMock(): Promise<typeof mockBrands> {
   await delay(40);
   return mockBrands;
 }
+
+export interface UpdateOperatorInput {
+  full_name?: string;
+  email?: string;
+  global_role?: GlobalRole;
+  brand_ids?: UUID[];
+}
+
+/** PATCH /api/users/:id */
+export async function updateOperator(
+  id: UUID,
+  patch: UpdateOperatorInput,
+): Promise<OperatorRow> {
+  if (USE_MOCKS) {
+    await delay(220);
+    const u = mockUsers.find((x) => x.id === id);
+    if (!u) throw Object.assign(new Error("User not found"), { status: 404 });
+    if (patch.full_name !== undefined) u.full_name = patch.full_name;
+    if (patch.email !== undefined) u.email = patch.email;
+    if (patch.global_role !== undefined) u.global_role = patch.global_role;
+    if (patch.brand_ids !== undefined) {
+      mockUserBrands[id] = patch.brand_ids;
+      u.brand_access = patch.brand_ids;
+    }
+    u.updated_at = new Date().toISOString();
+    return { ...u, brand_ids: mockUserBrands[id] ?? [] };
+  }
+  return apiFetch<OperatorRow>(`/api/users/${id}`, { method: "PATCH", body: patch });
+}
+
+/** DELETE /api/users/:id */
+export async function deleteOperator(id: UUID): Promise<void> {
+  if (USE_MOCKS) {
+    await delay(220);
+    const idx = mockUsers.findIndex((x) => x.id === id);
+    if (idx >= 0) mockUsers.splice(idx, 1);
+    delete mockUserBrands[id];
+    return;
+  }
+  await apiFetch<void>(`/api/users/${id}`, { method: "DELETE" });
+}
+
+/**
+ * GET /api/users/:id/diagnostic — backend-computed operational diagnostic
+ * for an operator. Mock derives a deterministic narrative from the
+ * operator's sessions so the UI can be reviewed end-to-end.
+ */
+export async function getOperatorDiagnostic(id: UUID): Promise<OperatorDiagnostic> {
+  if (USE_MOCKS) {
+    await delay(180);
+    const sessions = mockSessions.filter((s) => s.user_id === id);
+    const max_friction = sessions.reduce((m, s) => Math.max(m, s.friction_level), 0);
+    const encauzamiento_count = sessions.reduce((m, s) => m + s.encauzamiento_count, 0);
+    const glitches = sessions.flatMap((s) => s.glitches);
+    const coupling_node_count = sessions.filter((s) => s.coupling_node_triggered).length;
+    const score =
+      glitches.length === 0
+        ? 6
+        : Math.round(
+            (glitches.reduce((sum, g) => sum + g.score, 0) / glitches.length) * 10,
+          ) / 10;
+    const text = renderDiagnostic({
+      max_friction,
+      encauzamiento_count,
+      coupling_node_count,
+      score,
+    });
+    return {
+      text,
+      score,
+      max_friction,
+      encauzamiento_count,
+      glitch_count: glitches.length,
+      coupling_node_count,
+      glitches,
+    };
+  }
+  return apiFetch<OperatorDiagnostic>(`/api/users/${id}/diagnostic`);
+}
+
+function renderDiagnostic(d: {
+  max_friction: number;
+  encauzamiento_count: number;
+  coupling_node_count: number;
+  score: number;
+}): string {
+  if (d.encauzamiento_count >= 3 && d.score >= 5) {
+    return "Operador en encauzamiento sostenido. Capacidad demostrada de cortar el bucle defensivo y nombrar la variable. Apto para extracción de Oro Estructural.";
+  }
+  if (d.max_friction >= 7 && d.score < 5) {
+    return "Alta fricción con baja resolución. El operador resiste el corte; predominan glitches sin reformulación. Intervenir antes de calcificar.";
+  }
+  if (d.coupling_node_count > 0) {
+    return "Nodo de acoplamiento activo. La conversación tocó estructura. Monitorear si el próximo intervalo produce encauzamiento.";
+  }
+  return "Operación estable. Fricción dentro de rango, sin glitches críticos. Sin acción requerida.";
+}
+
+// Ensure mock array consumer (silences unused-import in strict builds).
+void mockUserBrands;

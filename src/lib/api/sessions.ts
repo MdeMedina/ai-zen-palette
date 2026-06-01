@@ -12,7 +12,7 @@ export async function mySessions(userId: UUID): Promise<SessionRecord[]> {
 }
 
 export interface CreateSessionInput {
-  brand_id: UUID;
+  brand_id?: UUID | null;
   title: string;
 }
 
@@ -26,7 +26,7 @@ export async function createSession(
     const s: SessionRecord = {
       id: mockId(),
       user_id: userId,
-      brand_id: input.brand_id,
+      brand_id: input.brand_id ?? null,
       title: input.title,
       status: "Open",
       friction_level: 0,
@@ -39,8 +39,10 @@ export async function createSession(
       integration_signal_received_at: null,
       gold_extraction_status: "None",
       transcript_payload: [],
+      glitches: [],
       extracted_asset_id: null,
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     mockSessions.unshift(s);
     return s;
@@ -79,4 +81,20 @@ export async function integrateSession(id: UUID): Promise<SessionRecord> {
     return s;
   }
   return apiFetch<SessionRecord>(`/api/sessions/${id}/integrate`, { method: "PATCH" });
+}
+
+/**
+ * POST /api/sessions/:id/reopen — re-activates a Closed/Archived session
+ * so the operator can continue the dialectic from the same thread.
+ */
+export async function reopenSession(id: UUID): Promise<SessionRecord> {
+  if (USE_MOCKS) {
+    await delay(200);
+    const s = mockSessions.find((x) => x.id === id);
+    if (!s) throw Object.assign(new Error("Session not found"), { status: 404 });
+    s.status = "Open";
+    s.updated_at = new Date().toISOString();
+    return s;
+  }
+  return apiFetch<SessionRecord>(`/api/sessions/${id}/reopen`, { method: "POST" });
 }
