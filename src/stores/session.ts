@@ -16,6 +16,8 @@ export interface SessionUser {
    */
   friction_level?: number | null;
   calcification_level?: number | null;
+  /** Brand access list (empty for admins). */
+  brand_access?: string[];
 }
 
 export type ChatLanguage = "en" | "es";

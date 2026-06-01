@@ -24,6 +24,8 @@ export interface User {
   /** Admin-only fields — backend DTO purges these for operators. */
   friction_level?: number | null;
   calcification_level?: number | null;
+  /** Brands this operator can address. Empty for admins (full access). */
+  brand_access?: UUID[];
   created_at: string;
   updated_at: string;
 }
@@ -57,10 +59,21 @@ export interface ChatMessage {
   ts: string;
 }
 
+/**
+ * Glitch surfaced by the agent during a session.
+ * `score >= 5` → healthy (green check). `score < 5` → warning (yellow).
+ */
+export interface Glitch {
+  id: UUID;
+  text: string;
+  score: number;
+  ts: string;
+}
+
 export interface SessionRecord {
   id: UUID;
   user_id: UUID;
-  brand_id: UUID;
+  brand_id: UUID | null;
   title: string;
   status: SessionStatus;
   friction_level: number; // max reached
@@ -73,8 +86,24 @@ export interface SessionRecord {
   integration_signal_received_at: string | null;
   gold_extraction_status: GoldExtractionStatus;
   transcript_payload: ChatMessage[];
+  glitches: Glitch[];
   extracted_asset_id: UUID | null;
   created_at: string;
+  updated_at?: string;
+}
+
+/**
+ * Aggregated operator diagnostic produced by the backend
+ * (combines friction, encauzamientos, coupling nodes and glitches).
+ */
+export interface OperatorDiagnostic {
+  text: string;
+  score: number;
+  max_friction: number;
+  encauzamiento_count: number;
+  glitch_count: number;
+  coupling_node_count: number;
+  glitches: Glitch[];
 }
 
 export interface AuthResponse {

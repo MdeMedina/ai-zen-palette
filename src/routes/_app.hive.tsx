@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { brandsApi, usersApi } from "@/lib/api";
 import type { GlobalRole, UUID } from "@/lib/api/types";
+import type { OperatorRow } from "@/lib/api/users";
 
 export const Route = createFileRoute("/_app/hive")({
   head: () => ({ meta: [{ title: "PKGD OS · Hive Matrix" }] }),
@@ -16,11 +17,29 @@ function HivePage() {
   const brandsQ = useQuery({ queryKey: ["brands"], queryFn: brandsApi.listBrands });
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editing, setEditing] = useState<OperatorRow | null>(null);
+  const [deleting, setDeleting] = useState<OperatorRow | null>(null);
+
   const createM = useMutation({
     mutationFn: usersApi.createOperator,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["operators"] });
       setDrawerOpen(false);
+    },
+  });
+  const updateM = useMutation({
+    mutationFn: ({ id, patch }: { id: UUID; patch: Parameters<typeof usersApi.updateOperator>[1] }) =>
+      usersApi.updateOperator(id, patch),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["operators"] });
+      setEditing(null);
+    },
+  });
+  const deleteM = useMutation({
+    mutationFn: usersApi.deleteOperator,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["operators"] });
+      setDeleting(null);
     },
   });
 
@@ -52,6 +71,7 @@ function HivePage() {
                 <Th className="text-right">Calcification</Th>
                 <Th>Brands</Th>
                 <Th>Created</Th>
+                <Th className="text-right">Actions</Th>
               </tr>
             </thead>
             <tbody>
@@ -91,6 +111,26 @@ function HivePage() {
                   <Td className="font-mono text-[11px] text-foreground/40">
                     {new Date(o.created_at).toISOString().slice(0, 10)}
                   </Td>
+                  <Td className="text-right">
+                    <div className="inline-flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(o)}
+                        className="rounded-[3px] p-1.5 text-foreground/50 hover:bg-foreground/5 hover:text-foreground"
+                        aria-label="Edit"
+                      >
+                        <Pencil className="size-3.5" strokeWidth={1.5} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleting(o)}
+                        className="rounded-[3px] p-1.5 text-foreground/50 hover:bg-destructive/10 hover:text-destructive"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="size-3.5" strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </Td>
                 </tr>
               ))}
             </tbody>
@@ -106,6 +146,25 @@ function HivePage() {
           onSubmit={(input) => createM.mutate(input)}
         />
       ) : null}
+
+      {editing ? (
+        <EditDrawer
+          operator={editing}
+          brands={brandsQ.data ?? []}
+          submitting={updateM.isPending}
+          onClose={() => setEditing(null)}
+          onSubmit={(patch) => updateM.mutate({ id: editing.id, patch })}
+        />
+      ) : null}
+
+      {deleting ? (
+        <DeleteDialog
+          operator={deleting}
+          submitting={deleteM.isPending}
+          onClose={() => setDeleting(null)}
+          onConfirm={() => deleteM.mutate(deleting.id)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -113,7 +172,7 @@ function HivePage() {
 function TelemetryNumber({ value }: { value: number | null | undefined }) {
   if (value == null) return <span className="text-foreground/20">—</span>;
   const tone =
-    value > 75 ? "text-destructive" : value > 50 ? "text-[var(--accent)]" : "text-foreground/70";
+    value > 7.5 ? "text-destructive" : value > 5 ? "text-[var(--accent)]" : "text-foreground/70";
   return <span className={tone}>{value}</span>;
 }
 
@@ -293,5 +352,194 @@ function Input({
         className="mt-1 w-full border-b border-foreground/10 bg-transparent py-2 font-mono text-[14px] text-foreground outline-none focus:border-[var(--accent)]/60"
       />
     </label>
+  );
+}
+
+function EditDrawer({
+  operator,
+  brands,
+  submitting,
+  onClose,
+  onSubmit,
+}: {
+  operator: OperatorRow;
+  brands: { id: UUID; name: string }[];
+  submitting: boolean;
+  onClose: () => void;
+  onSubmit: (patch: {
+    full_name?: string;
+    email?: string;
+    global_role?: GlobalRole;
+    brand_ids?: UUID[];
+  }) => void;
+}) {
+  const [full_name, setFullName] = useState(operator.full_name);
+  const [email, setEmail] = useState(operator.email);
+  const [role, setRole] = useState<GlobalRole>(operator.global_role);
+  const [brandIds, setBrandIds] = useState<UUID[]>(operator.brand_ids);
+
+  const toggleBrand = (id: UUID) =>
+    setBrandIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
+      <div className="flex w-full max-w-[460px] flex-col border-l border-foreground/10 bg-[var(--card)]">
+        <div className="flex items-center justify-between border-b border-foreground/5 px-6 py-4">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">
+              Edit
+            </div>
+            <div className="text-[15px] text-foreground">{operator.full_name}</div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-[3px] p-1.5 text-foreground/40 hover:bg-foreground/5 hover:text-foreground"
+          >
+            <X className="size-4" strokeWidth={1.5} />
+          </button>
+        </div>
+
+        <form
+          className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSubmit({ full_name, email, global_role: role, brand_ids: brandIds });
+          }}
+        >
+          <Input label="Full name" value={full_name} onChange={setFullName} required />
+          <Input label="Email" type="email" value={email} onChange={setEmail} required />
+
+          <div>
+            <Label>Global role</Label>
+            <div className="mt-2 flex gap-2">
+              {(["operator", "admin"] as GlobalRole[]).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={[
+                    "flex-1 border px-3 py-2 text-[11px] uppercase tracking-[0.24em] transition-colors",
+                    role === r
+                      ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_10%,transparent)] text-foreground"
+                      : "border-foreground/10 text-foreground/50 hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Knowledge Linkage · Brands</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {brands.map((b) => {
+                const on = brandIds.includes(b.id);
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => toggleBrand(b.id)}
+                    className={[
+                      "border px-3 py-1.5 text-[12px] transition-colors",
+                      on
+                        ? "border-[var(--accent)] text-[var(--accent)]"
+                        : "border-foreground/10 text-foreground/60 hover:text-foreground",
+                    ].join(" ")}
+                  >
+                    {b.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-[3px] border border-foreground/5 p-4">
+            <Label>Telemetry (read-only)</Label>
+            <div className="mt-2 grid grid-cols-2 gap-3 font-mono text-[12px] text-foreground/70">
+              <div>Friction: {operator.friction_level ?? "—"}</div>
+              <div>Calcification: {operator.calcification_level ?? "—"}</div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-auto inline-flex items-center justify-between border border-[var(--accent)] px-5 py-3 text-[11px] uppercase tracking-[0.28em] text-foreground transition-all hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-40"
+          >
+            <span>{submitting ? "Saving…" : "Save changes"}</span>
+            <span className="font-mono text-[10px] opacity-60">›</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DeleteDialog({
+  operator,
+  submitting,
+  onClose,
+  onConfirm,
+}: {
+  operator: OperatorRow;
+  submitting: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const [confirm, setConfirm] = useState("");
+  const matches = confirm.trim().toLowerCase() === operator.email.toLowerCase();
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm">
+      <div className="w-full max-w-[440px] border border-foreground/10 bg-[var(--card)]">
+        <div className="flex items-center justify-between border-b border-foreground/5 px-6 py-4">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-destructive">
+              Destructive
+            </div>
+            <div className="text-[15px] text-foreground">Delete operator</div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-[3px] p-1.5 text-foreground/40 hover:bg-foreground/5 hover:text-foreground"
+          >
+            <X className="size-4" strokeWidth={1.5} />
+          </button>
+        </div>
+        <div className="px-6 py-5">
+          <p className="text-[13px] text-foreground/70">
+            Esta acción elimina <strong className="text-foreground">{operator.full_name}</strong> y revoca su acceso.
+            Escribe <span className="font-mono text-[var(--accent)]">{operator.email}</span> para confirmar.
+          </p>
+          <input
+            type="text"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            placeholder={operator.email}
+            className="mt-4 w-full border border-foreground/10 bg-transparent px-3 py-2 font-mono text-[13px] text-foreground outline-none focus:border-destructive/60"
+          />
+        </div>
+        <div className="flex justify-end gap-2 border-t border-foreground/5 px-6 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="border border-foreground/10 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!matches || submitting}
+            onClick={onConfirm}
+            className="border border-destructive bg-destructive/10 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-destructive hover:bg-destructive hover:text-destructive-foreground disabled:opacity-30"
+          >
+            {submitting ? "Deleting…" : "Delete operator"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -68,3 +68,27 @@ export async function extractGold(session_id: UUID): Promise<{ ok: boolean }> {
     body: { session_id },
   });
 }
+
+/**
+ * GET /api/knowledge/:id/download — streams the original source file.
+ * In mock mode opens `source_file_url` in a new tab so the UX is still wired.
+ */
+export async function downloadAsset(asset: KnowledgeAsset): Promise<void> {
+  if (USE_MOCKS) {
+    await delay(80);
+    if (typeof window !== "undefined" && asset.source_file_url) {
+      window.open(asset.source_file_url, "_blank", "noopener,noreferrer");
+    }
+    return;
+  }
+  const blob = await apiFetch<Blob>(`/api/knowledge/${asset.id}/download`);
+  if (typeof window === "undefined") return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = asset.title;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
