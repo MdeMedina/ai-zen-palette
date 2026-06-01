@@ -1,0 +1,82 @@
+import { N8N_CHAT_WEBHOOK, USE_MOCKS, apiFetch, delay, mockId } from "./client";
+import { mockSessions } from "./mocks/data";
+import type { ChatLanguage } from "@/stores/session";
+import type { ChatMessage, UUID } from "./types";
+
+export interface SendPromptInput {
+  session_id: UUID;
+  prompt: string;
+  language: ChatLanguage;
+}
+
+/**
+ * POSTs directly to the n8n webhook (Asincronía Asimétrica — Node is bypassed).
+ * n8n reads friction/calcification from Postgres and injects them into the
+ * system prompt; the client never sees those numbers.
+ */
+export async function sendPrompt(input: SendPromptInput): Promise<ChatMessage> {
+  if (USE_MOCKS || !N8N_CHAT_WEBHOOK) {
+    await delay(900 + Math.random() * 2200);
+    const reply: ChatMessage = {
+      id: mockId(),
+      role: "ai-ceo",
+      text: mockReply(input),
+      ts: new Date().toISOString(),
+    };
+    const s = mockSessions.find((x) => x.id === input.session_id);
+    if (s) s.transcript_payload.push(reply);
+    return reply;
+  }
+
+  const res = await fetch(N8N_CHAT_WEBHOOK, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`n8n webhook failed: ${res.status}`);
+  const data = (await res.json()) as { text: string };
+  return {
+    id: mockId(),
+    role: "ai-ceo",
+    text: data.text,
+    ts: new Date().toISOString(),
+  };
+}
+
+export function appendLocalUserMessage(session_id: UUID, text: string): ChatMessage {
+  const msg: ChatMessage = {
+    id: mockId(),
+    role: "user",
+    text,
+    ts: new Date().toISOString(),
+  };
+  const s = mockSessions.find((x) => x.id === session_id);
+  if (s) s.transcript_payload.push(msg);
+  return msg;
+}
+
+export async function listMessages(session_id: UUID): Promise<ChatMessage[]> {
+  if (USE_MOCKS) {
+    await delay(80);
+    return mockSessions.find((s) => s.id === session_id)?.transcript_payload ?? [];
+  }
+  return apiFetch<ChatMessage[]>(`/api/sessions/${session_id}/messages`);
+}
+
+function mockReply({ prompt, language }: SendPromptInput): string {
+  const en = [
+    "Define the variable you are unwilling to lose. The rest is noise.",
+    "That isn't a decision — it's a description. Make a cut, name a name.",
+    "If this fails, who carries it? Until that answer exists, you are stalling.",
+    "Reframe in one sentence. If you can't, the thesis is not yours yet.",
+  ];
+  const es = [
+    "Defina la variable que no está dispuesto a perder. Lo demás es ruido.",
+    "Eso no es una decisión, es una descripción. Haga un corte, nombre a alguien.",
+    "Si esto falla, ¿quién lo carga? Mientras no haya respuesta, está dilatando.",
+    "Reformúlelo en una frase. Si no puede, la tesis aún no es suya.",
+  ];
+  const pool = language === "es" ? es : en;
+  const seed = (prompt.length + Date.now()) % pool.length;
+  return pool[seed];
+}
