@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppOracleRouteImport } from './routes/_app.oracle'
+import { Route as AppHiveRouteImport } from './routes/_app.hive'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -33,15 +34,22 @@ const AppOracleRoute = AppOracleRouteImport.update({
   path: '/oracle',
   getParentRoute: () => AppRoute,
 } as any)
+const AppHiveRoute = AppHiveRouteImport.update({
+  id: '/hive',
+  path: '/hive',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/hive': typeof AppHiveRoute
   '/oracle': typeof AppOracleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/hive': typeof AppHiveRoute
   '/oracle': typeof AppOracleRoute
 }
 export interface FileRoutesById {
@@ -49,14 +57,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/hive': typeof AppHiveRoute
   '/_app/oracle': typeof AppOracleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/oracle'
+  fullPaths: '/' | '/login' | '/hive' | '/oracle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/oracle'
-  id: '__root__' | '/' | '/_app' | '/login' | '/_app/oracle'
+  to: '/' | '/login' | '/hive' | '/oracle'
+  id: '__root__' | '/' | '/_app' | '/login' | '/_app/hive' | '/_app/oracle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,14 +104,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOracleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/hive': {
+      id: '/_app/hive'
+      path: '/hive'
+      fullPath: '/hive'
+      preLoaderRoute: typeof AppHiveRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppHiveRoute: typeof AppHiveRoute
   AppOracleRoute: typeof AppOracleRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppHiveRoute: AppHiveRoute,
   AppOracleRoute: AppOracleRoute,
 }
 
