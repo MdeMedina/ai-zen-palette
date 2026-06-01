@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { brandsApi, usersApi } from "@/lib/api";
 import type { GlobalRole, UUID } from "@/lib/api/types";
+import type { OperatorRow } from "@/lib/api/users";
 
 export const Route = createFileRoute("/_app/hive")({
   head: () => ({ meta: [{ title: "PKGD OS · Hive Matrix" }] }),
@@ -16,11 +17,29 @@ function HivePage() {
   const brandsQ = useQuery({ queryKey: ["brands"], queryFn: brandsApi.listBrands });
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editing, setEditing] = useState<OperatorRow | null>(null);
+  const [deleting, setDeleting] = useState<OperatorRow | null>(null);
+
   const createM = useMutation({
     mutationFn: usersApi.createOperator,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["operators"] });
       setDrawerOpen(false);
+    },
+  });
+  const updateM = useMutation({
+    mutationFn: ({ id, patch }: { id: UUID; patch: Parameters<typeof usersApi.updateOperator>[1] }) =>
+      usersApi.updateOperator(id, patch),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["operators"] });
+      setEditing(null);
+    },
+  });
+  const deleteM = useMutation({
+    mutationFn: usersApi.deleteOperator,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["operators"] });
+      setDeleting(null);
     },
   });
 
@@ -52,6 +71,7 @@ function HivePage() {
                 <Th className="text-right">Calcification</Th>
                 <Th>Brands</Th>
                 <Th>Created</Th>
+                <Th className="text-right">Actions</Th>
               </tr>
             </thead>
             <tbody>
@@ -91,6 +111,26 @@ function HivePage() {
                   <Td className="font-mono text-[11px] text-foreground/40">
                     {new Date(o.created_at).toISOString().slice(0, 10)}
                   </Td>
+                  <Td className="text-right">
+                    <div className="inline-flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(o)}
+                        className="rounded-[3px] p-1.5 text-foreground/50 hover:bg-foreground/5 hover:text-foreground"
+                        aria-label="Edit"
+                      >
+                        <Pencil className="size-3.5" strokeWidth={1.5} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleting(o)}
+                        className="rounded-[3px] p-1.5 text-foreground/50 hover:bg-destructive/10 hover:text-destructive"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="size-3.5" strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </Td>
                 </tr>
               ))}
             </tbody>
@@ -106,6 +146,25 @@ function HivePage() {
           onSubmit={(input) => createM.mutate(input)}
         />
       ) : null}
+
+      {editing ? (
+        <EditDrawer
+          operator={editing}
+          brands={brandsQ.data ?? []}
+          submitting={updateM.isPending}
+          onClose={() => setEditing(null)}
+          onSubmit={(patch) => updateM.mutate({ id: editing.id, patch })}
+        />
+      ) : null}
+
+      {deleting ? (
+        <DeleteDialog
+          operator={deleting}
+          submitting={deleteM.isPending}
+          onClose={() => setDeleting(null)}
+          onConfirm={() => deleteM.mutate(deleting.id)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -113,7 +172,7 @@ function HivePage() {
 function TelemetryNumber({ value }: { value: number | null | undefined }) {
   if (value == null) return <span className="text-foreground/20">—</span>;
   const tone =
-    value > 75 ? "text-destructive" : value > 50 ? "text-[var(--accent)]" : "text-foreground/70";
+    value > 7.5 ? "text-destructive" : value > 5 ? "text-[var(--accent)]" : "text-foreground/70";
   return <span className={tone}>{value}</span>;
 }
 
