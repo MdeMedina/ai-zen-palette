@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppOracleRouteImport } from './routes/_app.oracle'
+import { Route as AppKnowledgeRouteImport } from './routes/_app.knowledge'
 import { Route as AppHiveRouteImport } from './routes/_app.hive'
 
 const LoginRoute = LoginRouteImport.update({
@@ -34,6 +35,11 @@ const AppOracleRoute = AppOracleRouteImport.update({
   path: '/oracle',
   getParentRoute: () => AppRoute,
 } as any)
+const AppKnowledgeRoute = AppKnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppHiveRoute = AppHiveRouteImport.update({
   id: '/hive',
   path: '/hive',
@@ -44,12 +50,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/hive': typeof AppHiveRoute
+  '/knowledge': typeof AppKnowledgeRoute
   '/oracle': typeof AppOracleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/hive': typeof AppHiveRoute
+  '/knowledge': typeof AppKnowledgeRoute
   '/oracle': typeof AppOracleRoute
 }
 export interface FileRoutesById {
@@ -58,14 +66,22 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/hive': typeof AppHiveRoute
+  '/_app/knowledge': typeof AppKnowledgeRoute
   '/_app/oracle': typeof AppOracleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/hive' | '/oracle'
+  fullPaths: '/' | '/login' | '/hive' | '/knowledge' | '/oracle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/hive' | '/oracle'
-  id: '__root__' | '/' | '/_app' | '/login' | '/_app/hive' | '/_app/oracle'
+  to: '/' | '/login' | '/hive' | '/knowledge' | '/oracle'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/login'
+    | '/_app/hive'
+    | '/_app/knowledge'
+    | '/_app/oracle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOracleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/knowledge': {
+      id: '/_app/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof AppKnowledgeRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/hive': {
       id: '/_app/hive'
       path: '/hive'
@@ -116,11 +139,13 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppHiveRoute: typeof AppHiveRoute
+  AppKnowledgeRoute: typeof AppKnowledgeRoute
   AppOracleRoute: typeof AppOracleRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppHiveRoute: AppHiveRoute,
+  AppKnowledgeRoute: AppKnowledgeRoute,
   AppOracleRoute: AppOracleRoute,
 }
 
