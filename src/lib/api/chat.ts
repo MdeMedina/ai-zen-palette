@@ -10,12 +10,10 @@ export interface SendPromptInput {
 }
 
 /**
- * POSTs directly to the n8n webhook (Asincronía Asimétrica — Node is bypassed).
- * n8n reads friction/calcification from Postgres and injects them into the
- * system prompt; the client never sees those numbers.
+ * POSTs prompt to the backend (which proxies it to n8n intake webhook).
  */
 export async function sendPrompt(input: SendPromptInput): Promise<ChatMessage> {
-  if (USE_MOCKS || !N8N_CHAT_WEBHOOK) {
+  if (USE_MOCKS) {
     await delay(900 + Math.random() * 2200);
     const reply: ChatMessage = {
       id: mockId(),
@@ -28,19 +26,13 @@ export async function sendPrompt(input: SendPromptInput): Promise<ChatMessage> {
     return reply;
   }
 
-  const res = await fetch(N8N_CHAT_WEBHOOK, {
+  return apiFetch<ChatMessage>(`/api/sessions/${input.session_id}/prompt`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: {
+      prompt: input.prompt,
+      language: input.language,
+    },
   });
-  if (!res.ok) throw new Error(`n8n webhook failed: ${res.status}`);
-  const data = (await res.json()) as { text: string };
-  return {
-    id: mockId(),
-    role: "ai-ceo",
-    text: data.text,
-    ts: new Date().toISOString(),
-  };
 }
 
 export function appendLocalUserMessage(session_id: UUID, text: string): ChatMessage {
