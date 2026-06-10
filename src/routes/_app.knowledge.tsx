@@ -147,6 +147,7 @@ function KnowledgePage() {
               ref={fileRef}
               type="file"
               hidden
+              accept=".pdf,.txt,.md"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </div>
@@ -205,7 +206,7 @@ function KnowledgePage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <VectorStatus status={a.vectorization_status} />
+                        <VectorStatus status={a.vectorization_status} percent={a.percent} />
                       </td>
                       <td className="px-4 py-3 font-mono text-[11px] text-foreground/40">
                         {new Date(a.created_at).toISOString().slice(0, 10)}
@@ -251,13 +252,15 @@ function DownloadButton({ asset }: { asset: KnowledgeAsset }) {
   );
 }
 
-function VectorStatus({ status }: { status: "Pending" | "Embedded" | "Error" }) {
-  if (status === "Pending")
+function VectorStatus({ status, percent }: { status: "Pending" | "Embedded" | "Error"; percent?: number }) {
+  if (status === "Pending") {
+    const displayPercent = percent !== undefined ? ` (${Math.round(percent)}%)` : "";
     return (
       <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-foreground/55">
-        <PassivePulse /> Ingesting…
+        <PassivePulse /> Ingesting{displayPercent}…
       </span>
     );
+  }
   if (status === "Error")
     return (
       <span className="text-[11px] uppercase tracking-[0.2em] text-destructive">Error</span>

@@ -48,6 +48,7 @@ export interface KnowledgeAsset {
   source_file_url: string | null;
   pgvector_ref_id: string | null;
   vectorization_status: VectorizationStatus;
+  percent?: number;
   source_session_id?: UUID | null;
   created_at: string;
 }
