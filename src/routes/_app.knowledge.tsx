@@ -190,6 +190,7 @@ function KnowledgePage() {
                 <thead>
                   <tr className="border-b border-foreground/5 text-[10px] uppercase tracking-[0.22em] text-foreground/40">
                     <th className="px-4 py-3 font-normal">Title</th>
+                    <th className="px-4 py-3 font-normal">Brand</th>
                     <th className="px-4 py-3 font-normal">Type</th>
                     <th className="px-4 py-3 font-normal">Status</th>
                     <th className="px-4 py-3 font-normal">Created</th>
@@ -197,28 +198,32 @@ function KnowledgePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((a) => (
-                    <tr key={a.id} className="border-b border-foreground/5 text-[13px] last:border-0">
-                      <td className="px-4 py-3 text-foreground">{a.title}</td>
-                      <td className="px-4 py-3">
-                        <span className="border border-foreground/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-foreground/70">
-                          {a.asset_type}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <VectorStatus status={a.vectorization_status} percent={a.percent} />
-                      </td>
-                      <td className="px-4 py-3 font-mono text-[11px] text-foreground/40">
-                        {new Date(a.created_at).toISOString().slice(0, 10)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <DownloadButton asset={a} />
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.map((a) => {
+                    const brandName = brandsQ.data?.find((b) => b.id === a.brand_id)?.name || "—";
+                    return (
+                      <tr key={a.id} className="border-b border-foreground/5 text-[13px] last:border-0">
+                        <td className="px-4 py-3 text-foreground">{a.title}</td>
+                        <td className="px-4 py-3 text-foreground/60">{brandName}</td>
+                        <td className="px-4 py-3">
+                          <span className="border border-foreground/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-foreground/70">
+                            {a.asset_type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <VectorStatus status={a.vectorization_status} percent={a.percent} />
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[11px] text-foreground/40">
+                          {new Date(a.created_at).toISOString().slice(0, 10)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <DownloadButton asset={a} />
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-12 text-center text-[12px] text-foreground/40">
+                      <td colSpan={6} className="px-4 py-12 text-center text-[12px] text-foreground/40">
                         Sin resultados.
                       </td>
                     </tr>

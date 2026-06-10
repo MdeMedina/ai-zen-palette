@@ -1,6 +1,7 @@
-import { USE_MOCKS, apiFetch, delay, mockId } from "./client";
+import { USE_MOCKS, BASE_URL, apiFetch, delay, mockId } from "./client";
 import { mockKnowledge } from "./mocks/data";
 import type { AssetType, KnowledgeAsset, UUID } from "./types";
+import { useSessionStore } from "@/stores/session";
 
 /** GET /api/knowledge/:brand_id */
 export async function listByBrand(brand_id: UUID): Promise<KnowledgeAsset[]> {
@@ -81,12 +82,27 @@ export async function downloadAsset(asset: KnowledgeAsset): Promise<void> {
     }
     return;
   }
-  const blob = await apiFetch<Blob>(`/api/knowledge/${asset.id}/download`);
+
+  const token = useSessionStore.getState().token;
+  const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+  const res = await fetch(`${BASE_URL}/api/knowledge/${asset.id}/download`, { headers });
+  
+  if (!res.ok) {
+    throw new Error("Failed to download file");
+  }
+  
+  const blob = await res.blob();
   if (typeof window === "undefined") return;
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = asset.title;
+  
+  // Try to preserve original extension if possible
+  const filename = asset.source_file_url ? asset.source_file_url.split("/").pop() || "" : "";
+  const ext = filename.includes(".") ? filename.substring(filename.lastIndexOf(".")) : "";
+  const downloadName = asset.title.endsWith(ext) ? asset.title : `${asset.title}${ext}`;
+  
+  a.download = downloadName;
   document.body.appendChild(a);
   a.click();
   a.remove();

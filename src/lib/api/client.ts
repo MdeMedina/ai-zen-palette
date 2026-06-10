@@ -1,6 +1,6 @@
 import { useSessionStore } from "@/stores/session";
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
+export const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 export const USE_MOCKS =
   (import.meta.env.VITE_USE_MOCKS as string | undefined) !== "false" && !BASE_URL;
 
