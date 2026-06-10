@@ -141,13 +141,13 @@ function KnowledgePage() {
               {file ? file.name : "Drop document or click to select"}
             </div>
             <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.24em] text-foreground/35">
-              PDF · MD · TXT
+              PDF · MD · TXT · DOCX
             </div>
             <input
               ref={fileRef}
               type="file"
               hidden
-              accept=".pdf,.txt,.md"
+              accept=".pdf,.txt,.md,.docx"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </div>
