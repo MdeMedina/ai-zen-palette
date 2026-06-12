@@ -1,13 +1,13 @@
-version: '3.8'
-
 services:
   frontend:
-    build:
-      context: .
-      args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
-        - VITE_USE_MOCKS=${VITE_USE_MOCKS}
-    container_name: ai-zen-palette
+    build: .
+    image: pkgdos-frontend:latest
+    container_name: pkgdos-frontend
     restart: always
-    ports:
-      - "3000:3000"
+    # network_mode host => el contenedor escucha en host:3000 (para que nginx lo proxee),
+    # igual que el backend en :5001. El navegador llama al backend en localhost:5001
+    # (VITE_API_BASE_URL), valor que se hornea en el build.
+    network_mode: host
+    environment:
+      - PORT=3000
+      - NODE_ENV=production

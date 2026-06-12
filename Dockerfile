@@ -1,29 +1,26 @@
-FROM node:22-alpine
-
+# ---- build stage ----
+# VITE_* vars (VITE_API_BASE_URL, VITE_USE_MOCKS) are read from .env at build
+# time and baked into the client bundle. Change .env -> rebuild the image.
+FROM node:22-slim AS builder
 WORKDIR /app
 
-# Copy package configurations
-COPY package*.json ./
-
-# Install dependencies
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy the rest of the application
 COPY . .
 
-# Declare build arguments for Vite env vars (baked in during build)
-ARG VITE_API_BASE_URL
-ARG VITE_USE_MOCKS
-
-# Set env vars for build context
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-ENV VITE_USE_MOCKS=$VITE_USE_MOCKS
-
-# Build the application
+# node-server preset -> self-contained dist/server/index.mjs (no node_modules at runtime)
+ENV NITRO_PRESET=node-server
 RUN npm run build
 
-# Expose port
-EXPOSE 3000
+# ---- runtime stage ----
+FROM node:22-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
 
-# Run the native Vinxi server in production
-CMD ["npx", "vinxi", "start"]
+# nitro's node-server output bundles all deps into dist/ — only this is needed.
+COPY --from=builder /app/dist ./dist
+
+EXPOSE 3000
+CMD ["node", "dist/server/index.mjs"]

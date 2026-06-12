@@ -1,0 +1,10 @@
+# NOTE: .env is intentionally NOT ignored — VITE_* vars are baked into the
+# client bundle at BUILD time (import.meta.env). Excluding it would ship mocks.
+node_modules
+dist
+.git
+.gitignore
+*.log
+.lovable
+Dockerfile
+docker-compose.yml
