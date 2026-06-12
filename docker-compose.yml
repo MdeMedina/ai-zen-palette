@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        - VITE_USE_MOCKS=${VITE_USE_MOCKS}
+    container_name: ai-zen-palette
+    restart: always
+    ports:
+      - "3000:3000"

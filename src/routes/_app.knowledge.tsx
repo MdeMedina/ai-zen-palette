@@ -44,6 +44,24 @@ function KnowledgePage() {
     },
   });
 
+  const [editingAsset, setEditingAsset] = useState<KnowledgeAsset | null>(null);
+
+  const deleteM = useMutation({
+    mutationFn: knowledgeApi.deleteAsset,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["knowledge", effectiveBrandId] });
+    },
+  });
+
+  const updateBrandM = useMutation({
+    mutationFn: ({ id, brandId }: { id: string; brandId: string }) =>
+      knowledgeApi.updateBrand(id, brandId),
+    onSuccess: () => {
+      setEditingAsset(null);
+      qc.invalidateQueries({ queryKey: ["knowledge", effectiveBrandId] });
+    },
+  });
+
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     if (!listQ.data) return [];
@@ -216,7 +234,29 @@ function KnowledgePage() {
                           {new Date(a.created_at).toISOString().slice(0, 10)}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <DownloadButton asset={a} />
+                          <div className="inline-flex items-center gap-1.5 justify-end">
+                            <DownloadButton asset={a} />
+                            <button
+                              type="button"
+                              onClick={() => setEditingAsset(a)}
+                              className="rounded-[3px] p-1.5 text-foreground/50 hover:bg-foreground/5 hover:text-foreground transition-colors"
+                              title="Edit Brand"
+                            >
+                              <Pencil className="size-3.5" strokeWidth={1.5} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Delete document "${a.title}"?`)) {
+                                  deleteM.mutate(a.id);
+                                }
+                              }}
+                              className="rounded-[3px] p-1.5 text-foreground/50 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                              title="Delete Document"
+                            >
+                              <Trash2 className="size-3.5" strokeWidth={1.5} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -237,6 +277,15 @@ function KnowledgePage() {
 
       {brandsOpen ? (
         <BrandsManager brands={brandsQ.data ?? []} onClose={() => setBrandsOpen(false)} />
+      ) : null}
+
+      {editingAsset ? (
+        <EditBrandModal
+          asset={editingAsset}
+          brands={brandsQ.data ?? []}
+          onClose={() => setEditingAsset(null)}
+          onSave={(brandId) => updateBrandM.mutate({ id: editingAsset.id, brandId })}
+        />
       ) : null}
     </div>
   );
@@ -449,5 +498,74 @@ function BrandRow({
         </button>
       </div>
     </li>
+  );
+}
+
+/* ---------- Edit Brand Modal ---------- */
+
+interface EditBrandModalProps {
+  asset: KnowledgeAsset;
+  brands: Brand[];
+  onClose: () => void;
+  onSave: (brandId: string) => void;
+}
+
+function EditBrandModal({ asset, brands, onClose, onSave }: EditBrandModalProps) {
+  const [selectedBrandId, setSelectedBrandId] = useState(asset.brand_id);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-[400px] border border-foreground/10 bg-[var(--card)] p-6 shadow-xl rounded-[4px]">
+        <div className="flex items-center justify-between border-b border-foreground/5 pb-3">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">
+              Administration
+            </div>
+            <div className="text-[15px] font-medium text-foreground">Edit Brand</div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-[3px] p-1.5 text-foreground/40 hover:bg-foreground/5 hover:text-foreground"
+          >
+            <X className="size-4" strokeWidth={1.5} />
+          </button>
+        </div>
+
+        <div className="mt-4">
+          <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
+            Select New Brand
+          </div>
+          <select
+            value={selectedBrandId}
+            onChange={(e) => setSelectedBrandId(e.target.value)}
+            className="mt-2 w-full border-b border-foreground/10 bg-transparent py-2 text-[14px] text-foreground outline-none"
+          >
+            {brands.map((b) => (
+              <option key={b.id} value={b.id} className="bg-background text-foreground">
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="border border-foreground/10 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onSave(selectedBrandId)}
+            className="border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

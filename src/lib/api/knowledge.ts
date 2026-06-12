@@ -108,3 +108,28 @@ export async function downloadAsset(asset: KnowledgeAsset): Promise<void> {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+/** DELETE /api/knowledge/:id */
+export async function deleteAsset(id: UUID): Promise<void> {
+  if (USE_MOCKS) {
+    await delay(200);
+    const index = mockKnowledge.findIndex((k) => k.id === id);
+    if (index !== -1) mockKnowledge.splice(index, 1);
+    return;
+  }
+  return apiFetch<void>(`/api/knowledge/${id}`, { method: "DELETE" });
+}
+
+/** PATCH /api/knowledge/:id/brand */
+export async function updateBrand(id: UUID, brand_id: UUID): Promise<KnowledgeAsset> {
+  if (USE_MOCKS) {
+    await delay(200);
+    const asset = mockKnowledge.find((k) => k.id === id);
+    if (asset) asset.brand_id = brand_id;
+    return asset!;
+  }
+  return apiFetch<KnowledgeAsset>(`/api/knowledge/${id}/brand`, {
+    method: "PATCH",
+    body: { brand_id },
+  });
+}
