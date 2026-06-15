@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { ChatMessage } from "@/lib/api/types";
+import type { ChatLanguage } from "@/stores/session";
+import { oracleCopy } from "@/lib/i18n/oracle";
 import { MessageBubble } from "./MessageBubble";
 import { IntervalIndicator } from "./IntervalIndicator";
 
@@ -7,11 +9,14 @@ export function DialecticThread({
   messages,
   awaiting = false,
   emptyHint,
+  language,
 }: {
   messages: ChatMessage[];
   awaiting?: boolean;
   emptyHint?: string;
+  language: ChatLanguage;
 }) {
+  const t = oracleCopy(language);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     ref.current?.scrollTo({ top: ref.current.scrollHeight, behavior: "smooth" });
@@ -24,21 +29,21 @@ export function DialecticThread({
       style={{ scrollbarGutter: "stable" }}
     >
       {messages.length === 0 && !awaiting && emptyHint ? (
-        <div className="m-auto max-w-md text-center text-sm text-foreground/40">
-          {emptyHint}
+        <div className="m-auto max-w-md text-center font-mono text-[11px] uppercase tracking-[0.15em] text-foreground/45 select-none">
+          [ {emptyHint} ]
         </div>
       ) : null}
       {messages.map((m) => (
-        <MessageBubble key={m.id} message={m} />
+        <MessageBubble key={m.id} message={m} language={language} />
       ))}
       {awaiting ? (
-        <div
-          className="transition-opacity duration-700"
-          style={{ opacity: awaiting ? 0.6 : 1 }}
-        >
+        <div className="opacity-60 transition-opacity duration-700">
           <IntervalIndicator />
         </div>
       ) : null}
+      <p role="status" className="sr-only">
+        {awaiting ? t.awaitingStatus : ""}
+      </p>
     </div>
   );
 }

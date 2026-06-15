@@ -6,7 +6,7 @@ export function LangToggle() {
   const lang = useSessionStore((s) => s.chatLanguage);
   const setLanguage = useSessionStore((s) => s.setLanguage);
   return (
-    <div className="inline-flex items-center gap-0.5 rounded-[3px] border border-foreground/10 p-0.5 text-[10px] uppercase tracking-[0.22em]">
+    <div className="inline-flex items-center gap-0.5 rounded-[3px] border border-border p-0.5 text-[10px] uppercase tracking-[0.22em]">
       {LANGS.map((l) => (
         <button
           key={l}

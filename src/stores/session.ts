@@ -21,14 +21,17 @@ export interface SessionUser {
 }
 
 export type ChatLanguage = "en" | "es";
+export type ThemeMode = "light" | "dark";
 
 interface SessionState {
   token: string | null;
   user: SessionUser | null;
   chatLanguage: ChatLanguage;
+  theme: ThemeMode;
   setSession: (token: string, user: SessionUser) => void;
   setUser: (user: SessionUser) => void;
   setLanguage: (lang: ChatLanguage) => void;
+  setTheme: (theme: ThemeMode) => void;
   clear: () => void;
 }
 
@@ -38,9 +41,11 @@ export const useSessionStore = create<SessionState>()(
       token: null,
       user: null,
       chatLanguage: "en",
+      theme: "dark",
       setSession: (token, user) => set({ token, user }),
       setUser: (user) => set({ user }),
       setLanguage: (chatLanguage) => set({ chatLanguage }),
+      setTheme: (theme) => set({ theme }),
       clear: () => set({ token: null, user: null }),
     }),
     {
@@ -48,7 +53,7 @@ export const useSessionStore = create<SessionState>()(
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? window.localStorage : (undefined as never),
       ),
-      partialize: (s) => ({ token: s.token, user: s.user, chatLanguage: s.chatLanguage }),
+      partialize: (s) => ({ token: s.token, user: s.user, chatLanguage: s.chatLanguage, theme: s.theme }),
     },
   ),
 );

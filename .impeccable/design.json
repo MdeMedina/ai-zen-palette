@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "title": "Design System: PKGD OS",
+  "extensions": {
+    "colorMeta": {
+      "signal-yellow": {
+        "role": "primary",
+        "displayName": "Signal Yellow",
+        "canonical": "oklch(0.92 0.18 100)",
+        "tonalRamp": ["oklch(0.15 0.18 100)", "oklch(0.28 0.18 100)", "oklch(0.40 0.18 100)", "oklch(0.52 0.18 100)", "oklch(0.64 0.18 100)", "oklch(0.76 0.18 100)", "oklch(0.88 0.18 100)", "oklch(0.97 0.18 100)"]
+      },
+      "near-black": {
+        "role": "neutral",
+        "displayName": "Near-Black",
+        "canonical": "oklch(0.205 0.002 80)",
+        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.30 0.002 80)", "oklch(0.40 0.002 80)", "oklch(0.50 0.002 80)", "oklch(0.65 0.002 80)", "oklch(0.80 0.002 80)", "oklch(0.95 0.002 80)"]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.30 0.002 80)", "oklch(0.40 0.002 80)", "oklch(0.50 0.002 80)", "oklch(0.65 0.002 80)", "oklch(0.80 0.002 80)", "oklch(1 0 0)"]
+      },
+      "charcoal-surface": {
+        "role": "neutral",
+        "displayName": "Charcoal Surface",
+        "canonical": "oklch(0.235 0.002 80)",
+        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.235 0.002 80)", "oklch(0.30 0.002 80)", "oklch(0.40 0.002 80)", "oklch(0.55 0.002 80)", "oklch(0.75 0.002 80)", "oklch(0.95 0.002 80)"]
+      },
+      "charcoal-secondary": {
+        "role": "neutral",
+        "displayName": "Charcoal Secondary",
+        "canonical": "oklch(0.28 0.002 80)",
+        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.28 0.002 80)", "oklch(0.36 0.002 80)", "oklch(0.46 0.002 80)", "oklch(0.60 0.002 80)", "oklch(0.78 0.002 80)", "oklch(0.95 0.002 80)"]
+      },
+      "charcoal-muted": {
+        "role": "neutral",
+        "displayName": "Charcoal Muted",
+        "canonical": "oklch(0.265 0.002 80)",
+        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.265 0.002 80)", "oklch(0.35 0.002 80)", "oklch(0.45 0.002 80)", "oklch(0.60 0.002 80)", "oklch(0.78 0.002 80)", "oklch(0.95 0.002 80)"]
+      },
+      "quiet-gray": {
+        "role": "neutral",
+        "displayName": "Quiet Gray",
+        "canonical": "oklch(0.7 0.005 80)",
+        "tonalRamp": ["oklch(0.20 0.005 80)", "oklch(0.32 0.005 80)", "oklch(0.44 0.005 80)", "oklch(0.55 0.005 80)", "oklch(0.7 0.005 80)", "oklch(0.80 0.005 80)", "oklch(0.90 0.005 80)", "oklch(0.97 0.005 80)"]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(1 0 0 / 8%)",
+        "tonalRamp": ["oklch(1 0 0 / 4%)", "oklch(1 0 0 / 8%)", "oklch(1 0 0 / 12%)", "oklch(1 0 0 / 16%)", "oklch(1 0 0 / 24%)", "oklch(1 0 0 / 40%)", "oklch(1 0 0 / 60%)", "oklch(1 0 0 / 90%)"]
+      },
+      "alert-ember": {
+        "role": "tertiary",
+        "displayName": "Alert Ember",
+        "canonical": "oklch(0.62 0.22 25)",
+        "tonalRamp": ["oklch(0.20 0.22 25)", "oklch(0.32 0.22 25)", "oklch(0.44 0.22 25)", "oklch(0.56 0.22 25)", "oklch(0.62 0.22 25)", "oklch(0.72 0.22 25)", "oklch(0.82 0.22 25)", "oklch(0.92 0.22 25)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Full-bleed hero titles, section covers, major state-change headlines (impact mode)." },
+      "headline": { "displayName": "Headline", "purpose": "Section headers, major page titles." },
+      "title": { "displayName": "Title", "purpose": "Card titles, sidebar labels, button text, UI headings." },
+      "body": { "displayName": "Body", "purpose": "Default UI text; the dominant size across the app." },
+      "label": { "displayName": "Label", "purpose": "Timestamps, IDs, badges, role labels, status indicators, code." }
+    },
+    "shadows": [
+      { "name": "glow-accent", "value": "0 0 24px -4px color-mix(in oklab, var(--accent) 55%, transparent)", "purpose": "Tight signal halo for focus rings, active/live indicators, the one CTA that matters right now." },
+      { "name": "glow-soft", "value": "0 0 80px -20px color-mix(in oklab, var(--accent) 35%, transparent)", "purpose": "Wide ambient glow behind a hero element or active section." },
+      { "name": "shadow-elegant", "value": "0 30px 60px -30px color-mix(in oklab, black 70%, transparent)", "purpose": "Large soft black shadow for modals/dialogs/overlays that must separate from the page." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default easing for state transitions — deliberate, no bounce/elastic." },
+      { "name": "pulse-passive", "value": "2.4s ease-in-out infinite", "purpose": "Breathing opacity animation (0.35 -> 1 -> 0.35) for passive live indicators." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default/primary action — inverted contrast (white on near-black), not yellow. The neutral default action.",
+      "html": "<button class=\"ds-btn-primary\">Run Analysis</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: oklch(1 0 0); color: oklch(0.205 0.002 80); font-family: 'Gotham', sans-serif; font-weight: 500; font-size: 14px; height: 36px; padding: 0 16px; border-radius: 6px; border: none; cursor: pointer; transition: background 0.2s cubic-bezier(0.25,1,0.5,1), box-shadow 0.2s cubic-bezier(0.25,1,0.5,1); } .ds-btn-primary:hover { background: oklch(1 0 0 / 90%); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 1px oklch(0.92 0.18 100 / 60%), 0 0 24px -4px oklch(0.92 0.18 100 / 55%); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action. Hover/focus brings in the Signal Yellow ring + glow — where the signal system touches buttons.",
+      "html": "<button class=\"ds-btn-outline\">View Detail</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: oklch(0.205 0.002 80); color: oklch(1 0 0); font-family: 'Gotham', sans-serif; font-weight: 500; font-size: 14px; height: 36px; padding: 0 16px; border-radius: 6px; border: 1px solid oklch(1 0 0 / 8%); cursor: pointer; transition: border-color 0.2s cubic-bezier(0.25,1,0.5,1), box-shadow 0.2s cubic-bezier(0.25,1,0.5,1); } .ds-btn-outline:hover, .ds-btn-outline:focus-visible { outline: none; border-color: oklch(0.92 0.18 100 / 60%); box-shadow: 0 0 24px -4px oklch(0.92 0.18 100 / 55%); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-default",
+      "description": "Chainprinter label badge — machine/status data (LIVE, IDs, timestamps).",
+      "html": "<span class=\"ds-badge\">LIVE</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; background: oklch(1 0 0); color: oklch(0.205 0.002 80); font-family: 'Chainprinter', monospace; font-size: 12px; font-weight: 400; letter-spacing: 0.05em; padding: 2px 10px; border-radius: 4px; }"
+    },
+    {
+      "name": "Surface Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat-at-rest container, one tonal step above the page background, hairline border, no shadow.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Module Status</div><div class=\"ds-card-desc\">Last sync 2 minutes ago</div></div>",
+      "css": ".ds-card { background: oklch(0.235 0.002 80); color: oklch(1 0 0); border: 1px solid oklch(1 0 0 / 8%); border-radius: 14px; padding: 24px; } .ds-card-title { font-family: 'Gotham', sans-serif; font-weight: 500; font-size: 18px; line-height: 1.4; } .ds-card-desc { font-family: 'Gotham', sans-serif; font-weight: 400; font-size: 14px; line-height: 1.6; color: oklch(0.7 0.005 80); margin-top: 6px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Transparent field; focus state is a Signal Yellow ring, not a border-color change — the ring is the signal.",
+      "html": "<input class=\"ds-input\" placeholder=\"Ask the Oracle...\" />",
+      "css": ".ds-input { background: transparent; color: oklch(1 0 0); border: 1px solid oklch(1 0 0 / 10%); border-radius: 6px; height: 36px; padding: 0 12px; font-family: 'Gotham', sans-serif; font-size: 14px; transition: box-shadow 0.2s cubic-bezier(0.25,1,0.5,1); } .ds-input::placeholder { color: oklch(0.7 0.005 80); } .ds-input:focus-visible { outline: none; border-color: transparent; box-shadow: 0 0 0 1px oklch(0.92 0.18 100 / 60%); }"
+    },
+    {
+      "name": "Signal Room Backdrop",
+      "kind": "custom",
+      "refersTo": "grid-bg",
+      "description": "Signature pattern: faint yellow grid + ambient glow, the 'room made visible'. Reserve for hero/cover surfaces.",
+      "html": "<div class=\"ds-signal-room\"><span class=\"ds-signal-label\">SYSTEM ACTIVE</span></div>",
+      "css": ".ds-signal-room { position: relative; background-color: oklch(0.205 0.002 80); background-image: linear-gradient(to right, oklch(0.92 0.18 100 / 8%) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.92 0.18 100 / 8%) 1px, transparent 1px); background-size: 56px 56px; box-shadow: inset 0 0 80px -20px oklch(0.92 0.18 100 / 35%); padding: 24px; border-radius: 14px; } .ds-signal-label { font-family: 'Chainprinter', monospace; font-size: 12px; letter-spacing: 0.05em; color: oklch(0.92 0.18 100); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Signal Room",
+    "overview": "PKGD OS is a dark, near-silent room with exactly one light source: a single yellow signal that only switches on when something genuinely demands attention. The user enters carrying real cognitive load — a decision, a conflict, a strategy to stress-test — and the room does not compete with that work. Surfaces are flat, the palette is almost monochrome (near-black, paper white, quiet grays), and the one saturated color in the system, Signal Yellow, is rationed like an instrument light: active states, live indicators, the rare CTA that truly is the next right action. This system explicitly rejects glassmorphism for its own sake, gradient-heavy hero treatments, playful rounded blobs, and bright multi-color palettes — the visual grammar of a consumer SaaS landing page competing for attention. It also rejects the inverse failure: a cold, lifeless terminal. \"Austero. Vivo. Preciso.\" — austere in restraint, alive in the one signal it permits itself, precise in execution. Three registers share this one grammar: the default dark Signal Room, a yellow/black impact mode for covers and major state transitions, and a white-on-dark content mode for document-heavy views. All three use the same type system, the same radii, the same restraint — only the canvas inverts.",
+    "keyCharacteristics": [
+      "Near-black, near-monochrome base palette; Signal Yellow is the only saturated color in the system",
+      "Flat surfaces at rest; depth and attention communicated via glow, not shadow",
+      "Gotham is the single voice for all UI text; Chainprinter marks machine/technical data; SONORAN is the wordmark only",
+      "Components read as a precision instrument: bounded, deliberate, minimal radii",
+      "Empty space is structural — it is where the user's thinking happens"
+    ],
+    "rules": [
+      { "name": "The One Signal Rule", "body": "Signal Yellow appears on a small minority of any given screen. If you're reaching for yellow and the element isn't an active state, a live indicator, a focus ring, or the single most important action on the screen, it's the wrong color.", "section": "colors" },
+      { "name": "The Single Source Rule", "body": ":root in src/styles.css is the only implemented theme and is canonical for all three registers. The .dark class currently defines an unrelated, unbranded palette inherited from the starter template and must not be activated as-is.", "section": "colors" },
+      { "name": "The Wordmark-Only Rule", "body": "SONORAN renders the PKGD wordmark and nothing else. The moment it appears in a heading, label, or body copy, it has been misused.", "section": "typography" },
+      { "name": "The Two-Voice Rule", "body": "If text is something a person wrote, it's Gotham. If it's something the machine produced (timestamp, ID, status code, log line), it's Chainprinter. There is no third option.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Cards, buttons, inputs, and badges are flat at rest — no box-shadow for ordinary hierarchy. Something that needs to stand out earns a glow (signal) or, for true overlays, shadow-elegant.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do ration Signal Yellow (#fae714) to active states, live indicators, focus rings, and at most one true CTA per screen — The One Signal Rule.",
+      "Do keep surfaces flat at rest; use Glow Accent / Glow Soft for emphasis and shadow-elegant only for true overlays — The Flat-By-Default Rule.",
+      "Do use Gotham for everything a person wrote and Chainprinter for everything the machine produced — The Two-Voice Rule.",
+      "Do reserve SONORAN for the wordmark — The Wordmark-Only Rule.",
+      "Do preserve .grid-bg, glow-accent, and glow-soft as established signature patterns on hero/cover surfaces.",
+      "Do verify body text hits >=4.5:1 contrast against Near-Black / Charcoal Surface — Quiet Gray is close to the line and must be checked, not assumed."
+    ],
+    "donts": [
+      "Don't use glassmorphism for its own sake, gradient-heavy hero sections, playful rounded blobs, or bright multi-color palettes.",
+      "Don't ship anything that reads as a generic SaaS landing page or consumer app vying for attention.",
+      "Don't use border-left/border-right side-stripes as colored accents, gradient text, hero-metric templates, identical card grids, tiny uppercase tracked eyebrows, or 01/02/03 numbered section scaffolding.",
+      "Don't activate the .dark class as currently written — it replaces the entire brand palette with unrelated generic blue-gray tokens — The Single Source Rule.",
+      "Don't apply default shadow / shadow-sm to cards, buttons, badges, or inputs — contradicts Flat-By-Default and was inherited unmodified from the shadcn starter.",
+      "Don't mix SONORAN into headings, labels, or body text — wordmark only."
+    ]
+  }
+}

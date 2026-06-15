@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { useSessionStore } from "@/stores/session";
 
 function NotFoundComponent() {
   return (
@@ -78,10 +79,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "PKGD OS" },
-      { name: "description", content: "PKGD OS — The Oracle Workspace." },
+      { name: "description", content: "PKGD OS — Espacio de Conversación." },
       { name: "author", content: "PKGD" },
       { property: "og:title", content: "PKGD OS" },
-      { property: "og:description", content: "PKGD OS — The Oracle Workspace." },
+      { property: "og:description", content: "PKGD OS — Espacio de Conversación." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -115,6 +116,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const theme = useSessionStore((s) => s.theme);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === "light") {
+      root.classList.add("light");
+    } else {
+      root.classList.remove("light");
+    }
+  }, [theme]);
 
   return (
     <QueryClientProvider client={queryClient}>

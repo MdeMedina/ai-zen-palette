@@ -4,12 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Plus, RotateCcw } from "lucide-react";
 import { chatApi, sessionsApi } from "@/lib/api";
 import type { ChatMessage, SessionRecord } from "@/lib/api/types";
-import { useSessionStore } from "@/stores/session";
+import { useSessionStore, type ChatLanguage } from "@/stores/session";
 import { DialecticThread } from "@/components/brand/DialecticThread";
 import { LangToggle } from "@/components/brand/LangToggle";
+import { oracleCopy } from "@/lib/i18n/oracle";
 
 export const Route = createFileRoute("/_app/oracle")({
-  head: () => ({ meta: [{ title: "PKGD OS · Oracle Workspace" }] }),
+  head: () => {
+    const lang = useSessionStore.getState().chatLanguage;
+    const title = lang === "es" ? "PKGD OS · Espacio de Conversación" : "PKGD OS · Conversation Space";
+    return { meta: [{ title }] };
+  },
   component: OraclePage,
 });
 
@@ -18,6 +23,7 @@ type Mode = "new" | "open" | "closed";
 function OraclePage() {
   const user = useSessionStore((s) => s.user)!;
   const language = useSessionStore((s) => s.chatLanguage);
+  const t = oracleCopy(language);
   const qc = useQueryClient();
 
   const sessionsQ = useQuery({
@@ -28,7 +34,10 @@ function OraclePage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
-  const [awaiting, setAwaiting] = useState(false);
+  const [awaiting, setAwaiting] = useState<string | null>(null);
+  const [composerError, setComposerError] = useState<
+    { kind: "create"; scope: null } | { kind: "send"; scope: string; prompt: string } | null
+  >(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   const selected = sessionsQ.data?.find((s) => s.id === sessionId) ?? null;
@@ -44,8 +53,7 @@ function OraclePage() {
   }, [selected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const createSession = useMutation({
-    mutationFn: (title: string) =>
-      sessionsApi.createSession({ title }, user.id),
+    mutationFn: (title: string) => sessionsApi.createSession({ title }, user.id),
   });
 
   const reopenM = useMutation({
@@ -55,35 +63,61 @@ function OraclePage() {
 
   const send = useMutation({
     mutationFn: chatApi.sendPrompt,
-    onSuccess: (reply) => {
-      setMessages((m) => [...m, reply]);
-      setAwaiting(false);
+    onSuccess: (reply, variables) => {
+      if (variables.session_id === sessionId) {
+        setMessages((m) => [...m, reply]);
+      }
+      setAwaiting((a) => (a === variables.session_id ? null : a));
       qc.invalidateQueries({ queryKey: ["my-sessions", user.id] });
     },
-    onError: () => setAwaiting(false),
+    onError: (_err, variables) => {
+      setAwaiting((a) => (a === variables.session_id ? null : a));
+      setComposerError({ kind: "send", scope: variables.session_id, prompt: variables.prompt });
+    },
   });
 
-  const submit = async () => {
-    const text = draft.trim();
-    if (!text) return;
-    setDraft("");
+  const submitPrompt = async (text: string) => {
     let sid = sessionId;
     if (!sid) {
-      const s = await createSession.mutateAsync(text.slice(0, 64));
-      sid = s.id;
-      setSessionId(sid);
-      qc.invalidateQueries({ queryKey: ["my-sessions", user.id] });
+      try {
+        const s = await createSession.mutateAsync(text.slice(0, 64));
+        sid = s.id;
+        setSessionId(sid);
+        qc.invalidateQueries({ queryKey: ["my-sessions", user.id] });
+      } catch {
+        setDraft(text);
+        setComposerError({ kind: "create", scope: null });
+        return;
+      }
     }
+    setComposerError(null);
     const userMsg = chatApi.appendLocalUserMessage(sid, text);
     setMessages((m) => [...m, userMsg]);
-    setAwaiting(true);
+    setAwaiting(sid);
     send.mutate({ session_id: sid, prompt: text, language });
   };
 
+  const submit = () => {
+    const text = draft.trim();
+    if (!text || awaiting !== null) return;
+    setDraft("");
+    setComposerError(null);
+    void submitPrompt(text);
+  };
+
+  const retry = () => {
+    if (!composerError || composerError.kind !== "send" || awaiting !== null) return;
+    const { prompt } = composerError;
+    setComposerError(null);
+    void submitPrompt(prompt);
+  };
+
   const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      submit();
+      if (awaiting === null) {
+        submit();
+      }
     }
   };
 
@@ -91,32 +125,37 @@ function OraclePage() {
     setSessionId(null);
     setMessages([]);
     setDraft("");
+    setComposerError(null);
     setTimeout(() => taRef.current?.focus(), 0);
   };
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-full w-full">
       <SessionsSidebar
         sessions={sessionsQ.data ?? []}
         selectedId={sessionId}
         onSelect={setSessionId}
         onNew={startNew}
+        language={language}
+        isLoading={sessionsQ.isLoading}
+        isError={sessionsQ.isError}
+        refetch={() => sessionsQ.refetch()}
       />
 
       <div className="flex h-screen flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-foreground/5 px-8 py-4">
+        <header className="flex items-center justify-between border-b border-border px-8 py-4">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-foreground/40">
-              Oracle Workspace
+            <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-foreground/55">
+              {t.workspaceTitle}
             </span>
             {selected ? (
               <>
-                <span className="text-foreground/15">/</span>
+                <span className="text-foreground/55">/</span>
                 <span className="text-[13px] text-foreground/80">{selected.title}</span>
-                <StatusBadge session={selected} />
+                <StatusBadge session={selected} language={language} />
               </>
             ) : (
-              <span className="text-[13px] text-foreground/40">· New thread</span>
+              <span className="text-[13px] text-foreground/55">{t.newThread}</span>
             )}
           </div>
           <LangToggle />
@@ -125,23 +164,45 @@ function OraclePage() {
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col overflow-hidden px-6">
           <DialecticThread
             messages={messages}
-            awaiting={awaiting}
-            emptyHint="Speak. The Oracle does not introduce itself."
+            awaiting={awaiting !== null && awaiting === sessionId}
+            emptyHint={t.emptyHint}
+            language={language}
           />
         </div>
 
-        <div className="border-t border-foreground/5 bg-background">
+        <div className="border-t border-border bg-background">
+          {composerError && composerError.scope === sessionId ? (
+            <div
+              role="alert"
+              className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-6 pt-4 text-sm text-destructive"
+            >
+              {composerError.kind === "create" ? (
+                <span>{t.createError}</span>
+              ) : (
+                <>
+                  <span>{t.sendError}</span>
+                  <button
+                    type="button"
+                    onClick={retry}
+                    className="shrink-0 underline-offset-4 transition-colors hover:underline"
+                  >
+                    {t.retry}
+                  </button>
+                </>
+              )}
+            </div>
+          ) : null}
           <div className="mx-auto flex w-full max-w-3xl items-end gap-3 px-6 py-5">
             {mode === "closed" ? (
               <button
                 type="button"
                 onClick={() => selected && reopenM.mutate(selected.id)}
                 disabled={reopenM.isPending}
-                className="flex w-full items-center justify-between border border-[var(--accent)] px-5 py-3 text-[12px] uppercase tracking-[0.28em] text-foreground transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-40"
+                className="flex w-full items-center justify-between border border-[var(--accent)] px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-40"
               >
                 <span className="flex items-center gap-2">
                   <RotateCcw className="size-3.5" strokeWidth={1.5} />
-                  {reopenM.isPending ? "Reabriendo…" : "Abrir conversación"}
+                  {reopenM.isPending ? t.reopening : t.reopen}
                 </span>
                 <span className="font-mono text-[10px] opacity-60">›</span>
               </button>
@@ -153,15 +214,15 @@ function OraclePage() {
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={onKey}
                   rows={1}
-                  placeholder="Propose an operative move. ⌘/Ctrl + Enter to send."
-                  className="min-h-[44px] flex-1 resize-none border border-foreground/10 bg-[var(--card)]/40 px-4 py-3 text-[14px] text-foreground outline-none transition-colors placeholder:text-foreground/30 focus:border-[var(--accent)]/40"
+                  placeholder={t.composerPlaceholder}
+                  className="min-h-[44px] flex-1 resize-none border border-border bg-[var(--card)]/40 px-4 py-3 text-[14px] text-foreground outline-none transition-colors placeholder:text-foreground/25 focus:border-[var(--accent)]/40"
                 />
                 <button
                   type="button"
                   onClick={submit}
-                  disabled={!draft.trim() || awaiting}
-                  className="grid size-11 place-items-center border border-[var(--accent)]/70 text-[var(--accent)] transition-all hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:cursor-default disabled:opacity-30"
-                  aria-label="Send"
+                  disabled={!draft.trim() || awaiting !== null}
+                  className="grid size-11 place-items-center border border-[var(--accent)]/70 text-[var(--accent)] transition-all hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:cursor-default disabled:opacity-40"
+                  aria-label={t.send}
                 >
                   <ArrowUp className="size-4" strokeWidth={2} />
                 </button>
@@ -179,129 +240,182 @@ function SessionsSidebar({
   selectedId,
   onSelect,
   onNew,
+  language,
+  isLoading,
+  isError,
+  refetch,
 }: {
   sessions: SessionRecord[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onNew: () => void;
+  language: ChatLanguage;
+  isLoading?: boolean;
+  isError?: boolean;
+  refetch?: () => void;
 }) {
+  const t = oracleCopy(language);
   const sorted = [...sessions].sort((a, b) =>
     (b.updated_at ?? b.created_at).localeCompare(a.updated_at ?? a.created_at),
   );
   const groups: Array<{ key: string; label: string; items: SessionRecord[] }> = [
-    { key: "open", label: "Activas", items: sorted.filter((s) => s.status === "Open") },
+    { key: "open", label: t.groupActive, items: sorted.filter((s) => s.status === "Open") },
     {
       key: "enc",
-      label: "Encauzadas",
+      label: t.groupFollowUp,
       items: sorted.filter((s) => s.status !== "Open" && s.encauzamiento_count > 0),
     },
     {
       key: "closed",
-      label: "Cerradas",
+      label: t.groupClosed,
       items: sorted.filter((s) => s.status !== "Open" && s.encauzamiento_count === 0),
     },
   ];
 
   return (
-    <aside className="flex h-screen w-[260px] flex-col border-r border-foreground/5 bg-[var(--card)]/30">
-      <div className="flex items-center justify-between border-b border-foreground/5 px-4 py-4">
-        <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-          Conversaciones
+    <aside className="flex h-screen w-[260px] flex-col border-r border-border bg-[var(--card)]/30">
+      <div className="flex items-center justify-between border-b border-border px-4 py-4">
+        <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/55">
+          {t.conversations}
         </span>
         <button
           type="button"
           onClick={onNew}
-          aria-label="Nueva conversación"
-          className="inline-flex items-center gap-1 border border-[var(--accent)]/60 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+          aria-label={t.newConversationAria}
+          className="inline-flex items-center gap-1 border border-[var(--accent)]/60 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
           <Plus className="size-3" strokeWidth={2} />
-          Nueva
+          {t.newConversation}
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {groups.map((g) =>
-          g.items.length === 0 ? null : (
-            <div key={g.key} className="py-2">
-              <div className="px-4 py-2 font-mono text-[9px] uppercase tracking-[0.32em] text-foreground/30">
-                {g.label}
-              </div>
-              <ul>
-                {g.items.map((s) => {
-                  const active = s.id === selectedId;
-                  return (
-                    <li key={s.id}>
-                      <button
-                        type="button"
-                        onClick={() => onSelect(s.id)}
-                        className={[
-                          "block w-full border-l-2 px-4 py-3 text-left transition-colors",
-                          active
-                            ? "border-[var(--accent)] bg-foreground/[0.04]"
-                            : "border-transparent hover:bg-foreground/[0.02]",
-                        ].join(" ")}
-                      >
-                        <div className="flex items-center gap-2">
-                          <StatusDot session={s} />
-                          <span className="truncate text-[13px] text-foreground">
-                            {s.title}
-                          </span>
-                        </div>
-                        <div className="mt-1 pl-4 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/35">
-                          {relativeTime(s.updated_at ?? s.created_at)}
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+        {isLoading ? (
+          <div className="p-4 space-y-4">
+            <div className="h-2 w-16 bg-foreground/10 animate-pulse rounded" />
+            <div className="space-y-3">
+              <div className="h-10 bg-foreground/5 animate-pulse rounded-[3px]" />
+              <div className="h-10 bg-foreground/5 animate-pulse rounded-[3px]" />
+              <div className="h-10 bg-foreground/5 animate-pulse rounded-[3px]" />
             </div>
-          ),
-        )}
-        {sessions.length === 0 ? (
-          <div className="px-4 py-8 text-center text-[12px] text-foreground/35">
-            Aún no hay conversaciones.
           </div>
-        ) : null}
+        ) : isError ? (
+          <div className="p-4 text-center space-y-3">
+            <div className="text-[12px] text-destructive">{t.sendError || "Failed to load history"}</div>
+            {refetch && (
+              <button
+                type="button"
+                onClick={refetch}
+                className="text-[11px] underline text-foreground/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                {t.retry || "Retry"}
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            {groups.map((g) =>
+              g.items.length === 0 ? null : (
+                <div key={g.key} className="py-2">
+                  <div className="px-4 py-2 font-mono text-[9px] uppercase tracking-[0.32em] text-foreground/55">
+                    {g.label}
+                  </div>
+                  <ul>
+                    {g.items.map((s) => {
+                      const active = s.id === selectedId;
+                      return (
+                        <li key={s.id}>
+                          <button
+                            type="button"
+                            onClick={() => onSelect(s.id)}
+                            className={[
+                              "block w-full border-l-2 px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                              active
+                                ? "border-[var(--accent)] bg-foreground/[0.04]"
+                                : "border-transparent hover:bg-foreground/[0.02]",
+                            ].join(" ")}
+                          >
+                            <div className="flex items-center gap-2">
+                              <StatusDot session={s} language={language} />
+                              <span className="truncate text-[13px] text-foreground">{s.title || "Untitled"}</span>
+                            </div>
+                            <div className="mt-1 pl-4 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/55">
+                              {relativeTime(s.updated_at ?? s.created_at, t.timeNow)}
+                            </div>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )
+            )}
+            {sessions.length === 0 ? (
+              <div className="px-4 py-8 text-center text-[12px] text-foreground/55">
+                {t.noConversations}
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
     </aside>
   );
 }
 
-function StatusDot({ session }: { session: SessionRecord }) {
+function StatusDot({ session, language }: { session: SessionRecord; language: ChatLanguage }) {
+  const t = oracleCopy(language);
   if (session.status === "Open")
-    return <span className="inline-block size-2 rounded-full bg-[var(--accent)] glow-accent" />;
+    return (
+      <span
+        title={t.statusActive}
+        aria-label={t.statusActive}
+        className="inline-block size-2 rounded-full bg-[var(--accent)] glow-accent"
+      />
+    );
   if (session.encauzamiento_count > 0)
-    return <span className="inline-block size-2 rounded-full border border-[var(--accent)]" />;
-  return <span className="inline-block size-2 rounded-full bg-foreground/20" />;
+    return (
+      <span
+        title={t.statusFollowUp}
+        aria-label={t.statusFollowUp}
+        className="inline-block size-2 rounded-full border border-[var(--accent)]"
+      />
+    );
+  return (
+    <span
+      title={t.statusClosed}
+      aria-label={t.statusClosed}
+      className="inline-block size-2 rounded-full bg-foreground/20"
+    />
+  );
 }
 
-function StatusBadge({ session }: { session: SessionRecord }) {
+function StatusBadge({ session, language }: { session: SessionRecord; language: ChatLanguage }) {
+  const t = oracleCopy(language);
   if (session.status === "Open") {
     return (
       <span className="ml-1 border border-[var(--accent)]/50 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--accent)]">
-        Activa
+        {t.statusActive}
       </span>
     );
   }
   if (session.encauzamiento_count > 0) {
     return (
       <span className="ml-1 border border-[var(--accent)]/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--accent)]/80">
-        Encauzada
+        {t.statusFollowUp}
       </span>
     );
   }
   return (
-    <span className="ml-1 border border-foreground/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/50">
-      Cerrada
+    <span className="ml-1 border border-foreground/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/55">
+      {t.statusClosed}
     </span>
   );
 }
 
-function relativeTime(iso: string): string {
+function relativeTime(iso: string, now: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diff / 60000);
-  if (min < 1) return "ahora";
+  if (min < 1) return now;
   if (min < 60) return `${min}m`;
   const h = Math.floor(min / 60);
   if (h < 24) return `${h}h`;
