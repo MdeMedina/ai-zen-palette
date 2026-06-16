@@ -17,8 +17,8 @@ export function MessageBubble({
         className={[
           "max-w-[78%] px-4 py-3 text-[15px] leading-[1.55]",
           isUser
-            ? "border-l-2 border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_6%,transparent)] text-foreground"
-            : "border-l border-border text-foreground/95",
+            ? "border-l-2 border-[var(--accent)] bg-[#fefbe6] dark:bg-[color-mix(in_oklab,var(--accent)_6%,transparent)] text-foreground"
+            : "border-l border-border bg-foreground/[0.03] dark:bg-transparent text-foreground/95",
         ].join(" ")}
       >
         <div className="mb-1 flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] text-foreground/55">

@@ -307,7 +307,7 @@ function UserDashboard({
             </div>
             <div
               className={[
-                "mt-2 font-display text-[40px] leading-none",
+                "mt-2 font-sonoran text-[40px] leading-none",
                 diagQ.isLoading ? "text-foreground/20" : "text-[var(--accent)]",
               ].join(" ")}
             >

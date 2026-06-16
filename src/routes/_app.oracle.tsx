@@ -143,7 +143,7 @@ function OraclePage() {
       />
 
       <div className="flex h-screen flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border px-8 py-4">
+        <header className="flex h-16 items-center justify-between border-b border-border px-8">
           <div className="flex items-center gap-3">
             <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-foreground/55">
               {t.workspaceTitle}
@@ -273,8 +273,8 @@ function SessionsSidebar({
   ];
 
   return (
-    <aside className="flex h-screen w-[260px] flex-col border-r border-border bg-[var(--card)]/30">
-      <div className="flex items-center justify-between border-b border-border px-4 py-4">
+    <aside className="flex h-screen w-[260px] flex-col border-r border-border bg-conversation-sidebar">
+      <div className="flex h-16 items-center justify-between border-b border-border px-4">
         <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/55">
           {t.conversations}
         </span>

@@ -1,6 +1,6 @@
 export function BrandLogo({ className }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-2 font-display ${className ?? ""}`}>
+    <div className={`flex items-center gap-2 font-sonoran ${className ?? ""}`}>
       <span
         aria-hidden
         className="inline-block size-2.5 rounded-[2px] bg-[var(--accent)] glow-accent"

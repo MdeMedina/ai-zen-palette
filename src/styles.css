@@ -95,6 +95,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-conversation-sidebar: var(--conversation-sidebar);
   --font-display: 'SONORAN', sans-serif;
   --font-sans: 'Gotham', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Chainprinter', ui-monospace, monospace;
@@ -144,10 +145,12 @@
   --glow-soft: 0 0 80px -20px color-mix(in oklab, var(--accent) 35%, transparent);
   --shadow-elegant: 0 30px 60px -30px color-mix(in oklab, black 70%, transparent);
   --grid-line: color-mix(in oklab, var(--accent) 8%, transparent);
+  --conversation-sidebar: color-mix(in oklab, var(--card) 30%, transparent);
 }
 
 :root.light, .light {
-  --background: oklch(0.88 0.038 85);
+  --background: oklch(1 0 0);
+  --conversation-sidebar: #f8f8f7;
   --foreground: oklch(0.12 0.01 80);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.12 0.01 80);
@@ -159,14 +162,14 @@
   --secondary-foreground: oklch(0.12 0.01 80);
   --muted: oklch(0.83 0.02 85);
   --muted-foreground: oklch(0.32 0.02 85);
-  --accent: oklch(0.65 0.18 85);
+  --accent: oklch(0.92 0.18 100);
   --accent-foreground: oklch(0.12 0.01 80);
   --destructive: oklch(0.58 0.18 25);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.30 0.015 80);
   --input: oklch(0.38 0.015 80);
-  --ring: oklch(0.65 0.18 85 / 60%);
-  --chart-1: oklch(0.65 0.18 85);
+  --ring: oklch(0.92 0.18 100 / 60%);
+  --chart-1: oklch(0.92 0.18 100);
   --chart-2: oklch(0.45 0.1 80);
   --chart-3: oklch(0.65 0.08 90);
   --chart-4: oklch(0.20 0.02 80);
@@ -183,7 +186,7 @@
   /* PKGD tokens override */
   --brand-bg: #f5f5f4;
   --brand-ink: #1d1d1b;
-  --brand-accent: #877100;
+  --brand-accent: #fae714;
   --glow-accent: 0 0 24px -4px color-mix(in oklab, var(--accent) 30%, transparent);
   --glow-soft: 0 0 80px -20px color-mix(in oklab, var(--accent) 15%, transparent);
   --shadow-elegant: 4px 4px 0px var(--border);
@@ -293,6 +296,134 @@
     border-style: double;
     border-width: 4px;
     border-color: var(--border);
+  }
+
+  .font-sonoran {
+    font-family: 'SONORAN', sans-serif !important;
+  }
+
+  .light .font-display {
+    font-family: var(--font-sans) !important;
+    font-weight: 700 !important;
+  }
+
+  .light .border-double-thick {
+    border-style: solid !important;
+    border-width: 1px !important;
+    border-color: #000000 !important;
+  }
+
+  .light tr.border-double {
+    border-style: solid !important;
+    border-width: 0 0 1px 0 !important;
+    border-color: #000000 !important;
+  }
+
+  /* Light theme button styles override */
+  .light button,
+  .light [role="button"] {
+    background-color: #fae714 !important;
+    color: #000000 !important;
+    font-family: var(--font-sans) !important;
+    font-weight: 700 !important;
+    border: 1px solid #fae714 !important;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+  }
+  .light button:hover,
+  .light [role="button"]:hover {
+    background-color: #000000 !important;
+    color: #fae714 !important;
+    border-color: #000000 !important;
+  }
+
+  /* Exclude main sidebar navigation rail (theme toggle, logout) */
+  .light aside.bg-sidebar button {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: none !important;
+  }
+  .light aside.bg-sidebar button:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+  }
+
+  /* Exclude language toggle */
+  .light div.inline-flex.items-center.gap-0\.5 button {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    font-weight: normal !important;
+  }
+  .light div.inline-flex.items-center.gap-0\.5 button.bg-\[var\(--accent\)\] {
+    background-color: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+    font-weight: 700 !important;
+  }
+
+  /* Exclude icon-only buttons (close X button, clear file, close modal) */
+  .light button.p-1\.5,
+  .light button.p-1,
+  .light button[title="Clear file"],
+  .light button[title="Reassign Brand"] {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: none !important;
+  }
+  .light button.p-1\.5:hover,
+  .light button.p-1:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    color: #000000 !important;
+  }
+
+  /* Exclude table link actions [Edit] [Delete] */
+  .light td button,
+  .light button.text-foreground\/45,
+  .light button.text-destructive\/60 {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    font-family: var(--font-mono) !important;
+    font-weight: normal !important;
+  }
+  .light td button:hover,
+  .light button.text-foreground\/45:hover {
+    color: #000000 !important;
+    background-color: transparent !important;
+  }
+  .light td button.text-destructive\/60:hover,
+  .light button.text-destructive\/60:hover {
+    color: var(--destructive) !important;
+    background-color: transparent !important;
+  }
+
+  /* Exclude directory list rows (operators directory in audit page) */
+  .light aside ul button {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    font-weight: normal !important;
+  }
+  .light aside ul button:hover {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+  }
+  .light aside ul button.border-\[var\(--accent\)\] {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+    border-left: 2px solid var(--accent) !important;
+  }
+
+  /* Exclude segmented toggle/tab buttons (Asset Type tabs, Role tabs) */
+  .light div.grid-cols-2 button,
+  .light button.flex-1 {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: 1px solid var(--border) !important;
+    font-weight: normal !important;
+  }
+  .light div.grid-cols-2 button.border-foreground\/30,
+  .light button.flex-1.border-\[var\(--accent\)\] {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+    border-color: var(--accent) !important;
+    font-weight: 700 !important;
   }
 
   .pulse-passive {
