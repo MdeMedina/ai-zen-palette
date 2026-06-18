@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
-import { brandsApi, knowledgeApi } from "@/lib/api";
-import type { AssetType, Brand, KnowledgeAsset } from "@/lib/api/types";
+import { brandsApi, knowledgeApi, departmentsApi, usersApi } from "@/lib/api";
+import type { AssetType, Brand, KnowledgeAsset, Department, DepartmentRole, UUID } from "@/lib/api/types";
 import { PassivePulse } from "@/components/brand/PassivePulse";
 import { ErrorBanner } from "@/components/brand/ErrorBanner";
 import { PageHeader } from "@/components/brand/PageHeader";
@@ -33,6 +33,15 @@ function KnowledgePage() {
   const effectiveBrandId = brandId || brandsQ.data?.[0]?.id || "";
   const [brandsOpen, setBrandsOpen] = useState(false);
 
+  const deptsQ = useQuery({ queryKey: ["departments"], queryFn: departmentsApi.listDepartments });
+
+  const [activeTab, setActiveTab] = useState<"brands" | "departments">("brands");
+  const [deptsOpen, setDeptsOpen] = useState(false);
+  const [selectedDeptId, setSelectedDeptId] = useState<string>("");
+  const [uploadDeptRoleId, setUploadDeptRoleId] = useState<string>("");
+
+  const effectiveDeptId = selectedDeptId || deptsQ.data?.[0]?.id || "";
+
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,9 +63,12 @@ function KnowledgePage() {
   }, []);
 
   const listQ = useQuery({
-    queryKey: ["knowledge", effectiveBrandId],
-    queryFn: () => knowledgeApi.listByBrand(effectiveBrandId),
-    enabled: !!effectiveBrandId,
+    queryKey: ["knowledge", activeTab, activeTab === "brands" ? effectiveBrandId : effectiveDeptId],
+    queryFn: () =>
+      activeTab === "brands"
+        ? knowledgeApi.listByBrand(effectiveBrandId)
+        : knowledgeApi.listByDepartment(effectiveDeptId),
+    enabled: activeTab === "brands" ? !!effectiveBrandId : !!effectiveDeptId,
     refetchInterval: (q) =>
       q.state.data?.some((a) => a.vectorization_status === "Pending") ? 5000 : false,
   });
@@ -71,7 +83,8 @@ function KnowledgePage() {
     onSuccess: () => {
       setTitle("");
       setFile(null);
-      qc.invalidateQueries({ queryKey: ["knowledge", effectiveBrandId] });
+      setUploadDeptRoleId("");
+      qc.invalidateQueries({ queryKey: ["knowledge"] });
     },
   });
 
@@ -82,7 +95,7 @@ function KnowledgePage() {
     mutationFn: knowledgeApi.deleteAsset,
     onSuccess: () => {
       setDeletingAsset(null);
-      qc.invalidateQueries({ queryKey: ["knowledge", effectiveBrandId] });
+      qc.invalidateQueries({ queryKey: ["knowledge"] });
     },
   });
 
@@ -91,7 +104,7 @@ function KnowledgePage() {
       knowledgeApi.updateBrand(id, brandId),
     onSuccess: () => {
       setEditingAsset(null);
-      qc.invalidateQueries({ queryKey: ["knowledge", effectiveBrandId] });
+      qc.invalidateQueries({ queryKey: ["knowledge"] });
     },
   });
 
@@ -113,18 +126,71 @@ function KnowledgePage() {
         eyebrow="Administration"
         title={t.knowledgeBases}
         actions={
-          <button
-            type="button"
-            onClick={() => setBrandsOpen(true)}
-            className="inline-flex items-center gap-2 border border-foreground/15 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/80 transition-colors hover:border-[var(--accent)] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            Manage Brands
-          </button>
+          <div className="flex gap-2">
+            {activeTab === "brands" ? (
+              <button
+                type="button"
+                onClick={() => setBrandsOpen(true)}
+                className="inline-flex items-center gap-2 border border-foreground/15 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/80 transition-colors hover:border-[var(--accent)] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                Manage Brands
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setDeptsOpen(true)}
+                className="inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                Manage Departments
+              </button>
+            )}
+          </div>
         }
       />
+
+      {/* Top Tab Bar Selector */}
+      <div className="flex border-b border-border bg-foreground/[0.02] px-8">
+        <button
+          onClick={() => setActiveTab("brands")}
+          className={`border-b-2 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.2em] transition-all focus-visible:outline-none ${
+            activeTab === "brands"
+              ? "border-[var(--accent)] text-foreground font-semibold"
+              : "border-transparent text-foreground/50 hover:text-foreground/80"
+          }`}
+        >
+          Brands Knowledge
+        </button>
+        <button
+          onClick={() => setActiveTab("departments")}
+          className={`border-b-2 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.2em] transition-all focus-visible:outline-none ${
+            activeTab === "departments"
+              ? "border-[var(--accent)] text-foreground font-semibold"
+              : "border-transparent text-foreground/50 hover:text-foreground/80"
+          }`}
+        >
+          Departments Knowledge
+        </button>
+      </div>
       <div className="grid flex-1 grid-cols-[420px_1fr] gap-0 overflow-hidden">
         <aside className="flex flex-col gap-5 overflow-y-auto border-r border-border p-8">
-          {brandsQ.data && brandsQ.data.length === 0 ? (
+          {activeTab === "departments" && deptsQ.data && deptsQ.data.length === 0 ? (
+            <div className="border border-destructive/20 bg-destructive/5 p-4 text-[12px] transition-all duration-300 motion-safe:animate-in motion-safe:fade-in">
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] font-medium text-destructive">
+                System Blocked
+              </div>
+              <p className="mt-2 leading-relaxed text-foreground/75">
+                No departments are registered. You must create at least one Department before you can manage or vectorise department documents.
+              </p>
+              <button
+                type="button"
+                onClick={() => setDeptsOpen(true)}
+                className="mt-4 inline-flex w-full items-center justify-between border border-destructive px-3 py-2 text-[10px] uppercase tracking-[0.22em] text-destructive transition-all hover:bg-destructive hover:text-destructive-foreground"
+              >
+                <span>Register Department</span>
+                <span className="font-mono text-[9px] opacity-60">›</span>
+              </button>
+            </div>
+          ) : activeTab === "brands" && brandsQ.data && brandsQ.data.length === 0 ? (
             <div className="border border-destructive/20 bg-destructive/5 p-4 text-[12px] transition-all duration-300 motion-safe:animate-in motion-safe:fade-in">
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] font-medium text-destructive">
                 System Blocked
@@ -143,26 +209,79 @@ function KnowledgePage() {
             </div>
           ) : (
             <>
-              <div>
-                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-                  Brand
-                </span>
-                <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
-                  <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
-                  <select
-                    value={effectiveBrandId}
-                    onChange={(e) => setBrandId(e.target.value)}
-                    className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
-                  >
-                    {brandsQ.data?.map((b) => (
-                      <option key={b.id} value={b.id} className="bg-background">
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
-                </div>
-              </div>
+              {activeTab === "brands" ? (
+                <>
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
+                      Brand
+                    </span>
+                    <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+                      <select
+                        value={effectiveBrandId}
+                        onChange={(e) => setBrandId(e.target.value)}
+                        className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
+                      >
+                        {brandsQ.data?.map((b) => (
+                          <option key={b.id} value={b.id} className="bg-background">
+                            {b.name}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
+                      Department (Required)
+                    </span>
+                    <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+                      <select
+                        value={effectiveDeptId}
+                        onChange={(e) => {
+                          setSelectedDeptId(e.target.value);
+                          setUploadDeptRoleId("");
+                        }}
+                        className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
+                      >
+                        {deptsQ.data?.map((d) => (
+                          <option key={d.id} value={d.id} className="bg-background">
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
+                      Department Role (Optional)
+                    </span>
+                    <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+                      <select
+                        value={uploadDeptRoleId}
+                        disabled={!effectiveDeptId}
+                        onChange={(e) => setUploadDeptRoleId(e.target.value)}
+                        className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
+                      >
+                        <option value="" className="bg-background text-foreground/50">Select Role</option>
+                        {deptsQ.data?.find((d) => d.id === effectiveDeptId)?.roles?.map((r) => (
+                          <option key={r.id} value={r.id} className="bg-background text-foreground">
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div>
                 <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
@@ -254,13 +373,19 @@ function KnowledgePage() {
 
               <button
                 type="button"
-                disabled={!file || !effectiveBrandId || uploadM.isPending}
+                disabled={
+                  !file ||
+                  uploadM.isPending ||
+                  (activeTab === "brands" ? !effectiveBrandId : !effectiveDeptId)
+                }
                 onClick={() =>
                   uploadM.mutate({
                     file: file!,
-                    brand_id: effectiveBrandId,
+                    brand_id: activeTab === "brands" ? effectiveBrandId : undefined,
                     asset_type: assetType,
                     title,
+                    department_id: activeTab === "brands" ? undefined : effectiveDeptId,
+                    department_role_id: activeTab === "brands" ? undefined : (uploadDeptRoleId || undefined),
                   })
                 }
                 className="relative overflow-hidden inline-flex items-center justify-between border border-[var(--accent)] px-5 py-3 text-[11px] uppercase tracking-[0.28em] text-foreground transition-all hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -286,9 +411,11 @@ function KnowledgePage() {
                   onRetry={() =>
                     uploadM.mutate({
                       file: file!,
-                      brand_id: effectiveBrandId,
+                      brand_id: activeTab === "brands" ? effectiveBrandId : undefined,
                       asset_type: assetType,
                       title,
+                      department_id: activeTab === "brands" ? undefined : effectiveDeptId,
+                      department_role_id: activeTab === "brands" ? undefined : (uploadDeptRoleId || undefined),
                     })
                   }
                 />
@@ -299,7 +426,9 @@ function KnowledgePage() {
 
         <section className="flex flex-col overflow-hidden">
           <div className="flex items-center justify-between gap-4 border-b border-border px-8 py-4">
-            <h2 className="font-display text-[15px] text-foreground/80">Repository</h2>
+            <h2 className="font-display text-[15px] text-foreground/80">
+              {activeTab === "brands" ? "Brand Repository" : "Department Repository"}
+            </h2>
             <div className="relative">
               <input
                 ref={searchRef}
@@ -321,17 +450,31 @@ function KnowledgePage() {
             <div className="border-double-thick bg-card shadow-lg">
               <table className="w-full table-fixed text-left">
                 <colgroup>
-                  <col className="w-[20%]" />
-                  <col className="w-[14%]" />
-                  <col className="w-[9%]" />
-                  <col className="w-[18%]" />
-                  <col className="w-[9%]" />
-                  <col className="w-[30%]" />
+                  {activeTab === "brands" ? (
+                    <>
+                      <col className="w-[35%]" />
+                      <col className="w-[12%]" />
+                      <col className="w-[15%]" />
+                      <col className="w-[13%]" />
+                      <col className="w-[25%]" />
+                    </>
+                  ) : (
+                    <>
+                      <col className="w-[25%]" />
+                      <col className="w-[20%]" />
+                      <col className="w-[10%]" />
+                      <col className="w-[12%]" />
+                      <col className="w-[10%]" />
+                      <col className="w-[23%]" />
+                    </>
+                  )}
                 </colgroup>
                 <thead>
                   <tr className="border-b-4 border-double border-border bg-foreground/[0.03] text-[10px] uppercase tracking-[0.22em] text-foreground/60">
                     <th className="px-4 py-3 font-normal">Title</th>
-                    <th className="px-4 py-3 font-normal">Brand</th>
+                    {activeTab === "departments" && (
+                      <th className="px-4 py-3 font-normal">Role</th>
+                    )}
                     <th className="px-4 py-3 font-normal">Type</th>
                     <th className="px-4 py-3 font-normal">Status</th>
                     <th className="px-4 py-3 font-normal">Created</th>
@@ -342,7 +485,7 @@ function KnowledgePage() {
                   {listQ.isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <tr key={i} className="border-b border-border last:border-0">
-                        {Array.from({ length: 6 }).map((_, j) => (
+                        {Array.from({ length: activeTab === "brands" ? 5 : 6 }).map((_, j) => (
                           <td key={j} className="px-4 py-3 align-top">
                             <div className="h-3 animate-pulse rounded-sm bg-foreground/5" />
                           </td>
@@ -351,7 +494,7 @@ function KnowledgePage() {
                     ))
                   ) : listQ.isError ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-16 text-center text-[12px] text-destructive">
+                      <td colSpan={activeTab === "brands" ? 5 : 6} className="px-4 py-16 text-center text-[12px] text-destructive">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <span>Failed to load knowledge assets.</span>
                           <button
@@ -367,7 +510,6 @@ function KnowledgePage() {
                   ) : (
                     <>
                       {filtered.map((a, idx) => {
-                        const brandName = brandsQ.data?.find((b) => b.id === a.brand_id)?.name || "—";
                         return (
                           <tr
                             key={a.id}
@@ -377,9 +519,13 @@ function KnowledgePage() {
                             <td className="px-4 py-3 align-top text-foreground font-semibold">
                               <span className="line-clamp-2 leading-snug" title={a.title}>{a.title}</span>
                             </td>
-                            <td className="px-4 py-3 align-top text-foreground/60 font-mono text-[11px]">
-                              <span className="block truncate" title={brandName}>{brandName}</span>
-                            </td>
+                            {activeTab === "departments" && (
+                              <td className="px-4 py-3 align-top text-foreground/60 font-mono text-[11px]">
+                                <span className="block truncate" title={a.department_role?.name || "All Roles"}>
+                                  {a.department_role?.name || "All Roles"}
+                                </span>
+                              </td>
+                            )}
                             <td className="px-4 py-3 align-top whitespace-nowrap">
                               <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-foreground/75">
                                 [ <span className="text-foreground/60 font-semibold">{a.asset_type}</span> ]
@@ -394,14 +540,16 @@ function KnowledgePage() {
                             <td className="px-4 py-3 align-top text-right font-mono text-[11px] uppercase tracking-[0.1em]">
                               <div className="flex flex-wrap items-center justify-end gap-2 gap-y-1.5">
                                 <DownloadButton asset={a} />
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingAsset(a)}
-                                  className="text-foreground/45 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                  title="Reassign Brand"
-                                >
-                                  [Reassign]
-                                </button>
+                                {activeTab === "brands" ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingAsset(a)}
+                                    className="text-foreground/45 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    title="Reassign Brand"
+                                  >
+                                    [Reassign]
+                                  </button>
+                                ) : null}
                                 <button
                                   type="button"
                                   onClick={() => setDeletingAsset(a)}
@@ -441,7 +589,7 @@ function KnowledgePage() {
                                   <ul className="space-y-2 text-[11px] text-foreground/60">
                                     <li className="flex items-center gap-2">
                                       <span className="font-mono text-[9px] text-[var(--accent)]">[1]</span>
-                                      <span>Select target Brand in sidebar</span>
+                                      <span>Select target {activeTab === "brands" ? "Brand" : "Department"} in sidebar</span>
                                     </li>
                                     <li className="flex items-center gap-2">
                                       <span className="font-mono text-[9px] text-[var(--accent)]">[2]</span>
@@ -480,6 +628,10 @@ function KnowledgePage() {
 
       {brandsOpen ? (
         <BrandsManager brands={brandsQ.data ?? []} onClose={() => setBrandsOpen(false)} />
+      ) : null}
+
+      {deptsOpen ? (
+        <DepartmentsManager onClose={() => setDeptsOpen(false)} />
       ) : null}
 
       {editingAsset ? (
@@ -739,7 +891,7 @@ interface EditBrandModalProps {
 }
 
 function EditBrandModal({ asset, brands, onClose, onSave }: EditBrandModalProps) {
-  const [selectedBrandId, setSelectedBrandId] = useState(asset.brand_id);
+  const [selectedBrandId, setSelectedBrandId] = useState(asset.brand_id || "");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300 motion-safe:animate-in motion-safe:fade-in">
@@ -877,5 +1029,387 @@ function DeleteDocDialog({
         </div>
       </div>
     </div>
+  );
+}
+
+/* ---------- Departments Manager drawer ---------- */
+
+function DepartmentsManager({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const deptsQ = useQuery({ queryKey: ["departments"], queryFn: departmentsApi.listDepartments });
+  const operatorsQ = useQuery({ queryKey: ["operators"], queryFn: usersApi.listOperators });
+
+  const createDeptM = useMutation({
+    mutationFn: departmentsApi.createDepartment,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
+  });
+  const updateDeptM = useMutation({
+    mutationFn: ({ id, name }: { id: UUID; name: string }) => departmentsApi.updateDepartment(id, name),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
+  });
+  const deleteDeptM = useMutation({
+    mutationFn: departmentsApi.deleteDepartment,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
+  });
+
+  const createRoleM = useMutation({
+    mutationFn: ({ deptId, name }: { deptId: UUID; name: string }) => departmentsApi.createRole(deptId, name),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
+  });
+  const updateRoleM = useMutation({
+    mutationFn: ({ deptId, id, name }: { deptId: UUID; id: UUID; name: string }) => departmentsApi.updateRole(deptId, id, name),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
+  });
+  const deleteRoleM = useMutation({
+    mutationFn: ({ deptId, id }: { deptId: UUID; id: UUID }) => departmentsApi.deleteRole(deptId, id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
+  });
+
+  const assignUserM = useMutation({
+    mutationFn: ({ userId, patch }: { userId: UUID; patch: Parameters<typeof usersApi.updateOperator>[1] }) =>
+      usersApi.updateOperator(userId, patch),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["operators"] });
+      qc.invalidateQueries({ queryKey: ["departments"] });
+    },
+  });
+
+  const unassignUserM = useMutation({
+    mutationFn: (userId: UUID) =>
+      usersApi.updateOperator(userId, { department_id: null, department_role_id: null }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["operators"] });
+      qc.invalidateQueries({ queryKey: ["departments"] });
+    },
+  });
+
+  const [newDeptName, setNewDeptName] = useState("");
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity duration-300 motion-safe:animate-in motion-safe:fade-in">
+      <div className="flex w-full max-w-[520px] flex-col border-l-[6px] border-double border-border bg-[var(--card)] transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] motion-safe:animate-in motion-safe:slide-in-from-right-full">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40 font-semibold">
+              Administration
+            </div>
+            <div className="text-[15px] text-foreground font-semibold">Departments &amp; Roles</div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-[3px] p-1.5 text-foreground/40 hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+          >
+            <X className="size-4" strokeWidth={1.5} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!newDeptName.trim()) return;
+              createDeptM.mutate(newDeptName.trim(), {
+                onSuccess: () => setNewDeptName(""),
+              });
+            }}
+            className="flex gap-2"
+          >
+            <input
+              value={newDeptName}
+              onChange={(e) => setNewDeptName(e.target.value)}
+              placeholder="New department name..."
+              className="flex-1 border border-border bg-transparent px-3 py-2 text-[13px] text-foreground outline-none transition-colors duration-300 focus:border-foreground/35"
+            />
+            <button
+              type="submit"
+              disabled={createDeptM.isPending || !newDeptName.trim()}
+              className="inline-flex items-center gap-1 border border-foreground/15 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/90 transition-all hover:border-[var(--accent)] hover:text-foreground disabled:opacity-40"
+            >
+              <Plus className="size-3" strokeWidth={2} /> Add
+            </button>
+          </form>
+
+          {deptsQ.isLoading ? (
+            <div className="text-[12px] font-mono text-foreground/45">Loading...</div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {deptsQ.data?.map((dept) => (
+                <DepartmentSection
+                  key={dept.id}
+                  dept={dept}
+                  onUpdateDept={(name) => updateDeptM.mutate({ id: dept.id, name })}
+                  onDeleteDept={() => deleteDeptM.mutate(dept.id)}
+                  onCreateRole={(name) => createRoleM.mutate({ deptId: dept.id, name })}
+                  onUpdateRole={(roleId, name) => updateRoleM.mutate({ deptId: dept.id, id: roleId, name })}
+                  onDeleteRole={(roleId) => deleteRoleM.mutate({ deptId: dept.id, id: roleId })}
+                  operators={operatorsQ.data ?? []}
+                  assignUserM={assignUserM}
+                  unassignUserM={unassignUserM}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DepartmentSection({
+  dept,
+  onUpdateDept,
+  onDeleteDept,
+  onCreateRole,
+  onUpdateRole,
+  onDeleteRole,
+  operators,
+  assignUserM,
+  unassignUserM,
+}: {
+  dept: Department;
+  onUpdateDept: (name: string) => void;
+  onDeleteDept: () => void;
+  onCreateRole: (name: string) => void;
+  onUpdateRole: (roleId: UUID, name: string) => void;
+  onDeleteRole: (roleId: UUID) => void;
+  operators: any[];
+  assignUserM: any;
+  unassignUserM: any;
+}) {
+  const [editingDept, setEditingDept] = useState(false);
+  const [deptName, setDeptName] = useState(dept.name);
+  const [newRoleName, setNewRoleName] = useState("");
+  const [assignUserId, setAssignUserId] = useState("");
+  const [assignRoleId, setAssignRoleId] = useState("");
+
+  const assignedUsers = operators.filter((u) => u.department_id === dept.id);
+
+  return (
+    <div className="border border-border p-4 bg-foreground/[0.01] rounded-[3px] shadow-sm">
+      <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
+        {editingDept ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (deptName.trim()) {
+                onUpdateDept(deptName.trim());
+                setEditingDept(false);
+              }
+            }}
+            className="flex-1 flex gap-2"
+          >
+            <input
+              value={deptName}
+              onChange={(e) => setDeptName(e.target.value)}
+              className="flex-1 border-b border-border bg-transparent font-semibold py-0.5 text-[13px] text-foreground outline-none"
+            />
+            <button type="submit" className="text-[11px] font-mono text-[var(--accent)]">[Save]</button>
+            <button
+              type="button"
+              onClick={() => {
+                setDeptName(dept.name);
+                setEditingDept(false);
+              }}
+              className="text-[11px] font-mono text-foreground/45"
+            >
+              [Cancel]
+            </button>
+          </form>
+        ) : (
+          <>
+            <span className="font-semibold text-[13px] text-foreground">{dept.name}</span>
+            <div className="flex gap-2 font-mono text-[11px]">
+              <button onClick={() => setEditingDept(true)} className="text-foreground/45 hover:text-foreground">[Edit]</button>
+              <button onClick={onDeleteDept} className="text-destructive/60 hover:text-destructive">[Delete]</button>
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="pl-4 flex flex-col gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/45">Roles in Department</span>
+        
+        {dept.roles && dept.roles.length > 0 ? (
+          <ul className="flex flex-col gap-1.5">
+            {dept.roles.map((role) => (
+              <RoleItem
+                key={role.id}
+                role={role}
+                onUpdate={(name) => onUpdateRole(role.id, name)}
+                onDelete={() => onDeleteRole(role.id)}
+              />
+            ))}
+          </ul>
+        ) : (
+          <span className="text-[11px] text-foreground/40 italic font-mono">No roles configured.</span>
+        )}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (newRoleName.trim()) {
+              onCreateRole(newRoleName.trim());
+              setNewRoleName("");
+            }
+          }}
+          className="mt-2 flex gap-2 border-t border-dashed border-border/60 pt-3"
+        >
+          <input
+            value={newRoleName}
+            onChange={(e) => setNewRoleName(e.target.value)}
+            placeholder="Add new role..."
+            className="flex-1 border-b border-border/60 bg-transparent py-0.5 font-mono text-[12px] text-foreground outline-none placeholder:text-foreground/30 focus:border-foreground/35"
+          />
+          <button
+            type="submit"
+            disabled={!newRoleName.trim()}
+            className="text-[11px] uppercase tracking-[0.15em] font-medium text-foreground/75 disabled:opacity-30"
+          >
+            Add Role
+          </button>
+        </form>
+      </div>
+
+      {/* User Assignment section */}
+      <div className="pl-4 mt-4 border-t border-dashed border-border/60 pt-3 flex flex-col gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/45">Assigned Users</span>
+        
+        {assignedUsers.length > 0 ? (
+          <ul className="flex flex-col gap-1.5">
+            {assignedUsers.map((u) => (
+              <li key={u.id} className="flex justify-between items-center text-[12px] font-mono text-foreground/70">
+                <span className="truncate pr-2" title={`${u.full_name} - ${u.email}`}>
+                  {u.full_name} <span className="text-foreground/40 font-light">[{u.department_role?.name || "—"}]</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => unassignUserM.mutate(u.id)}
+                  disabled={unassignUserM.isPending}
+                  className="text-destructive/50 hover:text-destructive whitespace-nowrap focus-visible:outline-none"
+                >
+                  [Remove]
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <span className="text-[11px] text-foreground/40 italic font-mono">No users assigned.</span>
+        )}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (assignUserId) {
+              assignUserM.mutate({
+                userId: assignUserId,
+                patch: {
+                  department_id: dept.id,
+                  department_role_id: assignRoleId || null,
+                },
+              }, {
+                onSuccess: () => {
+                  setAssignUserId("");
+                  setAssignRoleId("");
+                }
+              });
+            }
+          }}
+          className="mt-2 flex flex-col gap-2 bg-foreground/[0.02] p-2 border border-border/40 rounded-[3px]"
+        >
+          <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-foreground/40">Assign User</span>
+          
+          <select
+            value={assignUserId}
+            onChange={(e) => setAssignUserId(e.target.value)}
+            className="w-full bg-background border border-border/60 py-1 px-2 text-[11px] font-mono text-foreground outline-none cursor-pointer"
+          >
+            <option value="">Select User...</option>
+            {operators.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.full_name} ({u.email})
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={assignRoleId}
+            onChange={(e) => setAssignRoleId(e.target.value)}
+            disabled={!assignUserId}
+            className="w-full bg-background border border-border/60 py-1 px-2 text-[11px] font-mono text-foreground outline-none cursor-pointer disabled:opacity-40"
+          >
+            <option value="">Select Role (Optional)...</option>
+            {dept.roles?.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="submit"
+            disabled={!assignUserId || assignUserM.isPending}
+            className="w-full border border-foreground/15 py-1 text-[10px] uppercase tracking-[0.15em] font-medium text-foreground hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors disabled:opacity-30"
+          >
+            {assignUserM.isPending ? "Assigning..." : "Assign"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function RoleItem({
+  role,
+  onUpdate,
+  onDelete,
+}: {
+  role: DepartmentRole;
+  onUpdate: (name: string) => void;
+  onDelete: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [roleName, setRoleName] = useState(role.name);
+
+  if (editing) {
+    return (
+      <li className="flex gap-2 items-center">
+        <input
+          value={roleName}
+          onChange={(e) => setRoleName(e.target.value)}
+          className="flex-1 border-b border-border bg-transparent py-0.5 text-[12px] font-mono text-foreground outline-none"
+        />
+        <button
+          onClick={() => {
+            if (roleName.trim()) {
+              onUpdate(roleName.trim());
+              setEditing(false);
+            }
+          }}
+          className="text-[11px] font-mono text-[var(--accent)]"
+        >
+          [Save]
+        </button>
+        <button
+          onClick={() => {
+            setRoleName(role.name);
+            setEditing(false);
+          }}
+          className="text-[11px] font-mono text-foreground/45"
+        >
+          [Cancel]
+        </button>
+      </li>
+    );
+  }
+
+  return (
+    <li className="flex justify-between items-center text-[12px] font-mono text-foreground/70">
+      <span>{role.name}</span>
+      <div className="flex gap-2">
+        <button onClick={() => setEditing(true)} className="text-foreground/40 hover:text-foreground">[Edit]</button>
+        <button onClick={onDelete} className="text-destructive/50 hover:text-destructive">[Delete]</button>
+      </div>
+    </li>
   );
 }

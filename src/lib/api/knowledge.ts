@@ -1,5 +1,5 @@
 import { USE_MOCKS, BASE_URL, apiFetch, delay, mockId } from "./client";
-import { mockKnowledge } from "./mocks/data";
+import { mockKnowledge, mockDepartments } from "./mocks/data";
 import type { AssetType, KnowledgeAsset, UUID } from "./types";
 import { useSessionStore } from "@/stores/session";
 
@@ -12,6 +12,15 @@ export async function listByBrand(brand_id: UUID): Promise<KnowledgeAsset[]> {
   return apiFetch<KnowledgeAsset[]>(`/api/knowledge/${brand_id}`);
 }
 
+/** GET /api/knowledge/department/:department_id */
+export async function listByDepartment(department_id: UUID): Promise<KnowledgeAsset[]> {
+  if (USE_MOCKS) {
+    await delay(180);
+    return mockKnowledge.filter((k) => k.department_id === department_id);
+  }
+  return apiFetch<KnowledgeAsset[]>(`/api/knowledge/department/${department_id}`);
+}
+
 export async function listAll(): Promise<KnowledgeAsset[]> {
   if (USE_MOCKS) {
     await delay(120);
@@ -22,24 +31,32 @@ export async function listAll(): Promise<KnowledgeAsset[]> {
 
 export interface UploadInput {
   file: File;
-  brand_id: UUID;
+  brand_id?: UUID;
   asset_type: AssetType;
   title: string;
+  department_id?: UUID;
+  department_role_id?: UUID;
 }
 
 /** POST /api/knowledge/upload — admin only. Multipart; Node notifies n8n. */
 export async function upload(input: UploadInput): Promise<KnowledgeAsset> {
   if (USE_MOCKS) {
     await delay(640);
+    const dept = input.department_id ? mockDepartments.find((d) => d.id === input.department_id) : null;
+    const role = input.department_role_id && dept ? dept.roles?.find((r) => r.id === input.department_role_id) : null;
     const asset: KnowledgeAsset = {
       id: mockId(),
-      brand_id: input.brand_id,
+      brand_id: input.brand_id || null,
       title: input.title || input.file.name,
       asset_type: input.asset_type,
       status: "Active",
       source_file_url: `/mock/${input.file.name}`,
       pgvector_ref_id: null,
       vectorization_status: "Pending",
+      department_id: input.department_id,
+      department_role_id: input.department_role_id,
+      department: dept ? { id: dept.id, name: dept.name } : null,
+      department_role: role ? { id: role.id, name: role.name } : null,
       created_at: new Date().toISOString(),
     };
     mockKnowledge.unshift(asset);
@@ -52,9 +69,11 @@ export async function upload(input: UploadInput): Promise<KnowledgeAsset> {
 
   const fd = new FormData();
   fd.append("file", input.file);
-  fd.append("brand_id", input.brand_id);
+  if (input.brand_id) fd.append("brand_id", input.brand_id);
   fd.append("asset_type", input.asset_type);
   fd.append("title", input.title);
+  if (input.department_id) fd.append("department_id", input.department_id);
+  if (input.department_role_id) fd.append("department_role_id", input.department_role_id);
   return apiFetch<KnowledgeAsset>("/api/knowledge/upload", { method: "POST", body: fd });
 }
 

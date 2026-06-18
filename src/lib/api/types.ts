@@ -10,6 +10,22 @@ export type AssetType = "SOP" | "Dogma" | "Gold" | "Jewel";
 export type VectorizationStatus = "Pending" | "Embedded" | "Error";
 export type BrandStatus = "Active" | "Paused" | "Archived";
 
+export interface DepartmentRole {
+  id: UUID;
+  name: string;
+  department_id: UUID;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Department {
+  id: UUID;
+  name: string;
+  roles?: DepartmentRole[];
+  created_at?: string;
+  updated_at?: string;
+}
+
 export type SessionStatus = "Open" | "Closed" | "Archived";
 export type ResolutionStatus = "Unresolved" | "Resolved" | "Stalled";
 export type GoldExtractionStatus = "None" | "Pending" | "Extracted" | "Failed";
@@ -26,6 +42,10 @@ export interface User {
   calcification_level?: number | null;
   /** Brands this operator can address. Empty for admins (full access). */
   brand_access?: UUID[];
+  department_id?: UUID | null;
+  department_role_id?: UUID | null;
+  department?: { id: UUID; name: string } | null;
+  department_role?: { id: UUID; name: string } | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,7 +61,7 @@ export interface Brand {
 
 export interface KnowledgeAsset {
   id: UUID;
-  brand_id: UUID;
+  brand_id?: UUID | null;
   title: string;
   asset_type: AssetType;
   status: "Active" | "Archived";
@@ -50,6 +70,10 @@ export interface KnowledgeAsset {
   vectorization_status: VectorizationStatus;
   percent?: number;
   source_session_id?: UUID | null;
+  department_id?: UUID | null;
+  department_role_id?: UUID | null;
+  department?: { id: UUID; name: string } | null;
+  department_role?: { id: UUID; name: string } | null;
   created_at: string;
 }
 

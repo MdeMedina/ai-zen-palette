@@ -1,5 +1,5 @@
 import { USE_MOCKS, apiFetch, delay, mockId } from "./client";
-import { mockBrands, mockSessions, mockUserBrands, mockUsers } from "./mocks/data";
+import { mockBrands, mockSessions, mockUserBrands, mockUsers, mockDepartments } from "./mocks/data";
 import type {
   GlobalRole,
   OperatorDiagnostic,
@@ -29,6 +29,8 @@ export interface CreateOperatorInput {
   password: string;
   global_role: GlobalRole;
   brand_ids: UUID[];
+  department_id?: UUID;
+  department_role_id?: UUID;
 }
 
 /** POST /api/users — admin only. Initializes session_token_n8n on the backend. */
@@ -36,6 +38,9 @@ export async function createOperator(input: CreateOperatorInput): Promise<Operat
   if (USE_MOCKS) {
     await delay(360);
     const now = new Date().toISOString();
+    const dept = input.department_id ? mockDepartments.find((d) => d.id === input.department_id) : null;
+    const role = input.department_role_id && dept ? dept.roles?.find((r) => r.id === input.department_role_id) : null;
+
     const created: User = {
       id: mockId(),
       full_name: input.full_name,
@@ -44,6 +49,11 @@ export async function createOperator(input: CreateOperatorInput): Promise<Operat
       global_role: input.global_role,
       friction_level: 0,
       calcification_level: 0,
+      brand_access: input.brand_ids,
+      department_id: input.department_id,
+      department_role_id: input.department_role_id,
+      department: dept ? { id: dept.id, name: dept.name } : null,
+      department_role: role ? { id: role.id, name: role.name } : null,
       created_at: now,
       updated_at: now,
     };
@@ -93,6 +103,8 @@ export interface UpdateOperatorInput {
   email?: string;
   global_role?: GlobalRole;
   brand_ids?: UUID[];
+  department_id?: UUID | null;
+  department_role_id?: UUID | null;
 }
 
 /** PATCH /api/users/:id */
@@ -110,6 +122,17 @@ export async function updateOperator(
     if (patch.brand_ids !== undefined) {
       mockUserBrands[id] = patch.brand_ids;
       u.brand_access = patch.brand_ids;
+    }
+    if (patch.department_id !== undefined) {
+      u.department_id = patch.department_id;
+      const dept = patch.department_id ? mockDepartments.find((d) => d.id === patch.department_id) : null;
+      u.department = dept ? { id: dept.id, name: dept.name } : null;
+    }
+    if (patch.department_role_id !== undefined) {
+      u.department_role_id = patch.department_role_id;
+      const dept = u.department_id ? mockDepartments.find((d) => d.id === u.department_id) : null;
+      const role = patch.department_role_id && dept ? dept.roles?.find((r) => r.id === patch.department_role_id) : null;
+      u.department_role = role ? { id: role.id, name: role.name } : null;
     }
     u.updated_at = new Date().toISOString();
     return { ...u, brand_ids: mockUserBrands[id] ?? [] };

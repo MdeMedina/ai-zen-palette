@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
-import { brandsApi, usersApi } from "@/lib/api";
-import type { GlobalRole, UUID } from "@/lib/api/types";
+import { brandsApi, usersApi, departmentsApi } from "@/lib/api";
+import type { GlobalRole, UUID, Department, DepartmentRole } from "@/lib/api/types";
 import type { OperatorRow } from "@/lib/api/users";
 import { ErrorBanner } from "@/components/brand/ErrorBanner";
 import { PageHeader } from "@/components/brand/PageHeader";
@@ -61,14 +61,16 @@ function HivePage() {
         eyebrow="Administration"
         title={t.userManagement}
         actions={
-          <button
-            type="button"
-            onClick={() => setDrawerOpen(true)}
-            className="inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <Plus className="size-3.5" strokeWidth={2} />
-            Register Operator
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <Plus className="size-3.5" strokeWidth={2} />
+              Register Operator
+            </button>
+          </div>
         }
       />
 
@@ -79,6 +81,7 @@ function HivePage() {
               <tr className="border-b-4 border-double border-border bg-foreground/[0.03] text-[10px] uppercase tracking-[0.22em] text-foreground/60">
                 <Th>Operator</Th>
                 <Th>Role</Th>
+                <Th>Department / Role</Th>
                 <Th className="text-right" title="Friction level: 0.0–10.0 scale of dialectical resistance">Friction</Th>
                 <Th className="text-right" title="Calcification: delta of defensive pattern rigidity across sessions">Calcification</Th>
                 <Th>Brands</Th>
@@ -90,7 +93,7 @@ function HivePage() {
               {operatorsQ.isLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
                   <tr key={i} className="border-b border-border last:border-0">
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-3 animate-pulse rounded-sm bg-foreground/5" />
                       </td>
@@ -99,7 +102,7 @@ function HivePage() {
                 ))
               ) : operatorsQ.isError ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-[12px] text-destructive">
+                  <td colSpan={8} className="px-4 py-12 text-center text-[12px] text-destructive">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <span>Failed to load operators.</span>
                       <button
@@ -114,7 +117,7 @@ function HivePage() {
                 </tr>
               ) : operatorsQ.data?.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-[12px] text-foreground/40">
+                  <td colSpan={8} className="px-4 py-12 text-center text-[12px] text-foreground/40">
                     No operators registered.{" "}
                     <button
                       type="button"
@@ -150,6 +153,18 @@ function HivePage() {
                         </span>{" "}
                         ]
                       </span>
+                    </Td>
+                    <Td>
+                      {o.department ? (
+                        <div className="min-w-0">
+                          <div className="text-foreground font-semibold truncate" title={o.department.name}>{o.department.name}</div>
+                          <div className="font-mono text-[11px] text-foreground/45 truncate mt-0.5" title={o.department_role?.name || "—"}>
+                            {o.department_role?.name || "—"}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-foreground/30 font-light">—</span>
+                      )}
                     </Td>
                     <Td className="text-right font-mono text-[12px]">
                       <span className="text-foreground/30 font-light">[</span> <TelemetryNumber value={o.friction_level} /> <span className="text-foreground/30 font-light">]</span>
@@ -232,6 +247,8 @@ function HivePage() {
           onRetry={() => deleteM.mutate(deleting.id)}
         />
       ) : null}
+
+
     </div>
   );
 }
@@ -269,6 +286,8 @@ function RegisterDrawer({
     password: string;
     global_role: GlobalRole;
     brand_ids: UUID[];
+    department_id?: UUID;
+    department_role_id?: UUID;
   }) => void;
 }) {
   const [full_name, setFullName] = useState("");
@@ -276,6 +295,12 @@ function RegisterDrawer({
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<GlobalRole>("operator");
   const [brandIds, setBrandIds] = useState<UUID[]>([]);
+  const [departmentId, setDepartmentId] = useState<UUID | "">("");
+  const [departmentRoleId, setDepartmentRoleId] = useState<UUID | "">("");
+
+  const deptsQ = useQuery({ queryKey: ["departments"], queryFn: departmentsApi.listDepartments });
+  const selectedDept = deptsQ.data?.find((d) => d.id === departmentId);
+  const deptRoles = selectedDept?.roles ?? [];
 
   const toggleBrand = (id: UUID) =>
     setBrandIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -303,7 +328,15 @@ function RegisterDrawer({
           className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-6"
           onSubmit={(e) => {
             e.preventDefault();
-            onSubmit({ full_name, email, password, global_role: role, brand_ids: brandIds });
+            onSubmit({
+              full_name,
+              email,
+              password,
+              global_role: role,
+              brand_ids: brandIds,
+              department_id: departmentId || undefined,
+              department_role_id: departmentRoleId || undefined,
+            });
           }}
         >
           <Input label="Full name" value={full_name} onChange={setFullName} required />
@@ -328,6 +361,50 @@ function RegisterDrawer({
                   {r}
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Department</Label>
+            <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
+              <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+              <select
+                value={departmentId}
+                onChange={(e) => {
+                  setDepartmentId(e.target.value);
+                  setDepartmentRoleId("");
+                }}
+                className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
+              >
+                <option value="" className="bg-background text-foreground/50">Select Department</option>
+                {deptsQ.data?.map((d) => (
+                  <option key={d.id} value={d.id} className="bg-background text-foreground">
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+              <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+            </div>
+          </div>
+
+          <div>
+            <Label>Department Role</Label>
+            <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
+              <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+              <select
+                value={departmentRoleId}
+                disabled={!departmentId}
+                onChange={(e) => setDepartmentRoleId(e.target.value)}
+                className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
+              >
+                <option value="" className="bg-background text-foreground/50">Select Role</option>
+                {deptRoles.map((r) => (
+                  <option key={r.id} value={r.id} className="bg-background text-foreground">
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+              <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
             </div>
           </div>
 
@@ -426,12 +503,20 @@ function EditDrawer({
     email?: string;
     global_role?: GlobalRole;
     brand_ids?: UUID[];
+    department_id?: UUID | null;
+    department_role_id?: UUID | null;
   }) => void;
 }) {
   const [full_name, setFullName] = useState(operator.full_name);
   const [email, setEmail] = useState(operator.email);
   const [role, setRole] = useState<GlobalRole>(operator.global_role);
   const [brandIds, setBrandIds] = useState<UUID[]>(operator.brand_ids);
+  const [departmentId, setDepartmentId] = useState<UUID | "">(operator.department_id || "");
+  const [departmentRoleId, setDepartmentRoleId] = useState<UUID | "">(operator.department_role_id || "");
+
+  const deptsQ = useQuery({ queryKey: ["departments"], queryFn: departmentsApi.listDepartments });
+  const selectedDept = deptsQ.data?.find((d) => d.id === departmentId);
+  const deptRoles = selectedDept?.roles ?? [];
 
   const toggleBrand = (id: UUID) =>
     setBrandIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -459,7 +544,14 @@ function EditDrawer({
           className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-6"
           onSubmit={(e) => {
             e.preventDefault();
-            onSubmit({ full_name, email, global_role: role, brand_ids: brandIds });
+            onSubmit({
+              full_name,
+              email,
+              global_role: role,
+              brand_ids: brandIds,
+              department_id: departmentId || null,
+              department_role_id: departmentRoleId || null,
+            });
           }}
         >
           <Input label="Full name" value={full_name} onChange={setFullName} required />
@@ -483,6 +575,50 @@ function EditDrawer({
                   {r}
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Department</Label>
+            <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
+              <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+              <select
+                value={departmentId}
+                onChange={(e) => {
+                  setDepartmentId(e.target.value);
+                  setDepartmentRoleId("");
+                }}
+                className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
+              >
+                <option value="" className="bg-background text-foreground/50">Select Department</option>
+                {deptsQ.data?.map((d) => (
+                  <option key={d.id} value={d.id} className="bg-background text-foreground">
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+              <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+            </div>
+          </div>
+
+          <div>
+            <Label>Department Role</Label>
+            <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
+              <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+              <select
+                value={departmentRoleId}
+                disabled={!departmentId}
+                onChange={(e) => setDepartmentRoleId(e.target.value)}
+                className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
+              >
+                <option value="" className="bg-background text-foreground/50">Select Role</option>
+                {deptRoles.map((r) => (
+                  <option key={r.id} value={r.id} className="bg-background text-foreground">
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+              <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
             </div>
           </div>
 

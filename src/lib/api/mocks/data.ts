@@ -4,6 +4,8 @@ import type {
   KnowledgeAsset,
   SessionRecord,
   User,
+  Department,
+  DepartmentRole,
 } from "../types";
 
 export const mockBrands: Brand[] = [
@@ -33,6 +35,37 @@ export const mockBrands: Brand[] = [
   },
 ];
 
+export const mockDepartments: Department[] = [
+  {
+    id: "marketing-dept-id",
+    name: "Marketing",
+    roles: [
+      { id: "marketing-manager-role-id", name: "Marketing Manager", department_id: "marketing-dept-id" }
+    ]
+  },
+  {
+    id: "finance-dept-id",
+    name: "Finanzas",
+    roles: [
+      { id: "financial-analyst-role-id", name: "Analista Financiero", department_id: "finance-dept-id" }
+    ]
+  },
+  {
+    id: "tech-dept-id",
+    name: "Tecnología",
+    roles: [
+      { id: "tech-lead-role-id", name: "Desarrollador Lead", department_id: "tech-dept-id" }
+    ]
+  },
+  {
+    id: "direccion-dept-id",
+    name: "Dirección",
+    roles: [
+      { id: "director-role-id", name: "Director General", department_id: "direccion-dept-id" }
+    ]
+  }
+];
+
 export const mockUsers: User[] = [
   {
     id: "a0000000-0000-4000-8000-000000000001",
@@ -42,6 +75,10 @@ export const mockUsers: User[] = [
     friction_level: 0,
     calcification_level: 0,
     brand_access: [],
+    department_id: "direccion-dept-id",
+    department_role_id: "director-role-id",
+    department: { id: "direccion-dept-id", name: "Dirección" },
+    department_role: { id: "director-role-id", name: "Director General" },
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-05-22T00:00:00Z",
   },
@@ -53,6 +90,10 @@ export const mockUsers: User[] = [
     friction_level: 62,
     calcification_level: 34,
     brand_access: ["11111111-1111-4111-8111-111111111111"],
+    department_id: "marketing-dept-id",
+    department_role_id: "marketing-manager-role-id",
+    department: { id: "marketing-dept-id", name: "Marketing" },
+    department_role: { id: "marketing-manager-role-id", name: "Marketing Manager" },
     created_at: "2026-02-11T00:00:00Z",
     updated_at: "2026-05-22T00:00:00Z",
   },
@@ -64,6 +105,10 @@ export const mockUsers: User[] = [
     friction_level: 81,
     calcification_level: 58,
     brand_access: ["22222222-2222-4222-8222-222222222222"],
+    department_id: "finance-dept-id",
+    department_role_id: "financial-analyst-role-id",
+    department: { id: "finance-dept-id", name: "Finanzas" },
+    department_role: { id: "financial-analyst-role-id", name: "Analista Financiero" },
     created_at: "2026-03-02T00:00:00Z",
     updated_at: "2026-05-22T00:00:00Z",
   },
@@ -78,6 +123,10 @@ export const mockUsers: User[] = [
       "11111111-1111-4111-8111-111111111111",
       "22222222-2222-4222-8222-222222222222",
     ],
+    department_id: "tech-dept-id",
+    department_role_id: "tech-lead-role-id",
+    department: { id: "tech-dept-id", name: "Tecnología" },
+    department_role: { id: "tech-lead-role-id", name: "Desarrollador Lead" },
     created_at: "2026-04-19T00:00:00Z",
     updated_at: "2026-05-22T00:00:00Z",
   },
@@ -93,6 +142,10 @@ export const mockKnowledge: KnowledgeAsset[] = [
     source_file_url: "/mock/vertebra-dogma.pdf",
     pgvector_ref_id: "pg_vec_001",
     vectorization_status: "Embedded",
+    department_id: "marketing-dept-id",
+    department_role_id: "marketing-manager-role-id",
+    department: { id: "marketing-dept-id", name: "Marketing" },
+    department_role: { id: "marketing-manager-role-id", name: "Marketing Manager" },
     created_at: "2026-04-02T11:20:00Z",
   },
   {
@@ -104,6 +157,10 @@ export const mockKnowledge: KnowledgeAsset[] = [
     source_file_url: "/mock/sop-crisis.pdf",
     pgvector_ref_id: "pg_vec_002",
     vectorization_status: "Embedded",
+    department_id: "direccion-dept-id",
+    department_role_id: "director-role-id",
+    department: { id: "direccion-dept-id", name: "Dirección" },
+    department_role: { id: "director-role-id", name: "Director General" },
     created_at: "2026-04-15T11:20:00Z",
   },
   {
