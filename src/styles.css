@@ -146,11 +146,15 @@
   --shadow-elegant: 0 30px 60px -30px color-mix(in oklab, black 70%, transparent);
   --grid-line: color-mix(in oklab, var(--accent) 8%, transparent);
   --conversation-sidebar: color-mix(in oklab, var(--card) 30%, transparent);
+  --chat-user-bg: color-mix(in oklab, var(--accent) 6%, transparent);
+  --chat-ai-bg: transparent;
 }
 
 :root.light, .light {
   --background: oklch(1 0 0);
   --conversation-sidebar: #f8f8f7;
+  --chat-user-bg: #fefbe6;
+  --chat-ai-bg: oklch(0.12 0.01 80 / 3%);
   --foreground: oklch(0.12 0.01 80);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.12 0.01 80);
@@ -266,7 +270,7 @@
 }
 
 @layer utilities {
-  .font-display { font-family: var(--font-display); }
+  .font-display { font-family: var(--font-sans); font-weight: 700; }
   .font-mono { font-family: var(--font-mono); }
 
   .text-accent { color: var(--accent); }
@@ -300,11 +304,6 @@
 
   .font-sonoran {
     font-family: 'SONORAN', sans-serif !important;
-  }
-
-  .light .font-display {
-    font-family: var(--font-sans) !important;
-    font-weight: 700 !important;
   }
 
   .light .border-double-thick {
