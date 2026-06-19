@@ -14,6 +14,7 @@ export async function mySessions(userId: UUID): Promise<SessionRecord[]> {
 export interface CreateSessionInput {
   brand_id?: UUID | null;
   title: string;
+  prompt?: string;
 }
 
 /** POST /api/sessions — returns session_id; chat then bypasses Node to n8n directly. */
@@ -23,6 +24,15 @@ export async function createSession(
 ): Promise<SessionRecord> {
   if (USE_MOCKS) {
     await delay(220);
+    const initialTranscript = input.prompt ? [
+      {
+        id: mockId(),
+        role: "user" as const,
+        text: input.prompt,
+        ts: new Date().toISOString(),
+      }
+    ] : [];
+
     const s: SessionRecord = {
       id: mockId(),
       user_id: userId,
@@ -38,7 +48,7 @@ export async function createSession(
       resolution_status: "Unresolved",
       integration_signal_received_at: null,
       gold_extraction_status: "None",
-      transcript_payload: [],
+      transcript_payload: initialTranscript,
       glitches: [],
       extracted_asset_id: null,
       created_at: new Date().toISOString(),

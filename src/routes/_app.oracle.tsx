@@ -39,6 +39,8 @@ function OraclePage() {
     { kind: "create"; scope: null } | { kind: "send"; scope: string; prompt: string } | null
   >(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  sessionIdRef.current = sessionId;
 
   const selected = sessionsQ.data?.find((s) => s.id === sessionId) ?? null;
   const mode: Mode = !selected ? "new" : selected.status === "Open" ? "open" : "closed";
@@ -53,7 +55,8 @@ function OraclePage() {
   }, [selected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const createSession = useMutation({
-    mutationFn: (title: string) => sessionsApi.createSession({ title }, user.id),
+    mutationFn: ({ title, prompt }: { title: string; prompt: string }) =>
+      sessionsApi.createSession({ title, prompt }, user.id),
   });
 
   const reopenM = useMutation({
@@ -64,7 +67,7 @@ function OraclePage() {
   const send = useMutation({
     mutationFn: chatApi.sendPrompt,
     onSuccess: (reply, variables) => {
-      if (variables.session_id === sessionId) {
+      if (variables.session_id === sessionIdRef.current) {
         setMessages((m) => [...m, reply]);
       }
       setAwaiting((a) => (a === variables.session_id ? null : a));
@@ -80,8 +83,9 @@ function OraclePage() {
     let sid = sessionId;
     if (!sid) {
       try {
-        const s = await createSession.mutateAsync(text.slice(0, 64));
+        const s = await createSession.mutateAsync({ title: text.slice(0, 64), prompt: text });
         sid = s.id;
+        sessionIdRef.current = sid;
         setSessionId(sid);
         qc.invalidateQueries({ queryKey: ["my-sessions", user.id] });
       } catch {
@@ -89,10 +93,12 @@ function OraclePage() {
         setComposerError({ kind: "create", scope: null });
         return;
       }
+    } else {
+      setComposerError(null);
+      const userMsg = chatApi.appendLocalUserMessage(sid, text);
+      setMessages((m) => [...m, userMsg]);
     }
     setComposerError(null);
-    const userMsg = chatApi.appendLocalUserMessage(sid, text);
-    setMessages((m) => [...m, userMsg]);
     setAwaiting(sid);
     send.mutate({ session_id: sid, prompt: text, language });
   };
