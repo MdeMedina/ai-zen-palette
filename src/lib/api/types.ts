@@ -82,6 +82,7 @@ export interface ChatMessage {
   role: "user" | "ai-ceo";
   text: string;
   ts: string;
+  success?: boolean;
 }
 
 /**
