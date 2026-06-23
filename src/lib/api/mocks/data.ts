@@ -134,6 +134,28 @@ export const mockUsers: User[] = [
 
 export const mockKnowledge: KnowledgeAsset[] = [
   {
+    id: "k0000000-0000-4000-8000-000000000009",
+    brand_id: null,
+    title: "Market Analysis: Industrial Trends 2026",
+    asset_type: "External",
+    status: "Active",
+    source_file_url: "/mock/market-analysis-2026.pdf",
+    pgvector_ref_id: "pg_vec_009",
+    vectorization_status: "Embedded",
+    created_at: "2026-06-15T09:00:00Z",
+  },
+  {
+    id: "k0000000-0000-4000-8000-000000000010",
+    brand_id: null,
+    title: "Global Macroeconomic Exogenous Realities Q2",
+    asset_type: "External",
+    status: "Active",
+    source_file_url: "/mock/global-macroeconomic-q2.pdf",
+    pgvector_ref_id: "pg_vec_010",
+    vectorization_status: "Embedded",
+    created_at: "2026-06-20T14:30:00Z",
+  },
+  {
     id: "k0000000-0000-4000-8000-000000000001",
     brand_id: mockBrands[0].id,
     title: "Vértebra · Dogma 2026",

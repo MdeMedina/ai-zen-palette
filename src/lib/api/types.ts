@@ -6,7 +6,7 @@ export type UUID = string;
 
 export type GlobalRole = "admin" | "operator";
 
-export type AssetType = "SOP" | "Dogma" | "Gold" | "Jewel";
+export type AssetType = "SOP" | "Dogma" | "Gold" | "Jewel" | "External";
 export type VectorizationStatus = "Pending" | "Embedded" | "Error";
 export type BrandStatus = "Active" | "Paused" | "Archived";
 

@@ -35,7 +35,7 @@ function KnowledgePage() {
 
   const deptsQ = useQuery({ queryKey: ["departments"], queryFn: departmentsApi.listDepartments });
 
-  const [activeTab, setActiveTab] = useState<"brands" | "departments">("brands");
+  const [activeTab, setActiveTab] = useState<"brands" | "departments" | "external">("brands");
   const [deptsOpen, setDeptsOpen] = useState(false);
   const [selectedDeptId, setSelectedDeptId] = useState<string>("");
   const [uploadDeptRoleId, setUploadDeptRoleId] = useState<string>("");
@@ -63,12 +63,30 @@ function KnowledgePage() {
   }, []);
 
   const listQ = useQuery({
-    queryKey: ["knowledge", activeTab, activeTab === "brands" ? effectiveBrandId : effectiveDeptId],
-    queryFn: () =>
+    queryKey: [
+      "knowledge",
+      activeTab,
       activeTab === "brands"
-        ? knowledgeApi.listByBrand(effectiveBrandId)
-        : knowledgeApi.listByDepartment(effectiveDeptId),
-    enabled: activeTab === "brands" ? !!effectiveBrandId : !!effectiveDeptId,
+        ? effectiveBrandId
+        : activeTab === "departments"
+          ? effectiveDeptId
+          : "global",
+    ],
+    queryFn: () => {
+      if (activeTab === "brands") {
+        return knowledgeApi.listByBrand(effectiveBrandId);
+      } else if (activeTab === "departments") {
+        return knowledgeApi.listByDepartment(effectiveDeptId);
+      } else {
+        return knowledgeApi.listExternal();
+      }
+    },
+    enabled:
+      activeTab === "brands"
+        ? !!effectiveBrandId
+        : activeTab === "departments"
+          ? !!effectiveDeptId
+          : true,
     refetchInterval: (q) =>
       q.state.data?.some((a) => a.vectorization_status === "Pending") ? 5000 : false,
   });
@@ -135,7 +153,7 @@ function KnowledgePage() {
               >
                 Manage Brands
               </button>
-            ) : (
+            ) : activeTab === "departments" ? (
               <button
                 type="button"
                 onClick={() => setDeptsOpen(true)}
@@ -143,7 +161,7 @@ function KnowledgePage() {
               >
                 Manage Departments
               </button>
-            )}
+            ) : null}
           </div>
         }
       />
@@ -169,6 +187,16 @@ function KnowledgePage() {
           }`}
         >
           Departments Knowledge
+        </button>
+        <button
+          onClick={() => setActiveTab("external")}
+          className={`border-b-2 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.2em] transition-all focus-visible:outline-none ${
+            activeTab === "external"
+              ? "border-[var(--accent)] text-foreground font-semibold"
+              : "border-transparent text-foreground/50 hover:text-foreground/80"
+          }`}
+        >
+          External Knowledge
         </button>
       </div>
       <div className="grid flex-1 grid-cols-[420px_1fr] gap-0 overflow-hidden">
@@ -232,7 +260,7 @@ function KnowledgePage() {
                     </div>
                   </div>
                 </>
-              ) : (
+              ) : activeTab === "departments" ? (
                 <>
                   <div>
                     <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
@@ -281,33 +309,49 @@ function KnowledgePage() {
                     </div>
                   </div>
                 </>
-              )}
+              ) : null}
 
-              <div>
-                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-                  Asset Type
-                </span>
-                <div className="mt-2 grid grid-cols-2 gap-1">
-                  {UPLOAD_TYPES.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setAssetType(t)}
-                      className={[
-                        "border py-1.5 text-[10px] uppercase tracking-[0.18em] transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                        assetType === t
-                          ? "border-foreground/30 text-foreground bg-foreground/[0.03]"
-                          : "border-border text-foreground/45 hover:text-foreground/75 hover:bg-foreground/[0.01]",
-                      ].join(" ")}
-                    >
-                      {t}
-                    </button>
-                  ))}
+              {activeTab !== "external" ? (
+                <div>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
+                    Asset Type
+                  </span>
+                  <div className="mt-2 grid grid-cols-2 gap-1">
+                    {UPLOAD_TYPES.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setAssetType(t)}
+                        className={[
+                          "border py-1.5 text-[10px] uppercase tracking-[0.18em] transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                          assetType === t
+                            ? "border-foreground/30 text-foreground bg-foreground/[0.03]"
+                            : "border-border text-foreground/45 hover:text-foreground/75 hover:bg-foreground/[0.01]",
+                        ].join(" ")}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/30">
+                    Gold &amp; Jewel assets are generated from Audit sessions.
+                  </p>
                 </div>
-                <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/30">
-                  Gold &amp; Jewel assets are generated from Audit sessions.
-                </p>
-              </div>
+              ) : (
+                <div>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
+                    Asset Type
+                  </span>
+                  <div className="mt-1 border border-border bg-foreground/[0.03] px-3 py-2.5 rounded-[3px] shadow-sm">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-foreground/70 font-semibold animate-pulse text-[var(--accent)]">
+                      External Knowledge
+                    </span>
+                  </div>
+                  <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/30">
+                    External knowledge is global exogenous data independent of brands/departments.
+                  </p>
+                </div>
+              )}
 
               <label className="block">
                 <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
@@ -376,16 +420,21 @@ function KnowledgePage() {
                 disabled={
                   !file ||
                   uploadM.isPending ||
-                  (activeTab === "brands" ? !effectiveBrandId : !effectiveDeptId)
+                  (activeTab === "brands"
+                    ? !effectiveBrandId
+                    : activeTab === "departments"
+                      ? !effectiveDeptId
+                      : false)
                 }
                 onClick={() =>
                   uploadM.mutate({
                     file: file!,
                     brand_id: activeTab === "brands" ? effectiveBrandId : undefined,
-                    asset_type: assetType,
+                    asset_type: activeTab === "external" ? "External" : assetType,
                     title,
-                    department_id: activeTab === "brands" ? undefined : effectiveDeptId,
-                    department_role_id: activeTab === "brands" ? undefined : (uploadDeptRoleId || undefined),
+                    department_id: activeTab === "departments" ? effectiveDeptId : undefined,
+                    department_role_id:
+                      activeTab === "departments" ? (uploadDeptRoleId || undefined) : undefined,
                   })
                 }
                 className="relative overflow-hidden inline-flex items-center justify-between border border-[var(--accent)] px-5 py-3 text-[11px] uppercase tracking-[0.28em] text-foreground transition-all hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -412,10 +461,11 @@ function KnowledgePage() {
                     uploadM.mutate({
                       file: file!,
                       brand_id: activeTab === "brands" ? effectiveBrandId : undefined,
-                      asset_type: assetType,
+                      asset_type: activeTab === "external" ? "External" : assetType,
                       title,
-                      department_id: activeTab === "brands" ? undefined : effectiveDeptId,
-                      department_role_id: activeTab === "brands" ? undefined : (uploadDeptRoleId || undefined),
+                      department_id: activeTab === "departments" ? effectiveDeptId : undefined,
+                      department_role_id:
+                        activeTab === "departments" ? (uploadDeptRoleId || undefined) : undefined,
                     })
                   }
                 />
@@ -427,7 +477,11 @@ function KnowledgePage() {
         <section className="flex flex-col overflow-hidden">
           <div className="flex items-center justify-between gap-4 border-b border-border px-8 py-4">
             <h2 className="font-display text-[15px] text-foreground/80">
-              {activeTab === "brands" ? "Brand Repository" : "Department Repository"}
+              {activeTab === "brands"
+                ? "Brand Repository"
+                : activeTab === "departments"
+                  ? "Department Repository"
+                  : "External Repository"}
             </h2>
             <div className="relative">
               <input
@@ -450,7 +504,7 @@ function KnowledgePage() {
             <div className="border-double-thick bg-card shadow-lg">
               <table className="w-full table-fixed text-left">
                 <colgroup>
-                  {activeTab === "brands" ? (
+                  {activeTab === "brands" || activeTab === "external" ? (
                     <>
                       <col className="w-[35%]" />
                       <col className="w-[12%]" />
@@ -485,7 +539,7 @@ function KnowledgePage() {
                   {listQ.isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <tr key={i} className="border-b border-border last:border-0">
-                        {Array.from({ length: activeTab === "brands" ? 5 : 6 }).map((_, j) => (
+                        {Array.from({ length: activeTab === "brands" || activeTab === "external" ? 5 : 6 }).map((_, j) => (
                           <td key={j} className="px-4 py-3 align-top">
                             <div className="h-3 animate-pulse rounded-sm bg-foreground/5" />
                           </td>
@@ -494,7 +548,7 @@ function KnowledgePage() {
                     ))
                   ) : listQ.isError ? (
                     <tr>
-                      <td colSpan={activeTab === "brands" ? 5 : 6} className="px-4 py-16 text-center text-[12px] text-destructive">
+                      <td colSpan={activeTab === "brands" || activeTab === "external" ? 5 : 6} className="px-4 py-16 text-center text-[12px] text-destructive">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <span>Failed to load knowledge assets.</span>
                           <button
@@ -565,7 +619,7 @@ function KnowledgePage() {
                       })}
                       {filtered.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-16 text-center">
+                          <td colSpan={activeTab === "brands" || activeTab === "external" ? 5 : 6} className="px-4 py-16 text-center">
                             {listQ.data?.length === 0 ? (
                               <div className="mx-auto max-w-[400px] text-left transition-all duration-500 motion-safe:animate-in motion-safe:fade-in">
                                 <pre className="font-mono text-[10px] text-foreground/35 leading-tight tracking-wider select-none text-center mb-6">
@@ -587,18 +641,37 @@ function KnowledgePage() {
                                     Knowledge Setup Checklist
                                   </div>
                                   <ul className="space-y-2 text-[11px] text-foreground/60">
-                                    <li className="flex items-center gap-2">
-                                      <span className="font-mono text-[9px] text-[var(--accent)]">[1]</span>
-                                      <span>Select target {activeTab === "brands" ? "Brand" : "Department"} in sidebar</span>
-                                    </li>
-                                    <li className="flex items-center gap-2">
-                                      <span className="font-mono text-[9px] text-[var(--accent)]">[2]</span>
-                                      <span>Specify SOP or Dogma class</span>
-                                    </li>
-                                    <li className="flex items-center gap-2">
-                                      <span className="font-mono text-[9px] text-[var(--accent)]">[3]</span>
-                                      <span>Drop PDF/TXT/MD file & click Process</span>
-                                    </li>
+                                    {activeTab !== "external" ? (
+                                      <>
+                                        <li className="flex items-center gap-2">
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">[1]</span>
+                                          <span>Select target {activeTab === "brands" ? "Brand" : "Department"} in sidebar</span>
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">[2]</span>
+                                          <span>Specify SOP or Dogma class</span>
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">[3]</span>
+                                          <span>Drop PDF/TXT/MD file & click Process</span>
+                                        </li>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <li className="flex items-center gap-2">
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">[1]</span>
+                                          <span>Drop external PDF/TXT/MD/DOCX file in sidebar</span>
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">[2]</span>
+                                          <span>Enter document title (optional)</span>
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">[3]</span>
+                                          <span>Click Process Knowledge to ingest</span>
+                                        </li>
+                                      </>
+                                    )}
                                   </ul>
                                 </div>
                               </div>

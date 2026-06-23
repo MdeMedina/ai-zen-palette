@@ -29,6 +29,15 @@ export async function listAll(): Promise<KnowledgeAsset[]> {
   return apiFetch<KnowledgeAsset[]>(`/api/knowledge`);
 }
 
+/** GET /api/knowledge/external */
+export async function listExternal(): Promise<KnowledgeAsset[]> {
+  if (USE_MOCKS) {
+    await delay(180);
+    return mockKnowledge.filter((k) => k.asset_type === "External");
+  }
+  return apiFetch<KnowledgeAsset[]>("/api/knowledge/external");
+}
+
 export interface UploadInput {
   file: File;
   brand_id?: UUID;
