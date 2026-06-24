@@ -86,15 +86,20 @@ export async function upload(input: UploadInput): Promise<KnowledgeAsset> {
   return apiFetch<KnowledgeAsset>("/api/knowledge/upload", { method: "POST", body: fd });
 }
 
-/** POST /api/knowledge/extract — admin only. */
-export async function extractGold(session_id: UUID): Promise<{ ok: boolean }> {
+/**
+ * POST /api/knowledge/session/:session_id/approve — admin only.
+ * Approves the pending Gold PROPOSAL of a session: hands off to the n8n approval flow,
+ * which promotes it to Active (entering the brand knowledge base) and generates the .docx.
+ */
+export async function approveSessionGold(
+  session_id: UUID,
+): Promise<{ ok: boolean; asset_id?: UUID; result?: unknown }> {
   if (USE_MOCKS) {
     await delay(320);
     return { ok: true };
   }
-  return apiFetch<{ ok: boolean }>("/api/knowledge/extract", {
+  return apiFetch(`/api/knowledge/session/${session_id}/approve`, {
     method: "POST",
-    body: { session_id },
   });
 }
 

@@ -80,9 +80,10 @@ function AuditPage() {
   const selectedSession = sessionsQ.data?.find((s) => s.id === sessionId) ?? null;
 
   const integrateM = useMutation({
+    // Approves the Gold PROPOSAL the dialectic produced: the n8n flow promotes it to Active
+    // (into the brand knowledge base) and generates the .docx. No more direct extraction.
     mutationFn: async (id: string) => {
-      await sessionsApi.integrateSession(id);
-      await knowledgeApi.extractGold(id);
+      await knowledgeApi.approveSessionGold(id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["all-sessions"] }),
   });
@@ -225,22 +226,22 @@ function AuditPage() {
                   onClick={() => integrateM.mutate(selectedSession.id)}
                   className="mt-6 inline-flex w-full items-center justify-between bg-[var(--accent)] px-4 py-3 text-[11px] uppercase tracking-[0.24em] text-[var(--accent-foreground)] transition-all hover:opacity-90 disabled:opacity-30 outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
                 >
-                  <span>Approve &amp; Extract Structural Gold</span>
+                  <span>Approve Structural Gold</span>
                   <span className="font-mono text-[10px]">›</span>
                 </button>
               ) : (
                 <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.24em] text-foreground/35">
                   {selectedSession.encauzamiento_count === 0
-                    ? "No encauzamiento — session not eligible for extraction."
+                    ? "No encauzamiento — session produced no Gold proposal."
                     : selectedSession.gold_extraction_status === "Extracted"
-                      ? "Structural Gold already extracted."
-                      : "Extraction in progress."}
+                      ? "Structural Gold approved & integrated."
+                      : "Gold proposal not ready for approval."}
                 </p>
               )}
               {integrateM.isError ? (
                 <div className="mt-4">
                   <ErrorBanner
-                    message="Extraction failed — the session may already be integrated or the server is unavailable."
+                    message="Approval failed — the proposal may already be approved or the server is unavailable."
                     onRetry={() => integrateM.mutate(selectedSession.id)}
                   />
                 </div>
@@ -260,8 +261,14 @@ function AuditPage() {
   );
 }
 
+// A session is approvable when the dialectic closed and left a pending Gold proposal:
+// status Closed + gold_extraction_status 'Pending'. Approval flips it to 'Extracted'.
 function canExtractGold(s: SessionRecord): boolean {
-  return s.encauzamiento_count > 0 && s.gold_extraction_status !== "Extracted";
+  return (
+    s.encauzamiento_count > 0 &&
+    s.status === "Closed" &&
+    s.gold_extraction_status === "Pending"
+  );
 }
 
 /* ---------- User dashboard ---------- */
