@@ -3,7 +3,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { brandsApi, knowledgeApi, departmentsApi, usersApi } from "@/lib/api";
-import type { AssetType, Brand, KnowledgeAsset, Department, DepartmentRole, UUID } from "@/lib/api/types";
+import type {
+  AssetType,
+  Brand,
+  KnowledgeAsset,
+  Department,
+  DepartmentRole,
+  UUID,
+} from "@/lib/api/types";
 import { PassivePulse } from "@/components/brand/PassivePulse";
 import { ErrorBanner } from "@/components/brand/ErrorBanner";
 import { PageHeader } from "@/components/brand/PageHeader";
@@ -27,7 +34,7 @@ function KnowledgePage() {
   const qc = useQueryClient();
   const brandsQ = useQuery({ queryKey: ["brands"], queryFn: brandsApi.listBrands });
   const [brandId, setBrandId] = useState<string>("");
-  
+
   const language = useSessionStore((s) => s.chatLanguage);
   const t = oracleCopy(language);
   const effectiveBrandId = brandId || brandsQ.data?.[0]?.id || "";
@@ -132,9 +139,7 @@ function KnowledgePage() {
     const q = query.trim().toLowerCase();
     if (!q) return listQ.data;
     return listQ.data.filter(
-      (a) =>
-        a.title.toLowerCase().includes(q) ||
-        a.asset_type.toLowerCase().includes(q),
+      (a) => a.title.toLowerCase().includes(q) || a.asset_type.toLowerCase().includes(q),
     );
   }, [listQ.data, query]);
 
@@ -207,7 +212,8 @@ function KnowledgePage() {
                 System Blocked
               </div>
               <p className="mt-2 leading-relaxed text-foreground/75">
-                No departments are registered. You must create at least one Department before you can manage or vectorise department documents.
+                No departments are registered. You must create at least one Department before you
+                can manage or vectorise department documents.
               </p>
               <button
                 type="button"
@@ -224,7 +230,8 @@ function KnowledgePage() {
                 System Blocked
               </div>
               <p className="mt-2 leading-relaxed text-foreground/75">
-                No brands are registered. You must create at least one Brand before you can manage or vectorise documents.
+                No brands are registered. You must create at least one Brand before you can manage
+                or vectorise documents.
               </p>
               <button
                 type="button"
@@ -244,7 +251,9 @@ function KnowledgePage() {
                       Brand
                     </span>
                     <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
-                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">
+                        [
+                      </span>
                       <select
                         value={effectiveBrandId}
                         onChange={(e) => setBrandId(e.target.value)}
@@ -256,7 +265,9 @@ function KnowledgePage() {
                           </option>
                         ))}
                       </select>
-                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">
+                        ]
+                      </span>
                     </div>
                   </div>
                 </>
@@ -267,7 +278,9 @@ function KnowledgePage() {
                       Department (Required)
                     </span>
                     <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
-                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">
+                        [
+                      </span>
                       <select
                         value={effectiveDeptId}
                         onChange={(e) => {
@@ -282,7 +295,9 @@ function KnowledgePage() {
                           </option>
                         ))}
                       </select>
-                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">
+                        ]
+                      </span>
                     </div>
                   </div>
 
@@ -291,21 +306,33 @@ function KnowledgePage() {
                       Department Role (Optional)
                     </span>
                     <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
-                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">
+                        [
+                      </span>
                       <select
                         value={uploadDeptRoleId}
                         disabled={!effectiveDeptId}
                         onChange={(e) => setUploadDeptRoleId(e.target.value)}
                         className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
                       >
-                        <option value="" className="bg-background text-foreground/50">Select Role</option>
-                        {deptsQ.data?.find((d) => d.id === effectiveDeptId)?.roles?.map((r) => (
-                          <option key={r.id} value={r.id} className="bg-background text-foreground">
-                            {r.name}
-                          </option>
-                        ))}
+                        <option value="" className="bg-background text-foreground/50">
+                          Select Role
+                        </option>
+                        {deptsQ.data
+                          ?.find((d) => d.id === effectiveDeptId)
+                          ?.roles?.map((r) => (
+                            <option
+                              key={r.id}
+                              value={r.id}
+                              className="bg-background text-foreground"
+                            >
+                              {r.name}
+                            </option>
+                          ))}
                       </select>
-                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+                      <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">
+                        ]
+                      </span>
                     </div>
                   </div>
                 </>
@@ -358,13 +385,17 @@ function KnowledgePage() {
                   Title
                 </span>
                 <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
-                  <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
+                  <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">
+                    [
+                  </span>
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none"
                   />
-                  <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
+                  <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">
+                    ]
+                  </span>
                 </div>
               </label>
 
@@ -434,20 +465,34 @@ function KnowledgePage() {
                     title,
                     department_id: activeTab === "departments" ? effectiveDeptId : undefined,
                     department_role_id:
-                      activeTab === "departments" ? (uploadDeptRoleId || undefined) : undefined,
+                      activeTab === "departments" ? uploadDeptRoleId || undefined : undefined,
                   })
                 }
                 className="relative overflow-hidden inline-flex items-center justify-between border border-[var(--accent)] px-5 py-3 text-[11px] uppercase tracking-[0.28em] text-foreground transition-all hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 {uploadM.isPending && (
-                  <div aria-hidden className="absolute inset-0 bg-foreground/5 motion-safe:animate-pulse" />
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 bg-foreground/5 motion-safe:animate-pulse"
+                  />
                 )}
-                <span className="relative z-10">{uploadM.isPending ? "Processing..." : "Process Knowledge"}</span>
+                <span className="relative z-10">
+                  {uploadM.isPending ? "Processing..." : "Process Knowledge"}
+                </span>
                 {uploadM.isPending ? (
                   <span className="relative z-10 flex gap-0.5">
-                    <span className="size-1 rounded-full bg-[var(--accent)] motion-safe:animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="size-1 rounded-full bg-[var(--accent)] motion-safe:animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="size-1 rounded-full bg-[var(--accent)] motion-safe:animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <span
+                      className="size-1 rounded-full bg-[var(--accent)] motion-safe:animate-bounce"
+                      style={{ animationDelay: "0ms" }}
+                    />
+                    <span
+                      className="size-1 rounded-full bg-[var(--accent)] motion-safe:animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    />
+                    <span
+                      className="size-1 rounded-full bg-[var(--accent)] motion-safe:animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    />
                   </span>
                 ) : (
                   <span className="relative z-10 font-mono text-[10px] opacity-60">›</span>
@@ -465,7 +510,7 @@ function KnowledgePage() {
                       title,
                       department_id: activeTab === "departments" ? effectiveDeptId : undefined,
                       department_role_id:
-                        activeTab === "departments" ? (uploadDeptRoleId || undefined) : undefined,
+                        activeTab === "departments" ? uploadDeptRoleId || undefined : undefined,
                     })
                   }
                 />
@@ -526,9 +571,7 @@ function KnowledgePage() {
                 <thead>
                   <tr className="border-b-4 border-double border-border bg-foreground/[0.03] text-[10px] uppercase tracking-[0.22em] text-foreground/60">
                     <th className="px-4 py-3 font-normal">Title</th>
-                    {activeTab === "departments" && (
-                      <th className="px-4 py-3 font-normal">Role</th>
-                    )}
+                    {activeTab === "departments" && <th className="px-4 py-3 font-normal">Role</th>}
                     <th className="px-4 py-3 font-normal">Type</th>
                     <th className="px-4 py-3 font-normal">Status</th>
                     <th className="px-4 py-3 font-normal">Created</th>
@@ -539,7 +582,9 @@ function KnowledgePage() {
                   {listQ.isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <tr key={i} className="border-b border-border last:border-0">
-                        {Array.from({ length: activeTab === "brands" || activeTab === "external" ? 5 : 6 }).map((_, j) => (
+                        {Array.from({
+                          length: activeTab === "brands" || activeTab === "external" ? 5 : 6,
+                        }).map((_, j) => (
                           <td key={j} className="px-4 py-3 align-top">
                             <div className="h-3 animate-pulse rounded-sm bg-foreground/5" />
                           </td>
@@ -548,7 +593,10 @@ function KnowledgePage() {
                     ))
                   ) : listQ.isError ? (
                     <tr>
-                      <td colSpan={activeTab === "brands" || activeTab === "external" ? 5 : 6} className="px-4 py-16 text-center text-[12px] text-destructive">
+                      <td
+                        colSpan={activeTab === "brands" || activeTab === "external" ? 5 : 6}
+                        className="px-4 py-16 text-center text-[12px] text-destructive"
+                      >
                         <div className="flex flex-col items-center justify-center gap-2">
                           <span>Failed to load knowledge assets.</span>
                           <button
@@ -571,18 +619,27 @@ function KnowledgePage() {
                             style={{ animationDelay: `${Math.min(idx * 30, 300)}ms` }}
                           >
                             <td className="px-4 py-3 align-top text-foreground font-semibold">
-                              <span className="line-clamp-2 leading-snug" title={a.title}>{a.title}</span>
+                              <span className="line-clamp-2 leading-snug" title={a.title}>
+                                {a.title}
+                              </span>
                             </td>
                             {activeTab === "departments" && (
                               <td className="px-4 py-3 align-top text-foreground/60 font-mono text-[11px]">
-                                <span className="block truncate" title={a.department_role?.name || "All Roles"}>
+                                <span
+                                  className="block truncate"
+                                  title={a.department_role?.name || "All Roles"}
+                                >
                                   {a.department_role?.name || "All Roles"}
                                 </span>
                               </td>
                             )}
                             <td className="px-4 py-3 align-top whitespace-nowrap">
                               <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-foreground/75">
-                                [ <span className="text-foreground/60 font-semibold">{a.asset_type}</span> ]
+                                [{" "}
+                                <span className="text-foreground/60 font-semibold">
+                                  {a.asset_type}
+                                </span>{" "}
+                                ]
                               </span>
                             </td>
                             <td className="px-4 py-3 align-top whitespace-nowrap">
@@ -619,11 +676,14 @@ function KnowledgePage() {
                       })}
                       {filtered.length === 0 ? (
                         <tr>
-                          <td colSpan={activeTab === "brands" || activeTab === "external" ? 5 : 6} className="px-4 py-16 text-center">
+                          <td
+                            colSpan={activeTab === "brands" || activeTab === "external" ? 5 : 6}
+                            className="px-4 py-16 text-center"
+                          >
                             {listQ.data?.length === 0 ? (
                               <div className="mx-auto max-w-[400px] text-left transition-all duration-500 motion-safe:animate-in motion-safe:fade-in">
                                 <pre className="font-mono text-[10px] text-foreground/35 leading-tight tracking-wider select-none text-center mb-6">
-{`   [SOP / Dogma] ────► [Ingest Pipeline]
+                                  {`   [SOP / Dogma] ────► [Ingest Pipeline]
                             │
                             ▼
      [Vector DB] ◄─── [Embedding Engine]
@@ -633,9 +693,10 @@ function KnowledgePage() {
                                   Repository Empty
                                 </h3>
                                 <p className="mt-2 text-center text-[12px] leading-relaxed text-foreground/50">
-                                  Vectorised assets form the core dialectical knowledge base for PKGD OS, letting the Oracle recall SOP context.
+                                  Vectorised assets form the core dialectical knowledge base for
+                                  PKGD OS, letting the Oracle recall SOP context.
                                 </p>
-                                
+
                                 <div className="mt-6 border border-border bg-card p-4 shadow-sm rounded-[3px]">
                                   <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-foreground/40 mb-3 border-b border-border pb-2">
                                     Knowledge Setup Checklist
@@ -644,30 +705,46 @@ function KnowledgePage() {
                                     {activeTab !== "external" ? (
                                       <>
                                         <li className="flex items-center gap-2">
-                                          <span className="font-mono text-[9px] text-[var(--accent)]">[1]</span>
-                                          <span>Select target {activeTab === "brands" ? "Brand" : "Department"} in sidebar</span>
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">
+                                            [1]
+                                          </span>
+                                          <span>
+                                            Select target{" "}
+                                            {activeTab === "brands" ? "Brand" : "Department"} in
+                                            sidebar
+                                          </span>
                                         </li>
                                         <li className="flex items-center gap-2">
-                                          <span className="font-mono text-[9px] text-[var(--accent)]">[2]</span>
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">
+                                            [2]
+                                          </span>
                                           <span>Specify SOP or Dogma class</span>
                                         </li>
                                         <li className="flex items-center gap-2">
-                                          <span className="font-mono text-[9px] text-[var(--accent)]">[3]</span>
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">
+                                            [3]
+                                          </span>
                                           <span>Drop PDF/TXT/MD file & click Process</span>
                                         </li>
                                       </>
                                     ) : (
                                       <>
                                         <li className="flex items-center gap-2">
-                                          <span className="font-mono text-[9px] text-[var(--accent)]">[1]</span>
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">
+                                            [1]
+                                          </span>
                                           <span>Drop external PDF/TXT/MD/DOCX file in sidebar</span>
                                         </li>
                                         <li className="flex items-center gap-2">
-                                          <span className="font-mono text-[9px] text-[var(--accent)]">[2]</span>
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">
+                                            [2]
+                                          </span>
                                           <span>Enter document title (optional)</span>
                                         </li>
                                         <li className="flex items-center gap-2">
-                                          <span className="font-mono text-[9px] text-[var(--accent)]">[3]</span>
+                                          <span className="font-mono text-[9px] text-[var(--accent)]">
+                                            [3]
+                                          </span>
                                           <span>Click Process Knowledge to ingest</span>
                                         </li>
                                       </>
@@ -703,9 +780,7 @@ function KnowledgePage() {
         <BrandsManager brands={brandsQ.data ?? []} onClose={() => setBrandsOpen(false)} />
       ) : null}
 
-      {deptsOpen ? (
-        <DepartmentsManager onClose={() => setDeptsOpen(false)} />
-      ) : null}
+      {deptsOpen ? <DepartmentsManager onClose={() => setDeptsOpen(false)} /> : null}
 
       {editingAsset ? (
         <EditBrandModal
@@ -748,7 +823,13 @@ function DownloadButton({ asset }: { asset: KnowledgeAsset }) {
   );
 }
 
-function VectorStatus({ status, percent }: { status: "Pending" | "Embedded" | "Error"; percent?: number }) {
+function VectorStatus({
+  status,
+  percent,
+}: {
+  status: "Pending" | "Embedded" | "Error";
+  percent?: number;
+}) {
   if (status === "Pending") {
     const displayPercent = percent !== undefined ? ` (${Math.round(percent)}%)` : "";
     return (
@@ -759,7 +840,9 @@ function VectorStatus({ status, percent }: { status: "Pending" | "Embedded" | "E
   }
   if (status === "Error")
     return (
-      <span className="text-[10px] uppercase tracking-[0.22em] text-destructive font-medium">Error</span>
+      <span className="text-[10px] uppercase tracking-[0.22em] text-destructive font-medium">
+        Error
+      </span>
     );
   return (
     <span className="text-[10px] uppercase tracking-[0.22em] text-foreground/75 font-medium">
@@ -1064,8 +1147,8 @@ function DeleteDocDialog({
         <div className="px-6 py-5">
           <p className="text-[13px] text-foreground/70">
             This action permanently removes{" "}
-            <strong className="text-foreground">{asset.title}</strong> and its vectorized data.
-            Type <span className="font-mono text-[var(--accent)]">{asset.title}</span> to confirm.
+            <strong className="text-foreground">{asset.title}</strong> and its vectorized data. Type{" "}
+            <span className="font-mono text-[var(--accent)]">{asset.title}</span> to confirm.
           </p>
           <input
             type="text"
@@ -1117,7 +1200,8 @@ function DepartmentsManager({ onClose }: { onClose: () => void }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
   });
   const updateDeptM = useMutation({
-    mutationFn: ({ id, name }: { id: UUID; name: string }) => departmentsApi.updateDepartment(id, name),
+    mutationFn: ({ id, name }: { id: UUID; name: string }) =>
+      departmentsApi.updateDepartment(id, name),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
   });
   const deleteDeptM = useMutation({
@@ -1126,21 +1210,29 @@ function DepartmentsManager({ onClose }: { onClose: () => void }) {
   });
 
   const createRoleM = useMutation({
-    mutationFn: ({ deptId, name }: { deptId: UUID; name: string }) => departmentsApi.createRole(deptId, name),
+    mutationFn: ({ deptId, name }: { deptId: UUID; name: string }) =>
+      departmentsApi.createRole(deptId, name),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
   });
   const updateRoleM = useMutation({
-    mutationFn: ({ deptId, id, name }: { deptId: UUID; id: UUID; name: string }) => departmentsApi.updateRole(deptId, id, name),
+    mutationFn: ({ deptId, id, name }: { deptId: UUID; id: UUID; name: string }) =>
+      departmentsApi.updateRole(deptId, id, name),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
   });
   const deleteRoleM = useMutation({
-    mutationFn: ({ deptId, id }: { deptId: UUID; id: UUID }) => departmentsApi.deleteRole(deptId, id),
+    mutationFn: ({ deptId, id }: { deptId: UUID; id: UUID }) =>
+      departmentsApi.deleteRole(deptId, id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["departments"] }),
   });
 
   const assignUserM = useMutation({
-    mutationFn: ({ userId, patch }: { userId: UUID; patch: Parameters<typeof usersApi.updateOperator>[1] }) =>
-      usersApi.updateOperator(userId, patch),
+    mutationFn: ({
+      userId,
+      patch,
+    }: {
+      userId: UUID;
+      patch: Parameters<typeof usersApi.updateOperator>[1];
+    }) => usersApi.updateOperator(userId, patch),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["operators"] });
       qc.invalidateQueries({ queryKey: ["departments"] });
@@ -1214,7 +1306,9 @@ function DepartmentsManager({ onClose }: { onClose: () => void }) {
                   onUpdateDept={(name) => updateDeptM.mutate({ id: dept.id, name })}
                   onDeleteDept={() => deleteDeptM.mutate(dept.id)}
                   onCreateRole={(name) => createRoleM.mutate({ deptId: dept.id, name })}
-                  onUpdateRole={(roleId, name) => updateRoleM.mutate({ deptId: dept.id, id: roleId, name })}
+                  onUpdateRole={(roleId, name) =>
+                    updateRoleM.mutate({ deptId: dept.id, id: roleId, name })
+                  }
                   onDeleteRole={(roleId) => deleteRoleM.mutate({ deptId: dept.id, id: roleId })}
                   operators={operatorsQ.data ?? []}
                   assignUserM={assignUserM}
@@ -1277,7 +1371,9 @@ function DepartmentSection({
               onChange={(e) => setDeptName(e.target.value)}
               className="flex-1 border-b border-border bg-transparent font-semibold py-0.5 text-[13px] text-foreground outline-none"
             />
-            <button type="submit" className="text-[11px] font-mono text-[var(--accent)]">[Save]</button>
+            <button type="submit" className="text-[11px] font-mono text-[var(--accent)]">
+              [Save]
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -1293,16 +1389,25 @@ function DepartmentSection({
           <>
             <span className="font-semibold text-[13px] text-foreground">{dept.name}</span>
             <div className="flex gap-2 font-mono text-[11px]">
-              <button onClick={() => setEditingDept(true)} className="text-foreground/45 hover:text-foreground">[Edit]</button>
-              <button onClick={onDeleteDept} className="text-destructive/60 hover:text-destructive">[Delete]</button>
+              <button
+                onClick={() => setEditingDept(true)}
+                className="text-foreground/45 hover:text-foreground"
+              >
+                [Edit]
+              </button>
+              <button onClick={onDeleteDept} className="text-destructive/60 hover:text-destructive">
+                [Delete]
+              </button>
             </div>
           </>
         )}
       </div>
 
       <div className="pl-4 flex flex-col gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/45">Roles in Department</span>
-        
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/45">
+          Roles in Department
+        </span>
+
         {dept.roles && dept.roles.length > 0 ? (
           <ul className="flex flex-col gap-1.5">
             {dept.roles.map((role) => (
@@ -1315,7 +1420,9 @@ function DepartmentSection({
             ))}
           </ul>
         ) : (
-          <span className="text-[11px] text-foreground/40 italic font-mono">No roles configured.</span>
+          <span className="text-[11px] text-foreground/40 italic font-mono">
+            No roles configured.
+          </span>
         )}
 
         <form
@@ -1346,14 +1453,22 @@ function DepartmentSection({
 
       {/* User Assignment section */}
       <div className="pl-4 mt-4 border-t border-dashed border-border/60 pt-3 flex flex-col gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/45">Assigned Users</span>
-        
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/45">
+          Assigned Users
+        </span>
+
         {assignedUsers.length > 0 ? (
           <ul className="flex flex-col gap-1.5">
             {assignedUsers.map((u) => (
-              <li key={u.id} className="flex justify-between items-center text-[12px] font-mono text-foreground/70">
+              <li
+                key={u.id}
+                className="flex justify-between items-center text-[12px] font-mono text-foreground/70"
+              >
                 <span className="truncate pr-2" title={`${u.full_name} - ${u.email}`}>
-                  {u.full_name} <span className="text-foreground/40 font-light">[{u.department_role?.name || "—"}]</span>
+                  {u.full_name}{" "}
+                  <span className="text-foreground/40 font-light">
+                    [{u.department_role?.name || "—"}]
+                  </span>
                 </span>
                 <button
                   type="button"
@@ -1367,31 +1482,38 @@ function DepartmentSection({
             ))}
           </ul>
         ) : (
-          <span className="text-[11px] text-foreground/40 italic font-mono">No users assigned.</span>
+          <span className="text-[11px] text-foreground/40 italic font-mono">
+            No users assigned.
+          </span>
         )}
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
             if (assignUserId) {
-              assignUserM.mutate({
-                userId: assignUserId,
-                patch: {
-                  department_id: dept.id,
-                  department_role_id: assignRoleId || null,
+              assignUserM.mutate(
+                {
+                  userId: assignUserId,
+                  patch: {
+                    department_id: dept.id,
+                    department_role_id: assignRoleId || null,
+                  },
                 },
-              }, {
-                onSuccess: () => {
-                  setAssignUserId("");
-                  setAssignRoleId("");
-                }
-              });
+                {
+                  onSuccess: () => {
+                    setAssignUserId("");
+                    setAssignRoleId("");
+                  },
+                },
+              );
             }
           }}
           className="mt-2 flex flex-col gap-2 bg-foreground/[0.02] p-2 border border-border/40 rounded-[3px]"
         >
-          <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-foreground/40">Assign User</span>
-          
+          <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-foreground/40">
+            Assign User
+          </span>
+
           <select
             value={assignUserId}
             onChange={(e) => setAssignUserId(e.target.value)}
@@ -1480,8 +1602,15 @@ function RoleItem({
     <li className="flex justify-between items-center text-[12px] font-mono text-foreground/70">
       <span>{role.name}</span>
       <div className="flex gap-2">
-        <button onClick={() => setEditing(true)} className="text-foreground/40 hover:text-foreground">[Edit]</button>
-        <button onClick={onDelete} className="text-destructive/50 hover:text-destructive">[Delete]</button>
+        <button
+          onClick={() => setEditing(true)}
+          className="text-foreground/40 hover:text-foreground"
+        >
+          [Edit]
+        </button>
+        <button onClick={onDelete} className="text-destructive/50 hover:text-destructive">
+          [Delete]
+        </button>
       </div>
     </li>
   );

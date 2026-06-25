@@ -12,7 +12,8 @@ import { oracleCopy } from "@/lib/i18n/oracle";
 export const Route = createFileRoute("/_app/oracle")({
   head: () => {
     const lang = useSessionStore.getState().chatLanguage;
-    const title = lang === "es" ? "PKGD OS · Espacio de Conversación" : "PKGD OS · Conversation Space";
+    const title =
+      lang === "es" ? "PKGD OS · Espacio de Conversación" : "PKGD OS · Conversation Space";
     return { meta: [{ title }] };
   },
   component: OraclePage,
@@ -221,8 +222,12 @@ function OraclePage() {
                   <span className="flex items-center gap-1.5">
                     <RotateCcw className="size-3" strokeWidth={2} />
                     {reopenM.isPending
-                      ? (language === "es" ? "Reabriendo..." : "Reopening...")
-                      : (language === "es" ? "Reabrir conversación" : "Reopen conversation")}
+                      ? language === "es"
+                        ? "Reabriendo..."
+                        : "Reopening..."
+                      : language === "es"
+                        ? "Reabrir conversación"
+                        : "Reopen conversation"}
                   </span>
                 </button>
               </div>
@@ -321,7 +326,9 @@ function SessionsSidebar({
           </div>
         ) : isError ? (
           <div className="p-4 text-center space-y-3">
-            <div className="text-[12px] text-destructive">{t.sendError || "Failed to load history"}</div>
+            <div className="text-[12px] text-destructive">
+              {t.sendError || "Failed to load history"}
+            </div>
             {refetch && (
               <button
                 type="button"
@@ -357,7 +364,9 @@ function SessionsSidebar({
                           >
                             <div className="flex items-center gap-2">
                               <StatusDot session={s} language={language} />
-                              <span className="truncate text-[13px] text-foreground">{s.title || "Untitled"}</span>
+                              <span className="truncate text-[13px] text-foreground">
+                                {s.title || "Untitled"}
+                              </span>
                             </div>
                             <div className="mt-1 pl-4 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/55">
                               {relativeTime(s.updated_at ?? s.created_at, t.timeNow)}
@@ -368,7 +377,7 @@ function SessionsSidebar({
                     })}
                   </ul>
                 </div>
-              )
+              ),
             )}
             {sessions.length === 0 ? (
               <div className="px-4 py-8 text-center text-[12px] text-foreground/55">

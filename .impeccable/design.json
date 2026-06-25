@@ -8,72 +8,185 @@
         "role": "primary",
         "displayName": "Signal Yellow",
         "canonical": "oklch(0.92 0.18 100)",
-        "tonalRamp": ["oklch(0.15 0.18 100)", "oklch(0.28 0.18 100)", "oklch(0.40 0.18 100)", "oklch(0.52 0.18 100)", "oklch(0.64 0.18 100)", "oklch(0.76 0.18 100)", "oklch(0.88 0.18 100)", "oklch(0.97 0.18 100)"]
+        "tonalRamp": [
+          "oklch(0.15 0.18 100)",
+          "oklch(0.28 0.18 100)",
+          "oklch(0.40 0.18 100)",
+          "oklch(0.52 0.18 100)",
+          "oklch(0.64 0.18 100)",
+          "oklch(0.76 0.18 100)",
+          "oklch(0.88 0.18 100)",
+          "oklch(0.97 0.18 100)"
+        ]
       },
       "near-black": {
         "role": "neutral",
         "displayName": "Near-Black",
         "canonical": "oklch(0.205 0.002 80)",
-        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.30 0.002 80)", "oklch(0.40 0.002 80)", "oklch(0.50 0.002 80)", "oklch(0.65 0.002 80)", "oklch(0.80 0.002 80)", "oklch(0.95 0.002 80)"]
+        "tonalRamp": [
+          "oklch(0.10 0.002 80)",
+          "oklch(0.205 0.002 80)",
+          "oklch(0.30 0.002 80)",
+          "oklch(0.40 0.002 80)",
+          "oklch(0.50 0.002 80)",
+          "oklch(0.65 0.002 80)",
+          "oklch(0.80 0.002 80)",
+          "oklch(0.95 0.002 80)"
+        ]
       },
       "paper-white": {
         "role": "neutral",
         "displayName": "Paper White",
         "canonical": "oklch(1 0 0)",
-        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.30 0.002 80)", "oklch(0.40 0.002 80)", "oklch(0.50 0.002 80)", "oklch(0.65 0.002 80)", "oklch(0.80 0.002 80)", "oklch(1 0 0)"]
+        "tonalRamp": [
+          "oklch(0.10 0.002 80)",
+          "oklch(0.205 0.002 80)",
+          "oklch(0.30 0.002 80)",
+          "oklch(0.40 0.002 80)",
+          "oklch(0.50 0.002 80)",
+          "oklch(0.65 0.002 80)",
+          "oklch(0.80 0.002 80)",
+          "oklch(1 0 0)"
+        ]
       },
       "charcoal-surface": {
         "role": "neutral",
         "displayName": "Charcoal Surface",
         "canonical": "oklch(0.235 0.002 80)",
-        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.235 0.002 80)", "oklch(0.30 0.002 80)", "oklch(0.40 0.002 80)", "oklch(0.55 0.002 80)", "oklch(0.75 0.002 80)", "oklch(0.95 0.002 80)"]
+        "tonalRamp": [
+          "oklch(0.10 0.002 80)",
+          "oklch(0.205 0.002 80)",
+          "oklch(0.235 0.002 80)",
+          "oklch(0.30 0.002 80)",
+          "oklch(0.40 0.002 80)",
+          "oklch(0.55 0.002 80)",
+          "oklch(0.75 0.002 80)",
+          "oklch(0.95 0.002 80)"
+        ]
       },
       "charcoal-secondary": {
         "role": "neutral",
         "displayName": "Charcoal Secondary",
         "canonical": "oklch(0.28 0.002 80)",
-        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.28 0.002 80)", "oklch(0.36 0.002 80)", "oklch(0.46 0.002 80)", "oklch(0.60 0.002 80)", "oklch(0.78 0.002 80)", "oklch(0.95 0.002 80)"]
+        "tonalRamp": [
+          "oklch(0.10 0.002 80)",
+          "oklch(0.205 0.002 80)",
+          "oklch(0.28 0.002 80)",
+          "oklch(0.36 0.002 80)",
+          "oklch(0.46 0.002 80)",
+          "oklch(0.60 0.002 80)",
+          "oklch(0.78 0.002 80)",
+          "oklch(0.95 0.002 80)"
+        ]
       },
       "charcoal-muted": {
         "role": "neutral",
         "displayName": "Charcoal Muted",
         "canonical": "oklch(0.265 0.002 80)",
-        "tonalRamp": ["oklch(0.10 0.002 80)", "oklch(0.205 0.002 80)", "oklch(0.265 0.002 80)", "oklch(0.35 0.002 80)", "oklch(0.45 0.002 80)", "oklch(0.60 0.002 80)", "oklch(0.78 0.002 80)", "oklch(0.95 0.002 80)"]
+        "tonalRamp": [
+          "oklch(0.10 0.002 80)",
+          "oklch(0.205 0.002 80)",
+          "oklch(0.265 0.002 80)",
+          "oklch(0.35 0.002 80)",
+          "oklch(0.45 0.002 80)",
+          "oklch(0.60 0.002 80)",
+          "oklch(0.78 0.002 80)",
+          "oklch(0.95 0.002 80)"
+        ]
       },
       "quiet-gray": {
         "role": "neutral",
         "displayName": "Quiet Gray",
         "canonical": "oklch(0.7 0.005 80)",
-        "tonalRamp": ["oklch(0.20 0.005 80)", "oklch(0.32 0.005 80)", "oklch(0.44 0.005 80)", "oklch(0.55 0.005 80)", "oklch(0.7 0.005 80)", "oklch(0.80 0.005 80)", "oklch(0.90 0.005 80)", "oklch(0.97 0.005 80)"]
+        "tonalRamp": [
+          "oklch(0.20 0.005 80)",
+          "oklch(0.32 0.005 80)",
+          "oklch(0.44 0.005 80)",
+          "oklch(0.55 0.005 80)",
+          "oklch(0.7 0.005 80)",
+          "oklch(0.80 0.005 80)",
+          "oklch(0.90 0.005 80)",
+          "oklch(0.97 0.005 80)"
+        ]
       },
       "hairline": {
         "role": "neutral",
         "displayName": "Hairline",
         "canonical": "oklch(1 0 0 / 8%)",
-        "tonalRamp": ["oklch(1 0 0 / 4%)", "oklch(1 0 0 / 8%)", "oklch(1 0 0 / 12%)", "oklch(1 0 0 / 16%)", "oklch(1 0 0 / 24%)", "oklch(1 0 0 / 40%)", "oklch(1 0 0 / 60%)", "oklch(1 0 0 / 90%)"]
+        "tonalRamp": [
+          "oklch(1 0 0 / 4%)",
+          "oklch(1 0 0 / 8%)",
+          "oklch(1 0 0 / 12%)",
+          "oklch(1 0 0 / 16%)",
+          "oklch(1 0 0 / 24%)",
+          "oklch(1 0 0 / 40%)",
+          "oklch(1 0 0 / 60%)",
+          "oklch(1 0 0 / 90%)"
+        ]
       },
       "alert-ember": {
         "role": "tertiary",
         "displayName": "Alert Ember",
         "canonical": "oklch(0.62 0.22 25)",
-        "tonalRamp": ["oklch(0.20 0.22 25)", "oklch(0.32 0.22 25)", "oklch(0.44 0.22 25)", "oklch(0.56 0.22 25)", "oklch(0.62 0.22 25)", "oklch(0.72 0.22 25)", "oklch(0.82 0.22 25)", "oklch(0.92 0.22 25)"]
+        "tonalRamp": [
+          "oklch(0.20 0.22 25)",
+          "oklch(0.32 0.22 25)",
+          "oklch(0.44 0.22 25)",
+          "oklch(0.56 0.22 25)",
+          "oklch(0.62 0.22 25)",
+          "oklch(0.72 0.22 25)",
+          "oklch(0.82 0.22 25)",
+          "oklch(0.92 0.22 25)"
+        ]
       }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Full-bleed hero titles, section covers, major state-change headlines (impact mode)." },
+      "display": {
+        "displayName": "Display",
+        "purpose": "Full-bleed hero titles, section covers, major state-change headlines (impact mode)."
+      },
       "headline": { "displayName": "Headline", "purpose": "Section headers, major page titles." },
-      "title": { "displayName": "Title", "purpose": "Card titles, sidebar labels, button text, UI headings." },
-      "body": { "displayName": "Body", "purpose": "Default UI text; the dominant size across the app." },
-      "label": { "displayName": "Label", "purpose": "Timestamps, IDs, badges, role labels, status indicators, code." }
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card titles, sidebar labels, button text, UI headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default UI text; the dominant size across the app."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Timestamps, IDs, badges, role labels, status indicators, code."
+      }
     },
     "shadows": [
-      { "name": "glow-accent", "value": "0 0 24px -4px color-mix(in oklab, var(--accent) 55%, transparent)", "purpose": "Tight signal halo for focus rings, active/live indicators, the one CTA that matters right now." },
-      { "name": "glow-soft", "value": "0 0 80px -20px color-mix(in oklab, var(--accent) 35%, transparent)", "purpose": "Wide ambient glow behind a hero element or active section." },
-      { "name": "shadow-elegant", "value": "0 30px 60px -30px color-mix(in oklab, black 70%, transparent)", "purpose": "Large soft black shadow for modals/dialogs/overlays that must separate from the page." }
+      {
+        "name": "glow-accent",
+        "value": "0 0 24px -4px color-mix(in oklab, var(--accent) 55%, transparent)",
+        "purpose": "Tight signal halo for focus rings, active/live indicators, the one CTA that matters right now."
+      },
+      {
+        "name": "glow-soft",
+        "value": "0 0 80px -20px color-mix(in oklab, var(--accent) 35%, transparent)",
+        "purpose": "Wide ambient glow behind a hero element or active section."
+      },
+      {
+        "name": "shadow-elegant",
+        "value": "0 30px 60px -30px color-mix(in oklab, black 70%, transparent)",
+        "purpose": "Large soft black shadow for modals/dialogs/overlays that must separate from the page."
+      }
     ],
     "motion": [
-      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default easing for state transitions — deliberate, no bounce/elastic." },
-      { "name": "pulse-passive", "value": "2.4s ease-in-out infinite", "purpose": "Breathing opacity animation (0.35 -> 1 -> 0.35) for passive live indicators." }
+      {
+        "name": "ease-out-quart",
+        "value": "cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Default easing for state transitions — deliberate, no bounce/elastic."
+      },
+      {
+        "name": "pulse-passive",
+        "value": "2.4s ease-in-out infinite",
+        "purpose": "Breathing opacity animation (0.35 -> 1 -> 0.35) for passive live indicators."
+      }
     ],
     "breakpoints": [
       { "name": "sm", "value": "640px" },
@@ -143,11 +256,31 @@
       "Empty space is structural — it is where the user's thinking happens"
     ],
     "rules": [
-      { "name": "The One Signal Rule", "body": "Signal Yellow appears on a small minority of any given screen. If you're reaching for yellow and the element isn't an active state, a live indicator, a focus ring, or the single most important action on the screen, it's the wrong color.", "section": "colors" },
-      { "name": "The Single Source Rule", "body": ":root in src/styles.css is the only implemented theme and is canonical for all three registers. The .dark class currently defines an unrelated, unbranded palette inherited from the starter template and must not be activated as-is.", "section": "colors" },
-      { "name": "The Wordmark-Only Rule", "body": "SONORAN renders the PKGD wordmark and nothing else. The moment it appears in a heading, label, or body copy, it has been misused.", "section": "typography" },
-      { "name": "The Two-Voice Rule", "body": "If text is something a person wrote, it's Gotham. If it's something the machine produced (timestamp, ID, status code, log line), it's Chainprinter. There is no third option.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "Cards, buttons, inputs, and badges are flat at rest — no box-shadow for ordinary hierarchy. Something that needs to stand out earns a glow (signal) or, for true overlays, shadow-elegant.", "section": "elevation" }
+      {
+        "name": "The One Signal Rule",
+        "body": "Signal Yellow appears on a small minority of any given screen. If you're reaching for yellow and the element isn't an active state, a live indicator, a focus ring, or the single most important action on the screen, it's the wrong color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Single Source Rule",
+        "body": ":root in src/styles.css is the only implemented theme and is canonical for all three registers. The .dark class currently defines an unrelated, unbranded palette inherited from the starter template and must not be activated as-is.",
+        "section": "colors"
+      },
+      {
+        "name": "The Wordmark-Only Rule",
+        "body": "SONORAN renders the PKGD wordmark and nothing else. The moment it appears in a heading, label, or body copy, it has been misused.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two-Voice Rule",
+        "body": "If text is something a person wrote, it's Gotham. If it's something the machine produced (timestamp, ID, status code, log line), it's Chainprinter. There is no third option.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Cards, buttons, inputs, and badges are flat at rest — no box-shadow for ordinary hierarchy. Something that needs to stand out earns a glow (signal) or, for true overlays, shadow-elegant.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do ration Signal Yellow (#fae714) to active states, live indicators, focus rings, and at most one true CTA per screen — The One Signal Rule.",

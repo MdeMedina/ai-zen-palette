@@ -6,33 +6,117 @@
 
 /* SONORAN — Wordmark / Logo only */
 @font-face {
-  font-family: 'SONORAN';
-  src: url('@/assets/fonts/SONORAN.otf') format('opentype');
+  font-family: "SONORAN";
+  src: url("@/assets/fonts/SONORAN.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 /* Gotham — Full UI type system */
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-Thin.otf') format('opentype'); font-weight: 100; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-ThinIta.otf') format('opentype'); font-weight: 100; font-style: italic; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-XLight.otf') format('opentype'); font-weight: 200; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-XLightIta.otf') format('opentype'); font-weight: 200; font-style: italic; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-Light.otf') format('opentype'); font-weight: 300; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-LightIta.otf') format('opentype'); font-weight: 300; font-style: italic; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-Book.otf') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-BookIta.otf') format('opentype'); font-weight: 400; font-style: italic; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-MediumIta.otf') format('opentype'); font-weight: 500; font-style: italic; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-BoldIta.otf') format('opentype'); font-weight: 700; font-style: italic; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-Black.otf') format('opentype'); font-weight: 900; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Gotham'; src: url('@/assets/fonts/Gotham-BlackIta.otf') format('opentype'); font-weight: 900; font-style: italic; font-display: swap; }
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-Thin.otf") format("opentype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-ThinIta.otf") format("opentype");
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-XLight.otf") format("opentype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-XLightIta.otf") format("opentype");
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-LightIta.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-Book.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-BookIta.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-MediumIta.otf") format("opentype");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-BoldIta.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-Black.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gotham";
+  src: url("@/assets/fonts/Gotham-BlackIta.otf") format("opentype");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
 
 /* Chainprinter — Technical data, labels, badges */
 @font-face {
-  font-family: 'Chainprinter';
-  src: url('@/assets/fonts/Chainprinter.ttf') format('truetype');
+  font-family: "Chainprinter";
+  src: url("@/assets/fonts/Chainprinter.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -96,9 +180,9 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-conversation-sidebar: var(--conversation-sidebar);
-  --font-display: 'SONORAN', sans-serif;
-  --font-sans: 'Gotham', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Chainprinter', ui-monospace, monospace;
+  --font-display: "SONORAN", sans-serif;
+  --font-sans: "Gotham", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Chainprinter", ui-monospace, monospace;
 }
 
 :root {
@@ -150,7 +234,8 @@
   --chat-ai-bg: transparent;
 }
 
-:root.light, .light {
+:root.light,
+.light {
   --background: oklch(1 0 0);
   --conversation-sidebar: #f8f8f7;
   --chat-user-bg: #fefbe6;
@@ -162,7 +247,7 @@
   --popover-foreground: oklch(0.12 0.01 80);
   --primary: oklch(0.12 0.01 80);
   --primary-foreground: oklch(0.97 0.005 85);
-  --secondary: oklch(0.80 0.02 85);
+  --secondary: oklch(0.8 0.02 85);
   --secondary-foreground: oklch(0.12 0.01 80);
   --muted: oklch(0.83 0.02 85);
   --muted-foreground: oklch(0.32 0.02 85);
@@ -170,18 +255,18 @@
   --accent-foreground: oklch(0.12 0.01 80);
   --destructive: oklch(0.58 0.18 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.30 0.015 80);
+  --border: oklch(0.3 0.015 80);
   --input: oklch(0.38 0.015 80);
   --ring: oklch(0.92 0.18 100 / 60%);
   --chart-1: oklch(0.92 0.18 100);
   --chart-2: oklch(0.45 0.1 80);
   --chart-3: oklch(0.65 0.08 90);
-  --chart-4: oklch(0.20 0.02 80);
+  --chart-4: oklch(0.2 0.02 80);
   --chart-5: oklch(0.6 0.04 80);
-  --sidebar: oklch(0.20 0.01 80);
+  --sidebar: oklch(0.2 0.01 80);
   --sidebar-foreground: oklch(0.97 0.005 85);
   --sidebar-primary: oklch(0.92 0.18 100);
-  --sidebar-primary-foreground: oklch(0.20 0.01 80);
+  --sidebar-primary-foreground: oklch(0.2 0.01 80);
   --sidebar-accent: oklch(0.26 0.01 80);
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(1 0 0 / 8%);
@@ -205,20 +290,48 @@
   --shadow-2xl: 9px 9px 0px var(--border);
 
   /* Increase typography contrast for light theme readability */
-  .text-foreground\/20 { color: color-mix(in oklab, var(--foreground) 45%, transparent) !important; }
-  .text-foreground\/25 { color: color-mix(in oklab, var(--foreground) 50%, transparent) !important; }
-  .text-foreground\/30 { color: color-mix(in oklab, var(--foreground) 55%, transparent) !important; }
-  .text-foreground\/35 { color: color-mix(in oklab, var(--foreground) 60%, transparent) !important; }
-  .text-foreground\/40 { color: color-mix(in oklab, var(--foreground) 65%, transparent) !important; }
-  .text-foreground\/45 { color: color-mix(in oklab, var(--foreground) 70%, transparent) !important; }
-  .text-foreground\/50 { color: color-mix(in oklab, var(--foreground) 75%, transparent) !important; }
-  .text-foreground\/55 { color: color-mix(in oklab, var(--foreground) 80%, transparent) !important; }
-  .text-foreground\/60 { color: color-mix(in oklab, var(--foreground) 85%, transparent) !important; }
-  .text-foreground\/70 { color: color-mix(in oklab, var(--foreground) 90%, transparent) !important; }
-  .text-foreground\/75 { color: color-mix(in oklab, var(--foreground) 92%, transparent) !important; }
-  .text-foreground\/80 { color: color-mix(in oklab, var(--foreground) 94%, transparent) !important; }
-  .text-foreground\/85 { color: color-mix(in oklab, var(--foreground) 96%, transparent) !important; }
-  .text-foreground\/95 { color: var(--foreground) !important; }
+  .text-foreground\/20 {
+    color: color-mix(in oklab, var(--foreground) 45%, transparent) !important;
+  }
+  .text-foreground\/25 {
+    color: color-mix(in oklab, var(--foreground) 50%, transparent) !important;
+  }
+  .text-foreground\/30 {
+    color: color-mix(in oklab, var(--foreground) 55%, transparent) !important;
+  }
+  .text-foreground\/35 {
+    color: color-mix(in oklab, var(--foreground) 60%, transparent) !important;
+  }
+  .text-foreground\/40 {
+    color: color-mix(in oklab, var(--foreground) 65%, transparent) !important;
+  }
+  .text-foreground\/45 {
+    color: color-mix(in oklab, var(--foreground) 70%, transparent) !important;
+  }
+  .text-foreground\/50 {
+    color: color-mix(in oklab, var(--foreground) 75%, transparent) !important;
+  }
+  .text-foreground\/55 {
+    color: color-mix(in oklab, var(--foreground) 80%, transparent) !important;
+  }
+  .text-foreground\/60 {
+    color: color-mix(in oklab, var(--foreground) 85%, transparent) !important;
+  }
+  .text-foreground\/70 {
+    color: color-mix(in oklab, var(--foreground) 90%, transparent) !important;
+  }
+  .text-foreground\/75 {
+    color: color-mix(in oklab, var(--foreground) 92%, transparent) !important;
+  }
+  .text-foreground\/80 {
+    color: color-mix(in oklab, var(--foreground) 94%, transparent) !important;
+  }
+  .text-foreground\/85 {
+    color: color-mix(in oklab, var(--foreground) 96%, transparent) !important;
+  }
+  .text-foreground\/95 {
+    color: var(--foreground) !important;
+  }
 }
 
 @layer base {
@@ -234,7 +347,9 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  html, body, #root {
+  html,
+  body,
+  #root {
     min-height: 100vh;
   }
 
@@ -270,15 +385,31 @@
 }
 
 @layer utilities {
-  .font-display { font-family: var(--font-sans); font-weight: 700; }
-  .font-mono { font-family: var(--font-mono); }
+  .font-display {
+    font-family: var(--font-sans);
+    font-weight: 700;
+  }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
 
-  .text-accent { color: var(--accent); }
-  .bg-accent-solid { background: var(--accent); color: var(--accent-foreground); }
-  .border-accent { border-color: var(--accent); }
+  .text-accent {
+    color: var(--accent);
+  }
+  .bg-accent-solid {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+  .border-accent {
+    border-color: var(--accent);
+  }
 
-  .glow-accent { box-shadow: var(--glow-accent); }
-  .glow-soft { box-shadow: var(--glow-soft); }
+  .glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+  .glow-soft {
+    box-shadow: var(--glow-soft);
+  }
 
   .grid-bg {
     background-image:
@@ -291,9 +422,21 @@
     background-image:
       linear-gradient(to right, var(--grid-line) 1.5px, transparent 1.5px),
       linear-gradient(to bottom, var(--grid-line) 1.5px, transparent 1.5px),
-      linear-gradient(to right, color-mix(in oklab, var(--accent) 3.5%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in oklab, var(--accent) 3.5%, transparent) 1px, transparent 1px);
-    background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--accent) 3.5%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--accent) 3.5%, transparent) 1px,
+        transparent 1px
+      );
+    background-size:
+      40px 40px,
+      40px 40px,
+      8px 8px,
+      8px 8px;
   }
 
   .border-double-thick {
@@ -303,7 +446,7 @@
   }
 
   .font-sonoran {
-    font-family: 'SONORAN', sans-serif !important;
+    font-family: "SONORAN", sans-serif !important;
   }
 
   .light .border-double-thick {
@@ -326,7 +469,10 @@
     font-family: var(--font-sans) !important;
     font-weight: 700 !important;
     border: 1px solid #fae714 !important;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease,
+      border-color 0.15s ease !important;
   }
   .light button:hover,
   .light [role="button"]:hover {
@@ -430,8 +576,13 @@
   }
 
   @keyframes pulse-passive {
-    0%, 100% { opacity: 0.35; }
-    50% { opacity: 1; }
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 
   .caret-blink {
@@ -439,13 +590,20 @@
   }
 
   @keyframes caret-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+  *,
+  ::before,
+  ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

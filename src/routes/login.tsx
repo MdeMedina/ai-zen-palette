@@ -174,9 +174,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </span>
       <div className="flex items-center gap-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
         <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
-        <div className="flex-1 min-w-0">
-          {children}
-        </div>
+        <div className="flex-1 min-w-0">{children}</div>
         <span className="font-mono text-foreground/30 select-none text-[13px] pl-1">]</span>
       </div>
     </label>

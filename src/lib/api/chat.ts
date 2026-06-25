@@ -24,7 +24,10 @@ export async function sendPrompt(input: SendPromptInput): Promise<ChatMessage> {
     const s = mockSessions.find((x) => x.id === input.session_id);
     if (s) {
       s.transcript_payload.push(reply);
-      const isSuccess = input.prompt.toLowerCase().includes("oro") || input.prompt.toLowerCase().includes("gold") || input.prompt.toLowerCase().includes("encauzamiento");
+      const isSuccess =
+        input.prompt.toLowerCase().includes("oro") ||
+        input.prompt.toLowerCase().includes("gold") ||
+        input.prompt.toLowerCase().includes("encauzamiento");
       if (isSuccess) {
         s.status = "Closed";
         s.encauzamiento_count += 1;

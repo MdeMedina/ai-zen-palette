@@ -121,49 +121,50 @@ function AuditPage() {
                 </button>
               </li>
             ) : (
-              operatorsQ.data
-                ?.map((o, idx) => {
-                  const active = o.id === userId;
-                  return (
-                    <li
-                      key={o.id}
-                      className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-2 duration-200"
-                      style={{
-                        animationDelay: `${idx * 30}ms`,
-                        animationFillMode: "both",
+              operatorsQ.data?.map((o, idx) => {
+                const active = o.id === userId;
+                return (
+                  <li
+                    key={o.id}
+                    className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-2 duration-200"
+                    style={{
+                      animationDelay: `${idx * 30}ms`,
+                      animationFillMode: "both",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserId(o.id);
+                        handleSelectSession(null);
                       }}
+                      className={[
+                        "block w-full border-l-2 px-5 py-3 text-left transition-all relative outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:bg-foreground/[0.04] focus-visible:z-10 focus:z-10",
+                        active
+                          ? "border-[var(--accent)] bg-foreground/[0.03]"
+                          : "border-transparent hover:bg-foreground/[0.02]",
+                      ].join(" ")}
                     >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUserId(o.id);
-                          handleSelectSession(null);
-                        }}
-                        className={[
-                          "block w-full border-l-2 px-5 py-3 text-left transition-all relative outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:bg-foreground/[0.04] focus-visible:z-10 focus:z-10",
-                          active
-                            ? "border-[var(--accent)] bg-foreground/[0.03]"
-                            : "border-transparent hover:bg-foreground/[0.02]",
-                        ].join(" ")}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="text-[13px] text-foreground">{o.full_name}</div>
-                          <span
-                            className={[
-                              "font-mono text-[9px] uppercase tracking-[0.2em]",
-                              o.global_role === "admin" ? "text-[var(--accent)]" : "text-foreground/35",
-                            ].join(" ")}
-                          >
-                            {o.global_role}
-                          </span>
-                        </div>
-                        <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/40">
-                          {o.email}
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-[13px] text-foreground">{o.full_name}</div>
+                        <span
+                          className={[
+                            "font-mono text-[9px] uppercase tracking-[0.2em]",
+                            o.global_role === "admin"
+                              ? "text-[var(--accent)]"
+                              : "text-foreground/35",
+                          ].join(" ")}
+                        >
+                          {o.global_role}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/40">
+                        {o.email}
+                      </div>
+                    </button>
+                  </li>
+                );
+              })
             )}
           </ul>
         </aside>
@@ -173,8 +174,12 @@ function AuditPage() {
           {!selectedUser ? (
             <div className="m-auto flex flex-col items-center justify-center p-8 text-center font-mono">
               <div className="border border-dashed border-border bg-card p-8 max-w-sm shadow-sm rounded-[3px]">
-                <div className="text-[10px] uppercase tracking-[0.22em] text-foreground/45 mb-2">Workspace Offline</div>
-                <p className="text-[12px] text-foreground/50 leading-relaxed">Select an operator from the directory to initialize the Audit Workspace.</p>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-foreground/45 mb-2">
+                  Workspace Offline
+                </div>
+                <p className="text-[12px] text-foreground/50 leading-relaxed">
+                  Select an operator from the directory to initialize the Audit Workspace.
+                </p>
               </div>
             </div>
           ) : selectedSession ? (
@@ -249,9 +254,12 @@ function AuditPage() {
             </>
           ) : (
             <div className="mt-6 border border-dashed border-border bg-card p-6 font-mono text-center shadow-sm rounded-[3px]">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-foreground/35 mb-2">Telemetry Standby</div>
+              <div className="text-[10px] uppercase tracking-[0.22em] text-foreground/35 mb-2">
+                Telemetry Standby
+              </div>
               <p className="text-[11px] text-foreground/40 leading-relaxed">
-                Select a user session from the active log to view real-time alignment and calcification metrics.
+                Select a user session from the active log to view real-time alignment and
+                calcification metrics.
               </p>
             </div>
           )}
@@ -265,9 +273,7 @@ function AuditPage() {
 // status Closed + gold_extraction_status 'Pending'. Approval flips it to 'Extracted'.
 function canExtractGold(s: SessionRecord): boolean {
   return (
-    s.encauzamiento_count > 0 &&
-    s.status === "Closed" &&
-    s.gold_extraction_status === "Pending"
+    s.encauzamiento_count > 0 && s.status === "Closed" && s.gold_extraction_status === "Pending"
   );
 }
 
@@ -304,7 +310,10 @@ function UserDashboard({
 
       {diagQ.isError ? (
         <div className="mt-6">
-          <ErrorBanner message="Couldn't load member diagnostic. Please try again." onRetry={() => diagQ.refetch()} />
+          <ErrorBanner
+            message="Couldn't load member diagnostic. Please try again."
+            onRetry={() => diagQ.refetch()}
+          />
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-[200px_1fr] gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300 ease-out">
@@ -333,9 +342,18 @@ function UserDashboard({
               {diagQ.isLoading ? "Loading…" : (diagQ.data?.text ?? "—")}
             </p>
             <div className="mt-4 grid grid-cols-3 gap-3 font-mono text-[11px] text-foreground/60">
-              <Metric label="Encauz." value={diagQ.isLoading ? 0 : (diagQ.data?.encauzamiento_count ?? 0)} />
-              <Metric label="Coupling" value={diagQ.isLoading ? 0 : (diagQ.data?.coupling_node_count ?? 0)} />
-              <Metric label="Glitches" value={diagQ.isLoading ? 0 : (diagQ.data?.glitch_count ?? 0)} />
+              <Metric
+                label="Encauz."
+                value={diagQ.isLoading ? 0 : (diagQ.data?.encauzamiento_count ?? 0)}
+              />
+              <Metric
+                label="Coupling"
+                value={diagQ.isLoading ? 0 : (diagQ.data?.coupling_node_count ?? 0)}
+              />
+              <Metric
+                label="Glitches"
+                value={diagQ.isLoading ? 0 : (diagQ.data?.glitch_count ?? 0)}
+              />
             </div>
           </div>
         </div>
@@ -378,7 +396,12 @@ function UserDashboard({
                 <th className="px-4 py-2.5 font-normal">Title</th>
                 <th className="px-4 py-2.5 font-normal">Date</th>
                 <th className="px-4 py-2.5 font-normal text-right">Friction</th>
-                <th className="px-4 py-2.5 font-normal" title="Sessions where defensive loops were broken and alignment was reached">Channeled</th>
+                <th
+                  className="px-4 py-2.5 font-normal"
+                  title="Sessions where defensive loops were broken and alignment was reached"
+                >
+                  Channeled
+                </th>
                 <th className="px-4 py-2.5 font-normal">Status</th>
               </tr>
             </thead>
@@ -432,11 +455,15 @@ function UserDashboard({
                         {new Date(s.created_at).toISOString().slice(0, 10)}
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono text-[12px] text-foreground/75">
-                        <span className="text-foreground/30 font-light">[</span> {(s.friction_level ?? 0).toFixed(1)} <span className="text-foreground/30 font-light">]</span>
+                        <span className="text-foreground/30 font-light">[</span>{" "}
+                        {(s.friction_level ?? 0).toFixed(1)}{" "}
+                        <span className="text-foreground/30 font-light">]</span>
                       </td>
                       <td className="px-4 py-2.5">
                         {s.encauzamiento_count > 0 ? (
-                          <span className="font-mono text-[11px] text-[var(--accent)]">[ ✓ {s.encauzamiento_count} ]</span>
+                          <span className="font-mono text-[11px] text-[var(--accent)]">
+                            [ ✓ {s.encauzamiento_count} ]
+                          </span>
                         ) : (
                           <span className="font-mono text-[11px] text-foreground/30">[ — ]</span>
                         )}
@@ -448,7 +475,10 @@ function UserDashboard({
                   ))}
                   {sessions.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-[12px] text-foreground/40">
+                      <td
+                        colSpan={5}
+                        className="px-4 py-8 text-center text-[12px] text-foreground/40"
+                      >
                         No sessions.
                       </td>
                     </tr>
@@ -503,12 +533,24 @@ function GlitchCard({ glitch }: { glitch: Glitch }) {
 
 function TelemetryPanel({ s }: { s: SessionRecord }) {
   const rows: Array<[string, React.ReactNode, string?]> = [
-    ["Max Friction", (s.friction_level ?? 0).toFixed(1), "Highest friction score recorded in this session (0.0–10.0)"],
-    ["Calcification Δ", s.calcification_delta, "Delta of defensive pattern rigidity across session intervals"],
+    [
+      "Max Friction",
+      (s.friction_level ?? 0).toFixed(1),
+      "Highest friction score recorded in this session (0.0–10.0)",
+    ],
+    [
+      "Calcification Δ",
+      s.calcification_delta,
+      "Delta of defensive pattern rigidity across session intervals",
+    ],
     ["Intervals", s.interval_count],
     ["Glitches", s.glitch_count],
     ["Channeled", s.encauzamiento_count, "Moments of alignment where defensive loops were broken"],
-    ["Coupling Node", s.coupling_node_triggered ? "Triggered" : "—", "Indicates the conversation touched a core structural topic"],
+    [
+      "Coupling Node",
+      s.coupling_node_triggered ? "Triggered" : "—",
+      "Indicates the conversation touched a core structural topic",
+    ],
     ["Resolution", s.resolution_status],
     ["Gold Status", s.gold_extraction_status],
     [

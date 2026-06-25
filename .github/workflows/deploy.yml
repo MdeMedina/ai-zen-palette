@@ -23,7 +23,7 @@ jobs:
           script: |
             cd ${{ secrets.SSH_PATH }}
             git pull origin main
-            
+
             # Restart frontend container
             docker compose down
             docker compose up -d --build

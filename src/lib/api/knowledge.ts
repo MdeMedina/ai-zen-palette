@@ -51,8 +51,13 @@ export interface UploadInput {
 export async function upload(input: UploadInput): Promise<KnowledgeAsset> {
   if (USE_MOCKS) {
     await delay(640);
-    const dept = input.department_id ? mockDepartments.find((d) => d.id === input.department_id) : null;
-    const role = input.department_role_id && dept ? dept.roles?.find((r) => r.id === input.department_role_id) : null;
+    const dept = input.department_id
+      ? mockDepartments.find((d) => d.id === input.department_id)
+      : null;
+    const role =
+      input.department_role_id && dept
+        ? dept.roles?.find((r) => r.id === input.department_role_id)
+        : null;
     const asset: KnowledgeAsset = {
       id: mockId(),
       brand_id: input.brand_id || null,
@@ -119,22 +124,22 @@ export async function downloadAsset(asset: KnowledgeAsset): Promise<void> {
   const token = useSessionStore.getState().token;
   const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
   const res = await fetch(`${BASE_URL}/api/knowledge/${asset.id}/download`, { headers });
-  
+
   if (!res.ok) {
     throw new Error("Failed to download file");
   }
-  
+
   const blob = await res.blob();
   if (typeof window === "undefined") return;
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  
+
   // Try to preserve original extension if possible
   const filename = asset.source_file_url ? asset.source_file_url.split("/").pop() || "" : "";
   const ext = filename.includes(".") ? filename.substring(filename.lastIndexOf(".")) : "";
   const downloadName = asset.title.endsWith(ext) ? asset.title : `${asset.title}${ext}`;
-  
+
   a.download = downloadName;
   document.body.appendChild(a);
   a.click();

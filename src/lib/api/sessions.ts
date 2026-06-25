@@ -24,14 +24,16 @@ export async function createSession(
 ): Promise<SessionRecord> {
   if (USE_MOCKS) {
     await delay(220);
-    const initialTranscript = input.prompt ? [
-      {
-        id: mockId(),
-        role: "user" as const,
-        text: input.prompt,
-        ts: new Date().toISOString(),
-      }
-    ] : [];
+    const initialTranscript = input.prompt
+      ? [
+          {
+            id: mockId(),
+            role: "user" as const,
+            text: input.prompt,
+            ts: new Date().toISOString(),
+          },
+        ]
+      : [];
 
     const s: SessionRecord = {
       id: mockId(),

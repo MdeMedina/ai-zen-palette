@@ -1,6 +1,7 @@
 import type { ChatMessage } from "@/lib/api/types";
 import type { ChatLanguage } from "@/stores/session";
 import { oracleCopy } from "@/lib/i18n/oracle";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 export function MessageBubble({
   message,
@@ -28,7 +29,11 @@ export function MessageBubble({
             {new Date(message.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </time>
         </div>
-        <p className="whitespace-pre-wrap">{message.text}</p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap">{message.text}</p>
+        ) : (
+          <MarkdownRenderer content={message.text} />
+        )}
       </div>
     </div>
   );

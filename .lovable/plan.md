@@ -1,6 +1,7 @@
 ## Cambios funcionales por workspace
 
 ### 1. Oracle (`/_app/oracle`)
+
 - Quitar el selector de brand del header. El backend/agente infiere el producto desde el prompt; el cliente ya no lo envía.
 - Layout en 2 columnas: **sidebar permanente** (260px) + hilo dialéctico.
 - Sidebar de sesiones del usuario actual:
@@ -13,6 +14,7 @@
 - `sessions.ts` añade: `listMySessions(userId)`, `reopenSession(id)`, `getSession(id)` (con transcript).
 
 ### 2. Hive Matrix (`/_app/hive`)
+
 - Tabla de operadores con acciones por fila: **Edit** y **Delete** (icon buttons).
 - Modal `EditUserDialog` (Radix dialog) con form:
   - `full_name` (text)
@@ -25,6 +27,7 @@
 - `SessionUser` y mocks ganan campo `brand_access: UUID[]`.
 
 ### 3. Knowledge Pipeline (`/_app/knowledge`)
+
 - **Asset types** del upload reducidos a `SOP | Dogma`. Tipo `Gold`/`Jewel` se quitan de `TYPES` (siguen existiendo en el type union porque el Audit los crea).
 - **CRUD de Brands** (admin only): nuevo panel arriba del form de upload o tab dedicado.
   - Lista de brands con inline edit del nombre + delete.
@@ -35,6 +38,7 @@
   - Columna nueva **Actions** con botón `Download` → llama `knowledgeApi.downloadAsset(id)` que en mock abre `source_file_url` en nueva pestaña; en real hace `GET /api/knowledge/:id/download` y descarga el blob.
 
 ### 4. Audit Workspace (`/_app/audit`)
+
 Reestructura jerárquica **Usuario → Sesión**:
 
 - Layout en 3 columnas:

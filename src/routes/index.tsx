@@ -55,14 +55,23 @@ function IndexGate() {
         >
           <BrandLogo />
         </div>
-        
+
         {!hydrated && (
           <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.24em] text-foreground/35 animate-fade-in">
             <span>Initializing core</span>
             <span className="inline-flex gap-0.5">
-              <span className="size-[3px] rounded-full bg-[var(--accent)] animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="size-[3px] rounded-full bg-[var(--accent)] animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="size-[3px] rounded-full bg-[var(--accent)] animate-bounce" style={{ animationDelay: "300ms" }} />
+              <span
+                className="size-[3px] rounded-full bg-[var(--accent)] animate-bounce"
+                style={{ animationDelay: "0ms" }}
+              />
+              <span
+                className="size-[3px] rounded-full bg-[var(--accent)] animate-bounce"
+                style={{ animationDelay: "150ms" }}
+              />
+              <span
+                className="size-[3px] rounded-full bg-[var(--accent)] animate-bounce"
+                style={{ animationDelay: "300ms" }}
+              />
             </span>
           </div>
         )}
@@ -70,4 +79,3 @@ function IndexGate() {
     </PageBackground>
   );
 }
-

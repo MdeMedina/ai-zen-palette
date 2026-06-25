@@ -4,8 +4,7 @@ export const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined
 export const USE_MOCKS =
   (import.meta.env.VITE_USE_MOCKS as string | undefined) !== "false" && !BASE_URL;
 
-export const N8N_CHAT_WEBHOOK =
-  (import.meta.env.VITE_N8N_CHAT_WEBHOOK as string | undefined) ?? "";
+export const N8N_CHAT_WEBHOOK = (import.meta.env.VITE_N8N_CHAT_WEBHOOK as string | undefined) ?? "";
 
 export class ApiError extends Error {
   status: number;
@@ -46,12 +45,7 @@ export async function apiFetch<T>(path: string, opts: ApiFetchOptions = {}): Pro
       ...(!anonymous && token ? { Authorization: `Bearer ${token}` } : {}),
       ...(headers ?? {}),
     },
-    body:
-      body === undefined
-        ? undefined
-        : body instanceof FormData
-          ? body
-          : JSON.stringify(body),
+    body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
   };
 
   const res = await fetch(url, init);

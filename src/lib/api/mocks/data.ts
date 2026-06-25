@@ -40,30 +40,36 @@ export const mockDepartments: Department[] = [
     id: "marketing-dept-id",
     name: "Marketing",
     roles: [
-      { id: "marketing-manager-role-id", name: "Marketing Manager", department_id: "marketing-dept-id" }
-    ]
+      {
+        id: "marketing-manager-role-id",
+        name: "Marketing Manager",
+        department_id: "marketing-dept-id",
+      },
+    ],
   },
   {
     id: "finance-dept-id",
     name: "Finanzas",
     roles: [
-      { id: "financial-analyst-role-id", name: "Analista Financiero", department_id: "finance-dept-id" }
-    ]
+      {
+        id: "financial-analyst-role-id",
+        name: "Analista Financiero",
+        department_id: "finance-dept-id",
+      },
+    ],
   },
   {
     id: "tech-dept-id",
     name: "Tecnología",
-    roles: [
-      { id: "tech-lead-role-id", name: "Desarrollador Lead", department_id: "tech-dept-id" }
-    ]
+    roles: [{ id: "tech-lead-role-id", name: "Desarrollador Lead", department_id: "tech-dept-id" }],
   },
   {
     id: "direccion-dept-id",
     name: "Dirección",
     roles: [
-      { id: "director-role-id", name: "Director General", department_id: "direccion-dept-id" }
-    ]
-  }
+      { id: "director-role-id", name: "Director General", department_id: "direccion-dept-id" },
+    ],
+  },
 ];
 
 export const mockUsers: User[] = [
@@ -119,10 +125,7 @@ export const mockUsers: User[] = [
     global_role: "operator",
     friction_level: 24,
     calcification_level: 12,
-    brand_access: [
-      "11111111-1111-4111-8111-111111111111",
-      "22222222-2222-4222-8222-222222222222",
-    ],
+    brand_access: ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"],
     department_id: "tech-dept-id",
     department_role_id: "tech-lead-role-id",
     department: { id: "tech-dept-id", name: "Tecnología" },
@@ -211,7 +214,12 @@ export const mockKnowledge: KnowledgeAsset[] = [
 ];
 
 const sampleThread = [
-  { id: "m1", role: "user" as const, text: "Propose: cut launch budget 18% to fund a parallel R&D track.", ts: "2026-05-20T09:01:00Z" },
+  {
+    id: "m1",
+    role: "user" as const,
+    text: "Propose: cut launch budget 18% to fund a parallel R&D track.",
+    ts: "2026-05-20T09:01:00Z",
+  },
   {
     id: "m2",
     role: "ai-ceo" as const,
@@ -257,7 +265,12 @@ export const mockSessions: SessionRecord[] = [
     gold_extraction_status: "Pending",
     transcript_payload: sampleThread,
     glitches: [
-      mkGlitch("g1", "El operador racionaliza la decisión en lugar de nombrarla.", 6.4, "2026-05-20T09:01:40Z"),
+      mkGlitch(
+        "g1",
+        "El operador racionaliza la decisión en lugar de nombrarla.",
+        6.4,
+        "2026-05-20T09:01:40Z",
+      ),
     ],
     extracted_asset_id: null,
     created_at: "2026-05-20T09:00:00Z",
@@ -280,8 +293,18 @@ export const mockSessions: SessionRecord[] = [
     gold_extraction_status: "Extracted",
     transcript_payload: sampleThread,
     glitches: [
-      mkGlitch("g2", "Detección de bucle defensivo: 'el mercado lo hará por nosotros'.", 3.2, "2026-05-03T15:40:00Z"),
-      mkGlitch("g3", "Reconfiguración explícita del marco de capital.", 7.6, "2026-05-03T16:05:00Z"),
+      mkGlitch(
+        "g2",
+        "Detección de bucle defensivo: 'el mercado lo hará por nosotros'.",
+        3.2,
+        "2026-05-03T15:40:00Z",
+      ),
+      mkGlitch(
+        "g3",
+        "Reconfiguración explícita del marco de capital.",
+        7.6,
+        "2026-05-03T16:05:00Z",
+      ),
     ],
     extracted_asset_id: mockKnowledge[3].id,
     created_at: "2026-05-03T15:00:00Z",
@@ -325,7 +348,12 @@ export const mockSessions: SessionRecord[] = [
     gold_extraction_status: "None",
     transcript_payload: sampleThread.slice(0, 2),
     glitches: [
-      mkGlitch("g4", "Evita nombrar al responsable. Sustituye persona por proceso.", 4.1, "2026-05-28T10:20:00Z"),
+      mkGlitch(
+        "g4",
+        "Evita nombrar al responsable. Sustituye persona por proceso.",
+        4.1,
+        "2026-05-28T10:20:00Z",
+      ),
     ],
     extracted_asset_id: null,
     created_at: "2026-05-28T10:00:00Z",

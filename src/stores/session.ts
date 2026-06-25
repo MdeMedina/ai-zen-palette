@@ -53,7 +53,12 @@ export const useSessionStore = create<SessionState>()(
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? window.localStorage : (undefined as never),
       ),
-      partialize: (s) => ({ token: s.token, user: s.user, chatLanguage: s.chatLanguage, theme: s.theme }),
+      partialize: (s) => ({
+        token: s.token,
+        user: s.user,
+        chatLanguage: s.chatLanguage,
+        theme: s.theme,
+      }),
     },
   ),
 );

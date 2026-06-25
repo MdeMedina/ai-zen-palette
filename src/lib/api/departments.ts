@@ -71,7 +71,11 @@ export async function createRole(departmentId: UUID, name: string): Promise<Depa
   });
 }
 
-export async function updateRole(departmentId: UUID, id: UUID, name: string): Promise<DepartmentRole> {
+export async function updateRole(
+  departmentId: UUID,
+  id: UUID,
+  name: string,
+): Promise<DepartmentRole> {
   if (USE_MOCKS) {
     await delay(180);
     const dept = mockDepartments.find((d) => d.id === departmentId);

@@ -1,11 +1,6 @@
 import { USE_MOCKS, apiFetch, delay, mockId } from "./client";
 import { mockBrands, mockSessions, mockUserBrands, mockUsers, mockDepartments } from "./mocks/data";
-import type {
-  GlobalRole,
-  OperatorDiagnostic,
-  User,
-  UUID,
-} from "./types";
+import type { GlobalRole, OperatorDiagnostic, User, UUID } from "./types";
 
 export interface OperatorRow extends User {
   brand_ids: UUID[];
@@ -38,8 +33,13 @@ export async function createOperator(input: CreateOperatorInput): Promise<Operat
   if (USE_MOCKS) {
     await delay(360);
     const now = new Date().toISOString();
-    const dept = input.department_id ? mockDepartments.find((d) => d.id === input.department_id) : null;
-    const role = input.department_role_id && dept ? dept.roles?.find((r) => r.id === input.department_role_id) : null;
+    const dept = input.department_id
+      ? mockDepartments.find((d) => d.id === input.department_id)
+      : null;
+    const role =
+      input.department_role_id && dept
+        ? dept.roles?.find((r) => r.id === input.department_role_id)
+        : null;
 
     const created: User = {
       id: mockId(),
@@ -108,10 +108,7 @@ export interface UpdateOperatorInput {
 }
 
 /** PATCH /api/users/:id */
-export async function updateOperator(
-  id: UUID,
-  patch: UpdateOperatorInput,
-): Promise<OperatorRow> {
+export async function updateOperator(id: UUID, patch: UpdateOperatorInput): Promise<OperatorRow> {
   if (USE_MOCKS) {
     await delay(220);
     const u = mockUsers.find((x) => x.id === id);
@@ -125,13 +122,18 @@ export async function updateOperator(
     }
     if (patch.department_id !== undefined) {
       u.department_id = patch.department_id;
-      const dept = patch.department_id ? mockDepartments.find((d) => d.id === patch.department_id) : null;
+      const dept = patch.department_id
+        ? mockDepartments.find((d) => d.id === patch.department_id)
+        : null;
       u.department = dept ? { id: dept.id, name: dept.name } : null;
     }
     if (patch.department_role_id !== undefined) {
       u.department_role_id = patch.department_role_id;
       const dept = u.department_id ? mockDepartments.find((d) => d.id === u.department_id) : null;
-      const role = patch.department_role_id && dept ? dept.roles?.find((r) => r.id === patch.department_role_id) : null;
+      const role =
+        patch.department_role_id && dept
+          ? dept.roles?.find((r) => r.id === patch.department_role_id)
+          : null;
       u.department_role = role ? { id: role.id, name: role.name } : null;
     }
     u.updated_at = new Date().toISOString();
@@ -168,9 +170,7 @@ export async function getOperatorDiagnostic(id: UUID): Promise<OperatorDiagnosti
     const score =
       glitches.length === 0
         ? 6
-        : Math.round(
-            (glitches.reduce((sum, g) => sum + g.score, 0) / glitches.length) * 10,
-          ) / 10;
+        : Math.round((glitches.reduce((sum, g) => sum + g.score, 0) / glitches.length) * 10) / 10;
     const text = renderDiagnostic({
       max_friction,
       encauzamiento_count,

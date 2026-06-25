@@ -67,11 +67,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             const Icon = n.icon;
             const active = loc.pathname.startsWith(n.to);
             const label =
-              n.to === "/oracle" ? t.workspaceTitle :
-              n.to === "/hive" ? t.userManagement :
-              n.to === "/knowledge" ? t.knowledgeBases :
-              n.to === "/audit" ? t.auditSpace :
-              n.label;
+              n.to === "/oracle"
+                ? t.workspaceTitle
+                : n.to === "/hive"
+                  ? t.userManagement
+                  : n.to === "/knowledge"
+                    ? t.knowledgeBases
+                    : n.to === "/audit"
+                      ? t.auditSpace
+                      : n.label;
             return (
               <RailTooltip key={n.to} label={label}>
                 <Link

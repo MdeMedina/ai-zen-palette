@@ -14,7 +14,8 @@ import { oracleCopy } from "@/lib/i18n/oracle";
 export const Route = createFileRoute("/_app/hive")({
   head: () => {
     const lang = useSessionStore.getState().chatLanguage;
-    const title = lang === "es" ? "PKGD OS · Administración de Usuarios" : "PKGD OS · User Management";
+    const title =
+      lang === "es" ? "PKGD OS · Administración de Usuarios" : "PKGD OS · User Management";
     return { meta: [{ title }] };
   },
   component: HivePage,
@@ -40,8 +41,13 @@ function HivePage() {
     },
   });
   const updateM = useMutation({
-    mutationFn: ({ id, patch }: { id: UUID; patch: Parameters<typeof usersApi.updateOperator>[1] }) =>
-      usersApi.updateOperator(id, patch),
+    mutationFn: ({
+      id,
+      patch,
+    }: {
+      id: UUID;
+      patch: Parameters<typeof usersApi.updateOperator>[1];
+    }) => usersApi.updateOperator(id, patch),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["operators"] });
       setEditing(null);
@@ -82,8 +88,18 @@ function HivePage() {
                 <Th>Operator</Th>
                 <Th>Role</Th>
                 <Th>Department / Role</Th>
-                <Th className="text-right" title="Friction level: 0.0–10.0 scale of dialectical resistance">Friction</Th>
-                <Th className="text-right" title="Calcification: delta of defensive pattern rigidity across sessions">Calcification</Th>
+                <Th
+                  className="text-right"
+                  title="Friction level: 0.0–10.0 scale of dialectical resistance"
+                >
+                  Friction
+                </Th>
+                <Th
+                  className="text-right"
+                  title="Calcification: delta of defensive pattern rigidity across sessions"
+                >
+                  Calcification
+                </Th>
                 <Th>Brands</Th>
                 <Th>Created</Th>
                 <Th className="text-right">Actions</Th>
@@ -157,8 +173,16 @@ function HivePage() {
                     <Td>
                       {o.department ? (
                         <div className="min-w-0">
-                          <div className="text-foreground font-semibold truncate" title={o.department.name}>{o.department.name}</div>
-                          <div className="font-mono text-[11px] text-foreground/45 truncate mt-0.5" title={o.department_role?.name || "—"}>
+                          <div
+                            className="text-foreground font-semibold truncate"
+                            title={o.department.name}
+                          >
+                            {o.department.name}
+                          </div>
+                          <div
+                            className="font-mono text-[11px] text-foreground/45 truncate mt-0.5"
+                            title={o.department_role?.name || "—"}
+                          >
                             {o.department_role?.name || "—"}
                           </div>
                         </div>
@@ -167,10 +191,14 @@ function HivePage() {
                       )}
                     </Td>
                     <Td className="text-right font-mono text-[12px]">
-                      <span className="text-foreground/30 font-light">[</span> <TelemetryNumber value={o.friction_level} /> <span className="text-foreground/30 font-light">]</span>
+                      <span className="text-foreground/30 font-light">[</span>{" "}
+                      <TelemetryNumber value={o.friction_level} />{" "}
+                      <span className="text-foreground/30 font-light">]</span>
                     </Td>
                     <Td className="text-right font-mono text-[12px]">
-                      <span className="text-foreground/30 font-light">[</span> <TelemetryNumber value={o.calcification_level} /> <span className="text-foreground/30 font-light">]</span>
+                      <span className="text-foreground/30 font-light">[</span>{" "}
+                      <TelemetryNumber value={o.calcification_level} />{" "}
+                      <span className="text-foreground/30 font-light">]</span>
                     </Td>
                     <Td className="text-foreground/70 font-mono text-[11px]">
                       {o.brand_ids
@@ -247,8 +275,6 @@ function HivePage() {
           onRetry={() => deleteM.mutate(deleting.id)}
         />
       ) : null}
-
-
     </div>
   );
 }
@@ -260,14 +286,24 @@ function TelemetryNumber({ value }: { value: number | null | undefined }) {
   return <span className={tone}>{value}</span>;
 }
 
-function Th({ children, className = "", title }: { children: React.ReactNode; className?: string; title?: string }) {
-  return <th className={`px-4 py-3 font-normal ${className}`} title={title}>{children}</th>;
+function Th({
+  children,
+  className = "",
+  title,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  title?: string;
+}) {
+  return (
+    <th className={`px-4 py-3 font-normal ${className}`} title={title}>
+      {children}
+    </th>
+  );
 }
 function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <td className={`px-4 py-3 align-top ${className}`}>{children}</td>;
 }
-
-
 
 function RegisterDrawer({
   onClose,
@@ -341,7 +377,13 @@ function RegisterDrawer({
         >
           <Input label="Full name" value={full_name} onChange={setFullName} required />
           <Input label="Email" type="email" value={email} onChange={setEmail} required />
-          <Input label="Access key" type="password" value={password} onChange={setPassword} required />
+          <Input
+            label="Access key"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            required
+          />
 
           <div>
             <Label>Global role</Label>
@@ -376,7 +418,9 @@ function RegisterDrawer({
                 }}
                 className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
               >
-                <option value="" className="bg-background text-foreground/50">Select Department</option>
+                <option value="" className="bg-background text-foreground/50">
+                  Select Department
+                </option>
                 {deptsQ.data?.map((d) => (
                   <option key={d.id} value={d.id} className="bg-background text-foreground">
                     {d.name}
@@ -397,7 +441,9 @@ function RegisterDrawer({
                 onChange={(e) => setDepartmentRoleId(e.target.value)}
                 className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
               >
-                <option value="" className="bg-background text-foreground/50">Select Role</option>
+                <option value="" className="bg-background text-foreground/50">
+                  Select Role
+                </option>
                 {deptRoles.map((r) => (
                   <option key={r.id} value={r.id} className="bg-background text-foreground">
                     {r.name}
@@ -512,7 +558,9 @@ function EditDrawer({
   const [role, setRole] = useState<GlobalRole>(operator.global_role);
   const [brandIds, setBrandIds] = useState<UUID[]>(operator.brand_ids);
   const [departmentId, setDepartmentId] = useState<UUID | "">(operator.department_id || "");
-  const [departmentRoleId, setDepartmentRoleId] = useState<UUID | "">(operator.department_role_id || "");
+  const [departmentRoleId, setDepartmentRoleId] = useState<UUID | "">(
+    operator.department_role_id || "",
+  );
 
   const deptsQ = useQuery({ queryKey: ["departments"], queryFn: departmentsApi.listDepartments });
   const selectedDept = deptsQ.data?.find((d) => d.id === departmentId);
@@ -590,7 +638,9 @@ function EditDrawer({
                 }}
                 className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
               >
-                <option value="" className="bg-background text-foreground/50">Select Department</option>
+                <option value="" className="bg-background text-foreground/50">
+                  Select Department
+                </option>
                 {deptsQ.data?.map((d) => (
                   <option key={d.id} value={d.id} className="bg-background text-foreground">
                     {d.name}
@@ -611,7 +661,9 @@ function EditDrawer({
                 onChange={(e) => setDepartmentRoleId(e.target.value)}
                 className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
               >
-                <option value="" className="bg-background text-foreground/50">Select Role</option>
+                <option value="" className="bg-background text-foreground/50">
+                  Select Role
+                </option>
                 {deptRoles.map((r) => (
                   <option key={r.id} value={r.id} className="bg-background text-foreground">
                     {r.name}
@@ -654,9 +706,7 @@ function EditDrawer({
             </div>
           </div>
 
-          {error ? (
-            <ErrorBanner message="Couldn't save changes. Please try again." />
-          ) : null}
+          {error ? <ErrorBanner message="Couldn't save changes. Please try again." /> : null}
 
           <button
             type="submit"
@@ -712,8 +762,8 @@ function DeleteDialog({
           <p className="text-[13px] text-foreground/70">
             This action permanently removes{" "}
             <strong className="text-foreground">{operator.full_name}</strong> and revokes their
-            access. Type{" "}
-            <span className="font-mono text-[var(--accent)]">{operator.email}</span> to confirm.
+            access. Type <span className="font-mono text-[var(--accent)]">{operator.email}</span> to
+            confirm.
           </p>
           <input
             type="text"

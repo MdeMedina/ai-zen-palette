@@ -6,23 +6,24 @@ p1_count: 3
 timestamp: 2026-06-15T16-07-12Z
 slug: src-routes-app-oracle-tsx
 ---
-# Critique: Oracle (src/routes/_app.oracle.tsx)
+
+# Critique: Oracle (src/routes/\_app.oracle.tsx)
 
 ## Design Health Score
 
-| # | Heuristic | Score | Key Issue |
-|---|-----------|------:|-----------|
-| 1 | Visibility of System Status | 2/4 | The `awaiting` cue (`IntervalIndicator`, a 2px×12px blinking accent bar) is the only signal during a 0.9–3.1s reply wait, with no `aria-live`/`role="status"` announcement for assistive tech. |
-| 2 | Match Between System and the Real World | 1/4 | UI chrome is a fixed mix of Spanish ("Conversaciones", "Activas/Encauzadas/Cerradas", "Abrir conversación") and English ("Oracle Workspace", composer placeholder, "Send"), independent of the visible `LangToggle` — which only changes the AI's reply language, not the chrome. "Encauzada" is undefined internal jargon. |
-| 3 | User Control and Freedom | 2/4 | Switching sessions while `awaiting` is true can deliver session A's reply into session B's thread (no guard in `send.onSuccess`/`onError`). |
-| 4 | Consistency and Standards | 2/4 | Seven different opacity values (`/15,/20,/30,/35,/40,/45,/50`) all serve a "muted secondary text" role with no apparent system; three primary-action buttons (Nueva / Abrir conversación / Send) each use a different uppercase-mono treatment, diverging from the non-uppercase Gotham Primary Button pattern just established on `/login`. |
-| 5 | Error Prevention | 2/4 | No guard against the cross-session race in #3; `submit()` calls `setDraft("")` before `await createSession.mutateAsync(...)`, so a failed session-create silently loses the typed message; first message is silently truncated to 64 chars for the session title with no feedback. |
-| 6 | Recognition Rather Than Recall | 3/4 | Session list, active highlight, and persistent placeholder hint are all solid; but the "Activa/Encauzada/Cerrada" taxonomy and the color-only `StatusDot` require the user to recall undocumented meanings. |
-| 7 | Flexibility and Efficiency of Use | 3/4 | `⌘/Ctrl+Enter` send shortcut and auto-focus on new thread serve power users well; no session search/filter for long lists, no shortcut for "Nueva". |
-| 8 | Aesthetic and Minimalist Design | 2/4 | The chat column itself is admirably flat and quiet, but `AppShell`'s 220px global nav (`AppShell.tsx:37`) plus `SessionsSidebar`'s own 260px panel (`_app.oracle.tsx:206`) stack to **480px of chrome** before any conversation content — about a third of a 1440px viewport, in tension with "Containment over expansion." |
-| 9 | Help Users Recognize, Diagnose, and Recover from Errors (Error Recovery) | 1/4 | `send.onError` only does `setAwaiting(false)` — no message, toast, or retry. A failed reply looks identical to "the Oracle chose not to respond." Combined with #5's lost-draft case, failures are effectively invisible. |
-| 10 | Help and Documentation | 1/4 | No legend/tooltip for the status taxonomy, no in-app help entry point. `emptyHint` ("Speak. The Oracle does not introduce itself.") is evocative brand voice but gives a first-time user zero functional guidance. |
-| **Total** | | **19/40** | **Poor** (one point below the "Acceptable" band; for reference, most real interfaces score 20–32) |
+| #         | Heuristic                                                                |     Score | Key Issue                                                                                                                                                                                                                                                                                                                                    |
+| --------- | ------------------------------------------------------------------------ | --------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1         | Visibility of System Status                                              |       2/4 | The `awaiting` cue (`IntervalIndicator`, a 2px×12px blinking accent bar) is the only signal during a 0.9–3.1s reply wait, with no `aria-live`/`role="status"` announcement for assistive tech.                                                                                                                                               |
+| 2         | Match Between System and the Real World                                  |       1/4 | UI chrome is a fixed mix of Spanish ("Conversaciones", "Activas/Encauzadas/Cerradas", "Abrir conversación") and English ("Oracle Workspace", composer placeholder, "Send"), independent of the visible `LangToggle` — which only changes the AI's reply language, not the chrome. "Encauzada" is undefined internal jargon.                  |
+| 3         | User Control and Freedom                                                 |       2/4 | Switching sessions while `awaiting` is true can deliver session A's reply into session B's thread (no guard in `send.onSuccess`/`onError`).                                                                                                                                                                                                  |
+| 4         | Consistency and Standards                                                |       2/4 | Seven different opacity values (`/15,/20,/30,/35,/40,/45,/50`) all serve a "muted secondary text" role with no apparent system; three primary-action buttons (Nueva / Abrir conversación / Send) each use a different uppercase-mono treatment, diverging from the non-uppercase Gotham Primary Button pattern just established on `/login`. |
+| 5         | Error Prevention                                                         |       2/4 | No guard against the cross-session race in #3; `submit()` calls `setDraft("")` before `await createSession.mutateAsync(...)`, so a failed session-create silently loses the typed message; first message is silently truncated to 64 chars for the session title with no feedback.                                                           |
+| 6         | Recognition Rather Than Recall                                           |       3/4 | Session list, active highlight, and persistent placeholder hint are all solid; but the "Activa/Encauzada/Cerrada" taxonomy and the color-only `StatusDot` require the user to recall undocumented meanings.                                                                                                                                  |
+| 7         | Flexibility and Efficiency of Use                                        |       3/4 | `⌘/Ctrl+Enter` send shortcut and auto-focus on new thread serve power users well; no session search/filter for long lists, no shortcut for "Nueva".                                                                                                                                                                                          |
+| 8         | Aesthetic and Minimalist Design                                          |       2/4 | The chat column itself is admirably flat and quiet, but `AppShell`'s 220px global nav (`AppShell.tsx:37`) plus `SessionsSidebar`'s own 260px panel (`_app.oracle.tsx:206`) stack to **480px of chrome** before any conversation content — about a third of a 1440px viewport, in tension with "Containment over expansion."                  |
+| 9         | Help Users Recognize, Diagnose, and Recover from Errors (Error Recovery) |       1/4 | `send.onError` only does `setAwaiting(false)` — no message, toast, or retry. A failed reply looks identical to "the Oracle chose not to respond." Combined with #5's lost-draft case, failures are effectively invisible.                                                                                                                    |
+| 10        | Help and Documentation                                                   |       1/4 | No legend/tooltip for the status taxonomy, no in-app help entry point. `emptyHint` ("Speak. The Oracle does not introduce itself.") is evocative brand voice but gives a first-time user zero functional guidance.                                                                                                                           |
+| **Total** |                                                                          | **19/40** | **Poor** (one point below the "Acceptable" band; for reference, most real interfaces score 20–32)                                                                                                                                                                                                                                            |
 
 ## Anti-Patterns Verdict
 
@@ -31,7 +32,7 @@ slug: src-routes-app-oracle-tsx
 **Manual / LLM assessment**: This is **not** generic "AI slop" — no gradient hero, no stacked shadow cards, no emoji, no default system fonts, no SaaS-purple palette. The flat hairline-bordered surfaces, restrained single-accent usage, and mono micro-labels are consistent with the PKGD visual language validated during the login pass. That said, several issues the detector can't see are present on manual review:
 
 - **`tiny-text`**: `text-[9px]` group headers ("Activas"/"Encauzadas"/"Cerradas" — `_app.oracle.tsx:226`), `text-[10px]` used in ~6 places, `text-[12px]` reopen/empty states. 9px for jargon labels a user must parse is aggressive.
-- **`low-contrast` / `gray-on-color`**: `text-foreground/30` and `/35` (sidebar timestamps, group labels, empty state) sit on `bg-[var(--card)]/30` over `--background: oklch(0.205 0.002 80)` — two very close lightness values. At 9–10px, WCAG AA requires the *normal-text* 4.5:1 threshold, not the 3:1 large-text one; `/30`–`/35` white-on-near-black is likely to fail it, echoing the exact contrast gap that login's polish pass fixed by bumping `/40`–`/45` → `/55`.
+- **`low-contrast` / `gray-on-color`**: `text-foreground/30` and `/35` (sidebar timestamps, group labels, empty state) sit on `bg-[var(--card)]/30` over `--background: oklch(0.205 0.002 80)` — two very close lightness values. At 9–10px, WCAG AA requires the _normal-text_ 4.5:1 threshold, not the 3:1 large-text one; `/30`–`/35` white-on-near-black is likely to fail it, echoing the exact contrast gap that login's polish pass fixed by bumping `/40`–`/45` → `/55`.
 - **`wide-tracking`**: `tracking-[0.28em]`/`tracking-[0.32em]` on uppercase mono — consistent with the established Chainprinter-voice pattern, so not flagged as an anti-pattern on its own, but it compounds the legibility concern when paired with 9–10px sizes above.
 
 No visual-overlay pass was possible (browser unavailable in this harness), consistent with all prior critiques this session.
@@ -49,30 +50,35 @@ Oracle reads as **the same brand as login** — flat surfaces, one accent, mono 
 ## Priority Issues
 
 ### P1 — Cross-session reply delivery race
-**What**: `submit()` captures `sid` and calls `send.mutate({ session_id: sid, ... })`, but `send.onSuccess`/`onError` (`_app.oracle.tsx:58-64`) mutate the component's current `messages`/`awaiting` state unconditionally. If the user switches `sessionId` while a reply is in flight (0.9–3.1s window), the `useEffect` at line 38 has already reset `messages` to the *new* session's transcript — and when the pending reply resolves, it gets appended to whichever session is now selected, not the one that asked.
+
+**What**: `submit()` captures `sid` and calls `send.mutate({ session_id: sid, ... })`, but `send.onSuccess`/`onError` (`_app.oracle.tsx:58-64`) mutate the component's current `messages`/`awaiting` state unconditionally. If the user switches `sessionId` while a reply is in flight (0.9–3.1s window), the `useEffect` at line 38 has already reset `messages` to the _new_ session's transcript — and when the pending reply resolves, it gets appended to whichever session is now selected, not the one that asked.
 **Why it matters**: A silent cross-session data leak undermines trust in the Oracle as "a thinking partner" — a misplaced reply in the wrong conversation is exactly the kind of thing an exec would notice and not forgive (heuristics #1, #3, #5).
 **Fix**: Capture `sid` in a ref/closure and compare against the live `sessionId` before applying `setMessages`/`setAwaiting` in `onSuccess`/`onError`; if the session has changed, route the reply to a per-session cache (e.g. update the React Query cache for that session) and surface a lightweight "new reply" indicator on that session's sidebar item instead.
 **Suggested command**: `/impeccable harden`
 
 ### P1 — UI chrome mixes Spanish and English independent of the LangToggle
+
 **What**: Sidebar/composer strings are hardcoded Spanish ("Conversaciones", "Nueva", "Activas/Encauzadas/Cerradas", "Abrir conversación"/"Reabriendo…", "Aún no hay conversaciones", `aria-label="Nueva conversación"`), while the header, thread, and composer are hardcoded English ("Oracle Workspace", "· New thread", `emptyHint`, the composer placeholder, `aria-label="Send"`, "Operator"/"AI · CEO"). The header-mounted `LangToggle` (en/es) only changes `chatLanguage`, which feeds `mockReply`'s reply-language pool — it has **no effect on any of this chrome**.
 **Why it matters**: Every user sees a half-localized interface regardless of their toggle choice, and the toggle itself becomes misleading — it looks like a UI language switch but isn't one (heuristic #2, and a first-impression red flag for Jordan).
 **Fix**: Either route all chrome strings through `chatLanguage` via a small string map so the toggle genuinely localizes the page, or — if that's out of scope right now — pick one language for all chrome (English matches the rest of the authenticated app) and relabel/rescope `LangToggle` to make clear it only governs "AI reply language."
 **Suggested command**: `/impeccable clarify`
 
 ### P1 — Double sidebar consumes ~480px before any content
-**What**: `AppShell` already renders a 220px global-nav `<aside>` (`AppShell.tsx:37`, `sticky top-0 h-screen w-[220px]`). `OraclePage` renders its own 260px `<aside>` (`_app.oracle.tsx:206`, `SessionsSidebar`, `h-screen w-[260px]`) *inside* `AppShell`'s `<main>`. Combined, two stacked vertical panels (480px) precede the chat column — roughly a third of a 1440px viewport — and `OraclePage`'s root `<div className="flex h-screen w-full">` (line 98) duplicates the viewport-height assumption that `AppShell`'s `<main className="flex min-h-screen flex-1 flex-col">` already makes.
+
+**What**: `AppShell` already renders a 220px global-nav `<aside>` (`AppShell.tsx:37`, `sticky top-0 h-screen w-[220px]`). `OraclePage` renders its own 260px `<aside>` (`_app.oracle.tsx:206`, `SessionsSidebar`, `h-screen w-[260px]`) _inside_ `AppShell`'s `<main>`. Combined, two stacked vertical panels (480px) precede the chat column — roughly a third of a 1440px viewport — and `OraclePage`'s root `<div className="flex h-screen w-full">` (line 98) duplicates the viewport-height assumption that `AppShell`'s `<main className="flex min-h-screen flex-1 flex-col">` already makes.
 **Why it matters**: Directly tensions with "Containment over expansion" and "Silence is structural" — a third of the screen is navigation/list chrome on every visit, and this pattern likely repeats on Hive/Knowledge/Audit if they follow the same per-page-sidebar approach (heuristic #8).
 **Fix**: Collapse the global nav to a slim icon rail (~56–64px) on pages with their own secondary sidebar, or fold session-switching into the global nav as a flyout/section — reclaiming 150px+ for the conversation. Drop the redundant `h-screen` on `_app.oracle.tsx:98` in favor of `h-full`/`min-h-0` within `AppShell`'s flex column.
 **Suggested command**: `/impeccable layout`
 
 ### P2 — Silent failure paths can lose user input
-**What**: `send.onError` (`_app.oracle.tsx:63`) only resets `awaiting` — no message, toast, or retry affordance appears; the sent message sits in the thread with no reply and no explanation. Separately, `submit()` clears `draft` (line 69) *before* `await createSession.mutateAsync(...)` (line 72) — if session creation fails, the user's typed text is gone with zero feedback.
+
+**What**: `send.onError` (`_app.oracle.tsx:63`) only resets `awaiting` — no message, toast, or retry affordance appears; the sent message sits in the thread with no reply and no explanation. Separately, `submit()` clears `draft` (line 69) _before_ `await createSession.mutateAsync(...)` (line 72) — if session creation fails, the user's typed text is gone with zero feedback.
 **Why it matters**: This is the exact gap login closed in its final pass (`role="alert"` + plain-language errors). Here, a failed send is indistinguishable from "the Oracle declined to answer," and a failed session-create silently destroys the user's draft (heuristic #9).
 **Fix**: On `send.onError`, render an inline "The Oracle did not respond — retry?" affordance scoped to that message; in `submit()`, only clear `draft` after the full pipeline (`createSession` + `send`) has been kicked off successfully, or restore it on catch.
 **Suggested command**: `/impeccable harden`
 
 ### P2 — Status taxonomy is color/border-only with undefined jargon
+
 **What**: `StatusDot` (`_app.oracle.tsx:271-277`) distinguishes "Open" (filled accent + glow) / `encauzamiento_count>0` (hollow accent ring) / other (gray fill) purely by color and border — no `aria-label`/`title`. `StatusBadge` adds text ("Activa"/"Encauzada"/"Cerrada") but "Encauzada" is undefined PKGD-internal jargon (derived from `encauzamiento_count`), and the type system's third `SessionStatus` value ("Archived") is visually collapsed into "Cerrada" alongside "Closed" with no distinction.
 **Why it matters**: Sam (color-only meaning, no SR text) and Jordan (undefined jargon, no legend) both hit friction here; "Closed" vs "Archived" being indistinguishable may also hide real state from users who need it (heuristics #2, #6, #10).
 **Fix**: Add `aria-label`/`title` to `StatusDot` mirroring `StatusBadge`'s text; add a one-line legend (e.g., a small `?` affordance or persistent caption) defining "Encauzada"; give "Archived" its own label if it's meant to be distinguishable from "Closed."
@@ -81,16 +87,19 @@ Oracle reads as **the same brand as login** — flat surfaces, one accent, mono 
 ## Persona Red Flags
 
 **Sam (Accessibility)**
+
 - `StatusDot` conveys session state via fill/border/glow alone, with no text alternative for screen readers (P2 above).
 - The `awaiting` indicator has no `aria-live`/`role="status"` — a screen-reader user gets no signal that a reply is pending or has arrived, for up to 3.1 seconds (P1, heuristic #1).
 - `text-foreground/30`–`/35` at 9–10px on sidebar metadata is likely below WCAG AA contrast (Anti-Patterns Verdict).
 
 **Jordan (First-timer)**
+
 - Lands on a UI that's simultaneously Spanish ("Conversaciones", "Nueva") and English ("Oracle Workspace", "Speak. The Oracle does not introduce itself.") — and the prominent `LangToggle` doesn't fix either side (P1).
 - Sees "Encauzada" as a session-group label and status badge with zero explanation (P2).
 - The empty-state hint is atmospheric, not instructional — no guidance on what kind of input the Oracle expects.
 
 **Riley (Stress tester)**
+
 - Switches sessions while a reply is `awaiting` and gets that reply delivered into the wrong thread (P1).
 - Types a first message >64 chars and finds the session title silently truncated with no feedback.
 - Triggers `send.onError` (e.g., a flaky mock) and sees the sent message sit forever with no error, no retry (P2).

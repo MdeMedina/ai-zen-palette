@@ -15,10 +15,7 @@ export function ErrorBanner({ message, onRetry }: ErrorBannerProps) {
       role="alert"
       className="flex items-start gap-3 border border-destructive/30 bg-[color-mix(in_oklab,var(--destructive)_8%,transparent)] px-4 py-3"
     >
-      <AlertTriangle
-        className="mt-0.5 size-3.5 shrink-0 text-destructive"
-        strokeWidth={1.5}
-      />
+      <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-destructive" strokeWidth={1.5} />
       <p className="flex-1 font-mono text-[11px] uppercase tracking-[0.18em] text-destructive/90">
         {message}
       </p>
