@@ -79,10 +79,17 @@ export interface KnowledgeAsset {
 
 export interface ChatMessage {
   id: UUID;
-  role: "user" | "ai-ceo";
+  role: "user" | "ai-ceo" | "concepto";
   text: string;
   ts: string;
   success?: boolean;
+  /** Sólo para entradas `concepto`: título del Oro sintetizado. */
+  title?: string;
+  /**
+   * Adjuntado por el backend a la respuesta del turno de cierre: la entrada
+   * `concepto` (resumen de Oro) que debe pintarse como bloque amarillo.
+   */
+  concepto_entry?: ChatMessage;
 }
 
 /**

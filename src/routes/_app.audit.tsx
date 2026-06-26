@@ -236,7 +236,7 @@ function AuditPage() {
                 </button>
               ) : (
                 <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.24em] text-foreground/35">
-                  {selectedSession.encauzamiento_count === 0
+                  {selectedSession.extracted_asset_id == null
                     ? "No encauzamiento — session produced no Gold proposal."
                     : selectedSession.gold_extraction_status === "Extracted"
                       ? "Structural Gold approved & integrated."
@@ -269,11 +269,14 @@ function AuditPage() {
   );
 }
 
-// A session is approvable when the dialectic closed and left a pending Gold proposal:
-// status Closed + gold_extraction_status 'Pending'. Approval flips it to 'Extracted'.
+// A session is approvable when the dialectic closed and left a pending Gold proposal.
+// The reliable signal is `extracted_asset_id` (the proposed Gold asset) — NOT
+// `encauzamiento_count`, which n8n/back can leave at 0 even on a valid close.
 function canExtractGold(s: SessionRecord): boolean {
   return (
-    s.encauzamiento_count > 0 && s.status === "Closed" && s.gold_extraction_status === "Pending"
+    s.status === "Closed" &&
+    s.gold_extraction_status === "Pending" &&
+    s.extracted_asset_id != null
   );
 }
 

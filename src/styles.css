@@ -600,6 +600,24 @@
   }
 }
 
+/* Resumen de Oro (concepto): bloque amarillo => texto negro legible.
+   El MarkdownRenderer usa text-foreground/accent (claros); aquí los forzamos
+   a negro sobre el fondo #fae714. */
+.concepto-md,
+.concepto-md * {
+  color: #000 !important;
+}
+.concepto-md code {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(0, 0, 0, 0.18) !important;
+}
+.concepto-md h1 {
+  border-color: rgba(0, 0, 0, 0.25) !important;
+}
+.concepto-md blockquote {
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

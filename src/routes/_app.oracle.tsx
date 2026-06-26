@@ -69,7 +69,8 @@ function OraclePage() {
     mutationFn: chatApi.sendPrompt,
     onSuccess: (reply, variables) => {
       if (variables.session_id === sessionIdRef.current) {
-        setMessages((m) => [...m, reply]);
+        const { concepto_entry, ...msg } = reply;
+        setMessages((m) => [...m, msg, ...(concepto_entry ? [concepto_entry] : [])]);
       }
       setAwaiting((a) => (a === variables.session_id ? null : a));
       qc.invalidateQueries({ queryKey: ["my-sessions", user.id] });
