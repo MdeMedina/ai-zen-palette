@@ -109,6 +109,22 @@ export async function approveSessionGold(
 }
 
 /**
+ * POST /api/knowledge/session/:session_id/approve-jewel — admin only.
+ * Approves the pending Jewel PROPOSAL of a session (mirror of approveSessionGold).
+ */
+export async function approveSessionJewel(
+  session_id: UUID,
+): Promise<{ ok: boolean; asset_id?: UUID; result?: unknown }> {
+  if (USE_MOCKS) {
+    await delay(320);
+    return { ok: true };
+  }
+  return apiFetch(`/api/knowledge/session/${session_id}/approve-jewel`, {
+    method: "POST",
+  });
+}
+
+/**
  * GET /api/knowledge/proposals?type=Gold|Jewel&brand_id= — admin only.
  * Lists PENDING proposals (status='Proposed') awaiting approval.
  */

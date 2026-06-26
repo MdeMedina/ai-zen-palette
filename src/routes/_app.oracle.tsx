@@ -48,6 +48,8 @@ function OraclePage() {
   // How a closed session ended decides the copy and whether it can be reopened.
   const closeReason = selected?.close_reason ?? null;
   const isGoldClose = !closeReason || closeReason === "gold";
+  const isJewelClose = closeReason === "jewel";
+  const isProposalClose = isGoldClose || isJewelClose; // produced an asset proposal
   const isMaxClose = closeReason === "coupling_max";
 
   // Load transcript when switching session
@@ -209,11 +211,11 @@ function OraclePage() {
               <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-[var(--accent)]/30 bg-[var(--card)] p-4 rounded-[4px] shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 w-full">
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
-                    {isGoldClose ? (
+                    {isProposalClose ? (
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75"></span>
                     ) : null}
                     <span
-                      className={`relative inline-flex rounded-full h-2 w-2 ${isGoldClose ? "bg-[var(--accent)]" : "bg-foreground/40"}`}
+                      className={`relative inline-flex rounded-full h-2 w-2 ${isProposalClose ? "bg-[var(--accent)]" : "bg-foreground/40"}`}
                     ></span>
                   </span>
                   <span className="text-[13px] text-foreground/80 font-medium">
@@ -221,9 +223,13 @@ function OraclePage() {
                       ? language === "es"
                         ? "Esta idea se guardó en nuestro registro de oro"
                         : "This idea was saved in our Gold Registry"
-                      : language === "es"
-                        ? "El agente ha cerrado esta conversación"
-                        : "The agent closed this conversation"}
+                      : isJewelClose
+                        ? language === "es"
+                          ? "Esta joya se guardó como propuesta"
+                          : "This jewel was saved as a proposal"
+                        : language === "es"
+                          ? "El agente ha cerrado esta conversación"
+                          : "The agent closed this conversation"}
                   </span>
                 </div>
                 {isMaxClose ? (

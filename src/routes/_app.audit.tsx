@@ -88,6 +88,14 @@ function AuditPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["all-sessions"] }),
   });
 
+  const jewelM = useMutation({
+    // Approves the Jewel PROPOSAL of a session (same n8n approve-asset flow as Gold).
+    mutationFn: async (id: string) => {
+      await knowledgeApi.approveSessionJewel(id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["all-sessions"] }),
+  });
+
   return (
     <div className="flex h-screen flex-col">
       <PageHeader eyebrow="Directorate" title={t.auditSpace} />
@@ -224,7 +232,17 @@ function AuditPage() {
           {selectedSession ? (
             <>
               <TelemetryPanel s={selectedSession} />
-              {canExtractGold(selectedSession) ? (
+              {canApproveJewel(selectedSession) ? (
+                <button
+                  type="button"
+                  disabled={jewelM.isPending}
+                  onClick={() => jewelM.mutate(selectedSession.id)}
+                  className="mt-6 inline-flex w-full items-center justify-between bg-[var(--accent)] px-4 py-3 text-[11px] uppercase tracking-[0.24em] text-[var(--accent-foreground)] transition-all hover:opacity-90 disabled:opacity-30 outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                >
+                  <span>Aprobar Joya Estructural</span>
+                  <span className="font-mono text-[10px]">›</span>
+                </button>
+              ) : canExtractGold(selectedSession) ? (
                 <button
                   type="button"
                   disabled={integrateM.isPending}
@@ -237,17 +255,23 @@ function AuditPage() {
               ) : (
                 <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.24em] text-foreground/35">
                   {selectedSession.extracted_asset_id == null
-                    ? "No encauzamiento — session produced no Gold proposal."
+                    ? "No encauzamiento — session produced no proposal."
                     : selectedSession.gold_extraction_status === "Extracted"
-                      ? "Structural Gold approved & integrated."
-                      : "Gold proposal not ready for approval."}
+                      ? selectedSession.close_reason === "jewel"
+                        ? "Structural Jewel approved & integrated."
+                        : "Structural Gold approved & integrated."
+                      : "Proposal not ready for approval."}
                 </p>
               )}
-              {integrateM.isError ? (
+              {integrateM.isError || jewelM.isError ? (
                 <div className="mt-4">
                   <ErrorBanner
                     message="Approval failed — the proposal may already be approved or the server is unavailable."
-                    onRetry={() => integrateM.mutate(selectedSession.id)}
+                    onRetry={() =>
+                      (selectedSession.close_reason === "jewel" ? jewelM : integrateM).mutate(
+                        selectedSession.id,
+                      )
+                    }
                   />
                 </div>
               ) : null}
@@ -276,7 +300,19 @@ function canExtractGold(s: SessionRecord): boolean {
   return (
     s.status === "Closed" &&
     s.gold_extraction_status === "Pending" &&
-    s.extracted_asset_id != null
+    s.extracted_asset_id != null &&
+    s.close_reason !== "jewel"
+  );
+}
+
+// A Jewel proposal is approvable when its session closed with a pending Jewel
+// asset (close_reason 'jewel'); reuses gold_extraction_status as the pending flag.
+function canApproveJewel(s: SessionRecord): boolean {
+  return (
+    s.status === "Closed" &&
+    s.gold_extraction_status === "Pending" &&
+    s.extracted_asset_id != null &&
+    s.close_reason === "jewel"
   );
 }
 
