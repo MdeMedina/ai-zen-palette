@@ -131,6 +131,17 @@ export interface SessionRecord {
  * Aggregated operator diagnostic produced by the backend
  * (combines friction, encauzamientos, coupling nodes and glitches).
  */
+export interface DiagnosticPayload {
+  friction_trend?: {
+    direction?: "subiendo" | "bajando" | "plano" | string;
+    stuck_level?: number | null;
+    lectura?: string;
+  } | null;
+  coupling?: { entered_last_3?: boolean; porque?: string; vigilar?: string } | null;
+  last_encauzamiento?: { existe?: boolean; valoracion?: string } | null;
+  supervision_flags?: string[];
+}
+
 export interface OperatorDiagnostic {
   text: string;
   score: number;
@@ -139,6 +150,10 @@ export interface OperatorDiagnostic {
   glitch_count: number;
   coupling_node_count: number;
   glitches: Glitch[];
+  /** Diagnóstico narrativo del motor n8n (persistido). Ausente hasta el primer cierre. */
+  payload?: DiagnosticPayload | null;
+  generated_at?: string | null;
+  trigger_reason?: string | null;
 }
 
 export interface AuthResponse {

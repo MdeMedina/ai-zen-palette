@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AlertTriangle, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 import { knowledgeApi, sessionsApi, usersApi } from "@/lib/api";
-import type { Glitch, SessionRecord } from "@/lib/api/types";
+import type { DiagnosticPayload, Glitch, SessionRecord } from "@/lib/api/types";
 import { useSessionStore } from "@/stores/session";
 import { DialecticThread } from "@/components/brand/DialecticThread";
 import { DeepLinkBanner } from "@/components/brand/DeepLinkBanner";
@@ -280,6 +280,112 @@ function canExtractGold(s: SessionRecord): boolean {
   );
 }
 
+// Rich diagnostic detail (n8n-generated): friction trend, coupling read,
+// last encauzamiento valuation and supervision flags.
+function DiagnosticDetail({
+  payload,
+  generatedAt,
+  triggerReason,
+}: {
+  payload: DiagnosticPayload;
+  generatedAt: string | null;
+  triggerReason: string | null;
+}) {
+  const ft = payload.friction_trend;
+  const cp = payload.coupling;
+  const le = payload.last_encauzamiento;
+  const flags = payload.supervision_flags ?? [];
+  const reasonLabel =
+    triggerReason === "coupling_max"
+      ? "Cierre por acoplamiento"
+      : triggerReason === "encauzamiento"
+        ? "Encauzamiento"
+        : (triggerReason ?? "");
+
+  return (
+    <div className="mt-5 space-y-4 border-t border-border/60 pt-4">
+      {ft ? (
+        <DiagSection title="Tendencia de fricción">
+          <div className="flex items-center gap-2">
+            <TrendChip direction={ft.direction} />
+            {ft.stuck_level != null ? (
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/50">
+                atascado ~{ft.stuck_level}
+              </span>
+            ) : null}
+          </div>
+          {ft.lectura ? (
+            <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/75">{ft.lectura}</p>
+          ) : null}
+        </DiagSection>
+      ) : null}
+
+      {cp ? (
+        <DiagSection title="Acoplamiento (últimas 3)">
+          <p className="text-[13px] leading-relaxed text-foreground/75">
+            <span className="font-medium text-foreground/90">
+              {cp.entered_last_3 ? "Entró." : "No entró."}
+            </span>{" "}
+            {cp.porque}
+          </p>
+          {cp.vigilar ? (
+            <p className="mt-1 text-[13px] leading-relaxed text-foreground/60">
+              <span className="text-[var(--accent)]">Vigilar:</span> {cp.vigilar}
+            </p>
+          ) : null}
+        </DiagSection>
+      ) : null}
+
+      {le?.valoracion ? (
+        <DiagSection title="Último encauzamiento">
+          <p className="text-[13px] leading-relaxed text-foreground/75">{le.valoracion}</p>
+        </DiagSection>
+      ) : null}
+
+      {flags.length > 0 ? (
+        <DiagSection title="A supervisar">
+          <ul className="space-y-1">
+            {flags.map((f, i) => (
+              <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-foreground/75">
+                <span className="text-[var(--accent)]">›</span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+        </DiagSection>
+      ) : null}
+
+      {generatedAt ? (
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/35">
+          {reasonLabel ? `${reasonLabel} · ` : ""}
+          {new Date(generatedAt).toLocaleString()}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DiagSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div>
+      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/40">
+        {title}
+      </div>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
+function TrendChip({ direction }: { direction?: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    subiendo: { label: "↑ Subiendo", cls: "text-red-400" },
+    bajando: { label: "↓ Bajando", cls: "text-emerald-400" },
+    plano: { label: "→ Plano", cls: "text-foreground/60" },
+  };
+  const m = map[direction ?? "plano"] ?? { label: direction ?? "—", cls: "text-foreground/60" };
+  return <span className={`font-mono text-[11px] font-medium ${m.cls}`}>{m.label}</span>;
+}
+
 /* ---------- User dashboard ---------- */
 
 function UserDashboard({
@@ -358,6 +464,13 @@ function UserDashboard({
                 value={diagQ.isLoading ? 0 : (diagQ.data?.glitch_count ?? 0)}
               />
             </div>
+            {diagQ.data?.payload ? (
+              <DiagnosticDetail
+                payload={diagQ.data.payload}
+                generatedAt={diagQ.data.generated_at ?? null}
+                triggerReason={diagQ.data.trigger_reason ?? null}
+              />
+            ) : null}
           </div>
         </div>
       )}
