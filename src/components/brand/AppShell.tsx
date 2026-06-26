@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { BrainCircuit, Hexagon, LibraryBig, ShieldCheck, LogOut, Sun, Moon } from "lucide-react";
+import { BrainCircuit, Hexagon, LibraryBig, ShieldCheck, Gem, LogOut, Sun, Moon } from "lucide-react";
 import { useSessionStore, isAdmin } from "@/stores/session";
 import { authApi } from "@/lib/api";
 import { useState, type ReactNode } from "react";
@@ -9,6 +9,7 @@ const NAV = [
   { to: "/oracle", label: "Oracle", icon: BrainCircuit, adminOnly: false },
   { to: "/hive", label: "Hive Matrix", icon: Hexagon, adminOnly: true },
   { to: "/knowledge", label: "Knowledge", icon: LibraryBig, adminOnly: true },
+  { to: "/proposals", label: "Proposals", icon: Gem, adminOnly: true },
   { to: "/audit", label: "Audit", icon: ShieldCheck, adminOnly: true },
 ] as const;
 

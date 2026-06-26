@@ -109,6 +109,47 @@ export async function approveSessionGold(
 }
 
 /**
+ * GET /api/knowledge/proposals?type=Gold|Jewel&brand_id= — admin only.
+ * Lists PENDING proposals (status='Proposed') awaiting approval.
+ */
+export async function listProposals(
+  type?: "Gold" | "Jewel",
+  brand_id?: UUID,
+): Promise<KnowledgeAsset[]> {
+  if (USE_MOCKS) {
+    await delay(160);
+    return mockKnowledge.filter(
+      (k) =>
+        (k.status as string) === "Proposed" &&
+        (!type || k.asset_type === type) &&
+        (!brand_id || k.brand_id === brand_id),
+    );
+  }
+  const qs = new URLSearchParams();
+  if (type) qs.set("type", type);
+  if (brand_id) qs.set("brand_id", brand_id);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return apiFetch<KnowledgeAsset[]>(`/api/knowledge/proposals${suffix}`);
+}
+
+/**
+ * POST /api/knowledge/:id/approve — admin only.
+ * Approves a pending proposal (Gold or Jewel): hands off to the n8n approval
+ * flow, which promotes it to Active and generates the .docx.
+ */
+export async function approveProposal(
+  id: UUID,
+): Promise<{ ok: boolean; asset_id?: UUID; result?: unknown }> {
+  if (USE_MOCKS) {
+    await delay(300);
+    const asset = mockKnowledge.find((k) => k.id === id);
+    if (asset) (asset.status as string) = "Active";
+    return { ok: true, asset_id: id };
+  }
+  return apiFetch(`/api/knowledge/${id}/approve`, { method: "POST" });
+}
+
+/**
  * GET /api/knowledge/:id/download — streams the original source file.
  * In mock mode opens `source_file_url` in a new tab so the UX is still wired.
  */

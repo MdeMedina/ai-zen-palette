@@ -64,7 +64,7 @@ export interface KnowledgeAsset {
   brand_id?: UUID | null;
   title: string;
   asset_type: AssetType;
-  status: "Active" | "Archived";
+  status: "Active" | "Archived" | "Proposed";
   source_file_url: string | null;
   pgvector_ref_id: string | null;
   vectorization_status: VectorizationStatus;
@@ -74,6 +74,8 @@ export interface KnowledgeAsset {
   department_role_id?: UUID | null;
   department?: { id: UUID; name: string } | null;
   department_role?: { id: UUID; name: string } | null;
+  /** Included by GET /knowledge/proposals (admin proposal review). */
+  brand?: { id: UUID; name: string } | null;
   created_at: string;
 }
 
