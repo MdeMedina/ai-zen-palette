@@ -66,6 +66,16 @@ function renderInline(text: string): React.ReactNode {
       }
     }
 
+    // If a delimiter sits at the current position it means it had no closing
+    // match above (e.g. a lone `_` inside `?utm_source=`). Emit it as a literal
+    // char and advance, otherwise slice(i, i) is "" and i never moves -> the
+    // loop spins forever and freezes the whole page.
+    if (nextDelim === i) {
+      result.push(text[i]);
+      i += 1;
+      continue;
+    }
+
     const plain = text.slice(i, nextDelim);
     if (plain) {
       result.push(plain);
