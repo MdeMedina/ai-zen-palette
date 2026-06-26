@@ -297,10 +297,12 @@ function DiagnosticDetail({
   const flags = payload.supervision_flags ?? [];
   const reasonLabel =
     triggerReason === "coupling_max"
-      ? "Cierre por acoplamiento"
-      : triggerReason === "encauzamiento"
-        ? "Encauzamiento"
-        : (triggerReason ?? "");
+      ? "Acoplamiento máximo"
+      : triggerReason === "coupling_pause"
+        ? "Pausa por acoplamiento"
+        : triggerReason === "encauzamiento"
+          ? "Encauzamiento"
+          : (triggerReason ?? "");
 
   return (
     <div className="mt-5 space-y-4 border-t border-border/60 pt-4">

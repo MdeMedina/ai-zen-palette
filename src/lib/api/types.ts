@@ -120,6 +120,8 @@ export interface SessionRecord {
   resolution_status: ResolutionStatus;
   integration_signal_received_at: string | null;
   gold_extraction_status: GoldExtractionStatus;
+  /** How the session closed: 'gold' | 'coupling_pause' | 'coupling_max' (null while open / legacy). */
+  close_reason?: string | null;
   transcript_payload: ChatMessage[];
   glitches: Glitch[];
   extracted_asset_id: UUID | null;

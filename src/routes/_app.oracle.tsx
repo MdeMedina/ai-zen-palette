@@ -45,6 +45,10 @@ function OraclePage() {
 
   const selected = sessionsQ.data?.find((s) => s.id === sessionId) ?? null;
   const mode: Mode = !selected ? "new" : selected.status === "Open" ? "open" : "closed";
+  // How a closed session ended decides the copy and whether it can be reopened.
+  const closeReason = selected?.close_reason ?? null;
+  const isGoldClose = !closeReason || closeReason === "gold";
+  const isMaxClose = closeReason === "coupling_max";
 
   // Load transcript when switching session
   useEffect(() => {
@@ -205,32 +209,46 @@ function OraclePage() {
               <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-[var(--accent)]/30 bg-[var(--card)] p-4 rounded-[4px] shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 w-full">
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]"></span>
+                    {isGoldClose ? (
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75"></span>
+                    ) : null}
+                    <span
+                      className={`relative inline-flex rounded-full h-2 w-2 ${isGoldClose ? "bg-[var(--accent)]" : "bg-foreground/40"}`}
+                    ></span>
                   </span>
                   <span className="text-[13px] text-foreground/80 font-medium">
-                    {language === "es"
-                      ? "Esta idea se guardó en nuestro registro de oro"
-                      : "This idea was saved in our Gold Registry"}
+                    {isGoldClose
+                      ? language === "es"
+                        ? "Esta idea se guardó en nuestro registro de oro"
+                        : "This idea was saved in our Gold Registry"
+                      : language === "es"
+                        ? "El agente ha cerrado esta conversación"
+                        : "The agent closed this conversation"}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => selected && reopenM.mutate(selected.id)}
-                  disabled={reopenM.isPending}
-                  className="inline-flex items-center justify-between border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-40 font-semibold"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <RotateCcw className="size-3" strokeWidth={2} />
-                    {reopenM.isPending
-                      ? language === "es"
-                        ? "Reabriendo..."
-                        : "Reopening..."
-                      : language === "es"
-                        ? "Reabrir conversación"
-                        : "Reopen conversation"}
+                {isMaxClose ? (
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/40">
+                    {language === "es" ? "Cierre definitivo" : "Final close"}
                   </span>
-                </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => selected && reopenM.mutate(selected.id)}
+                    disabled={reopenM.isPending}
+                    className="inline-flex items-center justify-between border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-40 font-semibold"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <RotateCcw className="size-3" strokeWidth={2} />
+                      {reopenM.isPending
+                        ? language === "es"
+                          ? "Reabriendo..."
+                          : "Reopening..."
+                        : language === "es"
+                          ? "Reabrir conversación"
+                          : "Reopen conversation"}
+                    </span>
+                  </button>
+                )}
               </div>
             ) : (
               <>
