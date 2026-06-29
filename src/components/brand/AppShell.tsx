@@ -76,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     ? t.knowledgeBases
                     : n.to === "/audit"
                       ? t.auditSpace
-                      : n.label;
+                      : t.proposals;
             return (
               <RailTooltip key={n.to} label={label}>
                 <Link
@@ -101,7 +101,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="grid size-9 place-items-center rounded-[3px] text-sidebar-foreground/50 transition-colors hover:bg-sidebar-foreground/5 hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
-              aria-label="Toggle Theme"
+              aria-label={t.toggleTheme}
             >
               {theme === "dark" ? (
                 <Sun className="size-4" strokeWidth={1.5} />
@@ -115,12 +115,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               {initials}
             </div>
           </RailTooltip>
-          <RailTooltip label="Logout">
+          <RailTooltip label={t.logout}>
             <button
               type="button"
               onClick={onLogout}
               className="grid size-9 place-items-center rounded-[3px] text-sidebar-foreground/50 transition-colors hover:bg-sidebar-foreground/5 hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
-              aria-label="Logout"
+              aria-label={t.logout}
             >
               <LogOut className="size-4" strokeWidth={1.5} />
             </button>

@@ -17,6 +17,7 @@ import { PageHeader } from "@/components/brand/PageHeader";
 
 import { useSessionStore } from "@/stores/session";
 import { oracleCopy } from "@/lib/i18n/oracle";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_app/knowledge")({
   head: () => {
@@ -37,6 +38,7 @@ function KnowledgePage() {
 
   const language = useSessionStore((s) => s.chatLanguage);
   const t = oracleCopy(language);
+  const tk = useT("knowledge");
   const effectiveBrandId = brandId || brandsQ.data?.[0]?.id || "";
   const [brandsOpen, setBrandsOpen] = useState(false);
 
@@ -146,7 +148,7 @@ function KnowledgePage() {
   return (
     <div className="flex h-screen flex-col">
       <PageHeader
-        eyebrow="Administration"
+        eyebrow={tk.eyebrow}
         title={t.knowledgeBases}
         actions={
           <div className="flex gap-2">
@@ -156,7 +158,7 @@ function KnowledgePage() {
                 onClick={() => setBrandsOpen(true)}
                 className="inline-flex items-center gap-2 border border-foreground/15 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/80 transition-colors hover:border-[var(--accent)] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                Manage Brands
+                {tk.manageBrands}
               </button>
             ) : activeTab === "departments" ? (
               <button
@@ -164,7 +166,7 @@ function KnowledgePage() {
                 onClick={() => setDeptsOpen(true)}
                 className="inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                Manage Departments
+                {tk.manageDepartments}
               </button>
             ) : null}
           </div>
@@ -181,7 +183,7 @@ function KnowledgePage() {
               : "border-transparent text-foreground/50 hover:text-foreground/80"
           }`}
         >
-          Brands Knowledge
+          {tk.tabBrands}
         </button>
         <button
           onClick={() => setActiveTab("departments")}
@@ -191,7 +193,7 @@ function KnowledgePage() {
               : "border-transparent text-foreground/50 hover:text-foreground/80"
           }`}
         >
-          Departments Knowledge
+          {tk.tabDepartments}
         </button>
         <button
           onClick={() => setActiveTab("external")}
@@ -201,7 +203,7 @@ function KnowledgePage() {
               : "border-transparent text-foreground/50 hover:text-foreground/80"
           }`}
         >
-          External Knowledge
+          {tk.tabExternal}
         </button>
       </div>
       <div className="grid flex-1 grid-cols-[420px_1fr] gap-0 overflow-hidden">
@@ -209,36 +211,30 @@ function KnowledgePage() {
           {activeTab === "departments" && deptsQ.data && deptsQ.data.length === 0 ? (
             <div className="border border-destructive/20 bg-destructive/5 p-4 text-[12px] transition-all duration-300 motion-safe:animate-in motion-safe:fade-in">
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] font-medium text-destructive">
-                System Blocked
+                {tk.systemBlocked}
               </div>
-              <p className="mt-2 leading-relaxed text-foreground/75">
-                No departments are registered. You must create at least one Department before you
-                can manage or vectorise department documents.
-              </p>
+              <p className="mt-2 leading-relaxed text-foreground/75">{tk.noDeptsBlocked}</p>
               <button
                 type="button"
                 onClick={() => setDeptsOpen(true)}
                 className="mt-4 inline-flex w-full items-center justify-between border border-destructive px-3 py-2 text-[10px] uppercase tracking-[0.22em] text-destructive transition-all hover:bg-destructive hover:text-destructive-foreground"
               >
-                <span>Register Department</span>
+                <span>{tk.registerDepartment}</span>
                 <span className="font-mono text-[9px] opacity-60">›</span>
               </button>
             </div>
           ) : activeTab === "brands" && brandsQ.data && brandsQ.data.length === 0 ? (
             <div className="border border-destructive/20 bg-destructive/5 p-4 text-[12px] transition-all duration-300 motion-safe:animate-in motion-safe:fade-in">
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] font-medium text-destructive">
-                System Blocked
+                {tk.systemBlocked}
               </div>
-              <p className="mt-2 leading-relaxed text-foreground/75">
-                No brands are registered. You must create at least one Brand before you can manage
-                or vectorise documents.
-              </p>
+              <p className="mt-2 leading-relaxed text-foreground/75">{tk.noBrandsBlocked}</p>
               <button
                 type="button"
                 onClick={() => setBrandsOpen(true)}
                 className="mt-4 inline-flex w-full items-center justify-between border border-destructive px-3 py-2 text-[10px] uppercase tracking-[0.22em] text-destructive transition-all hover:bg-destructive hover:text-destructive-foreground"
               >
-                <span>Register Brand</span>
+                <span>{tk.registerBrand}</span>
                 <span className="font-mono text-[9px] opacity-60">›</span>
               </button>
             </div>
@@ -248,7 +244,7 @@ function KnowledgePage() {
                 <>
                   <div>
                     <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-                      Brand
+                      {tk.brand}
                     </span>
                     <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
                       <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">
@@ -275,7 +271,7 @@ function KnowledgePage() {
                 <>
                   <div>
                     <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-                      Department (Required)
+                      {tk.deptRequired}
                     </span>
                     <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
                       <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">
@@ -303,7 +299,7 @@ function KnowledgePage() {
 
                   <div>
                     <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-                      Department Role (Optional)
+                      {tk.deptRoleOptional}
                     </span>
                     <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
                       <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">
@@ -316,7 +312,7 @@ function KnowledgePage() {
                         className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
                       >
                         <option value="" className="bg-background text-foreground/50">
-                          Select Role
+                          {tk.selectRole}
                         </option>
                         {deptsQ.data
                           ?.find((d) => d.id === effectiveDeptId)
@@ -341,7 +337,7 @@ function KnowledgePage() {
               {activeTab !== "external" ? (
                 <div>
                   <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-                    Asset Type
+                    {tk.assetType}
                   </span>
                   <div className="mt-2 grid grid-cols-2 gap-1">
                     {UPLOAD_TYPES.map((t) => (
@@ -361,28 +357,28 @@ function KnowledgePage() {
                     ))}
                   </div>
                   <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/30">
-                    Gold &amp; Jewel assets are generated from Audit sessions.
+                    {tk.goldJewelNote}
                   </p>
                 </div>
               ) : (
                 <div>
                   <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-                    Asset Type
+                    {tk.assetType}
                   </span>
                   <div className="mt-1 border border-border bg-foreground/[0.03] px-3 py-2.5 rounded-[3px] shadow-sm">
                     <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-foreground/70 font-semibold animate-pulse text-[var(--accent)]">
-                      External Knowledge
+                      {tk.externalKnowledge}
                     </span>
                   </div>
                   <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/30">
-                    External knowledge is global exogenous data independent of brands/departments.
+                    {tk.externalNote}
                   </p>
                 </div>
               )}
 
               <label className="block">
                 <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-                  Title
+                  {tk.title}
                 </span>
                 <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
                   <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">
@@ -404,7 +400,7 @@ function KnowledgePage() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[13px] text-foreground">{file.name}</div>
                     <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/35 mt-0.5">
-                      Ready to process · {(file.size / 1024).toFixed(1)} KB
+                      {tk.readyToProcess} · {(file.size / 1024).toFixed(1)} KB
                     </div>
                   </div>
                   <button
@@ -414,7 +410,7 @@ function KnowledgePage() {
                       setFile(null);
                     }}
                     className="ml-2 rounded-[3px] p-1 text-foreground/45 hover:bg-foreground/5 hover:text-foreground"
-                    title="Clear file"
+                    title={tk.clearFile}
                   >
                     <X className="size-3.5" strokeWidth={1.5} />
                   </button>
@@ -430,9 +426,7 @@ function KnowledgePage() {
                   className="grid cursor-pointer place-items-center border border-dashed border-border px-6 py-8 text-center transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] hover:border-foreground/25 bg-card rounded-[3px] shadow-sm hover:shadow-md motion-safe:animate-in motion-safe:fade-in"
                 >
                   <Upload className="mx-auto size-4 text-foreground/35" strokeWidth={1.5} />
-                  <div className="mt-2 text-[12px] text-foreground/75">
-                    Drop document or click to select
-                  </div>
+                  <div className="mt-2 text-[12px] text-foreground/75">{tk.dropDocument}</div>
                   <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/35">
                     PDF · MD · TXT · DOCX
                   </div>
@@ -477,7 +471,7 @@ function KnowledgePage() {
                   />
                 )}
                 <span className="relative z-10">
-                  {uploadM.isPending ? "Processing..." : "Process Knowledge"}
+                  {uploadM.isPending ? tk.processing : tk.processKnowledge}
                 </span>
                 {uploadM.isPending ? (
                   <span className="relative z-10 flex gap-0.5">
@@ -501,7 +495,7 @@ function KnowledgePage() {
 
               {uploadM.isError ? (
                 <ErrorBanner
-                  message="Upload failed. Check the file format and try again."
+                  message={tk.uploadFailed}
                   onRetry={() =>
                     uploadM.mutate({
                       file: file!,
@@ -523,16 +517,16 @@ function KnowledgePage() {
           <div className="flex items-center justify-between gap-4 border-b border-border px-8 py-4">
             <h2 className="font-display text-[15px] text-foreground/80">
               {activeTab === "brands"
-                ? "Brand Repository"
+                ? tk.brandRepository
                 : activeTab === "departments"
-                  ? "Department Repository"
-                  : "External Repository"}
+                  ? tk.departmentRepository
+                  : tk.externalRepository}
             </h2>
             <div className="relative">
               <input
                 ref={searchRef}
                 type="search"
-                placeholder="Search by title or type…"
+                placeholder={tk.searchPlaceholder}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-72 border border-border bg-transparent pl-3 pr-8 py-1.5 text-[13px] text-foreground outline-none placeholder:text-foreground/30 transition-all duration-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-[var(--accent)]/50"
@@ -570,12 +564,14 @@ function KnowledgePage() {
                 </colgroup>
                 <thead>
                   <tr className="border-b-4 border-double border-border bg-foreground/[0.03] text-[10px] uppercase tracking-[0.22em] text-foreground/60">
-                    <th className="px-4 py-3 font-normal">Title</th>
-                    {activeTab === "departments" && <th className="px-4 py-3 font-normal">Role</th>}
-                    <th className="px-4 py-3 font-normal">Type</th>
-                    <th className="px-4 py-3 font-normal">Status</th>
-                    <th className="px-4 py-3 font-normal">Created</th>
-                    <th className="px-4 py-3 font-normal text-right">Actions</th>
+                    <th className="px-4 py-3 font-normal">{tk.colTitle}</th>
+                    {activeTab === "departments" && (
+                      <th className="px-4 py-3 font-normal">{tk.colRole}</th>
+                    )}
+                    <th className="px-4 py-3 font-normal">{tk.colType}</th>
+                    <th className="px-4 py-3 font-normal">{tk.colStatus}</th>
+                    <th className="px-4 py-3 font-normal">{tk.colCreated}</th>
+                    <th className="px-4 py-3 font-normal text-right">{tk.colActions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -598,13 +594,13 @@ function KnowledgePage() {
                         className="px-4 py-16 text-center text-[12px] text-destructive"
                       >
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <span>Failed to load knowledge assets.</span>
+                          <span>{tk.failAssets}</span>
                           <button
                             type="button"
                             onClick={() => listQ.refetch()}
                             className="text-[11px] underline text-foreground/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           >
-                            Retry Refetch
+                            {tk.retry}
                           </button>
                         </div>
                       </td>
@@ -627,9 +623,9 @@ function KnowledgePage() {
                               <td className="px-4 py-3 align-top text-foreground/60 font-mono text-[11px]">
                                 <span
                                   className="block truncate"
-                                  title={a.department_role?.name || "All Roles"}
+                                  title={a.department_role?.name || tk.allRoles}
                                 >
-                                  {a.department_role?.name || "All Roles"}
+                                  {a.department_role?.name || tk.allRoles}
                                 </span>
                               </td>
                             )}
@@ -656,18 +652,18 @@ function KnowledgePage() {
                                     type="button"
                                     onClick={() => setEditingAsset(a)}
                                     className="text-foreground/45 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                    title="Reassign Brand"
+                                    title={tk.reassignBrandTitle}
                                   >
-                                    [Reassign]
+                                    [{tk.reassign}]
                                   </button>
                                 ) : null}
                                 <button
                                   type="button"
                                   onClick={() => setDeletingAsset(a)}
                                   className="text-destructive/60 hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                  title="Delete Document"
+                                  title={tk.deleteDocumentTitle}
                                 >
-                                  [Delete]
+                                  [{tk.delete}]
                                 </button>
                               </div>
                             </td>
@@ -690,16 +686,15 @@ function KnowledgePage() {
        (Nodes)           (OKLCH Vector)`}
                                 </pre>
                                 <h3 className="text-center font-display text-[14px] text-foreground font-medium uppercase tracking-[0.06em]">
-                                  Repository Empty
+                                  {tk.repositoryEmpty}
                                 </h3>
                                 <p className="mt-2 text-center text-[12px] leading-relaxed text-foreground/50">
-                                  Vectorised assets form the core dialectical knowledge base for
-                                  PKGD OS, letting the Oracle recall SOP context.
+                                  {tk.repositoryEmptyHint}
                                 </p>
 
                                 <div className="mt-6 border border-border bg-card p-4 shadow-sm rounded-[3px]">
                                   <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-foreground/40 mb-3 border-b border-border pb-2">
-                                    Knowledge Setup Checklist
+                                    {tk.setupChecklist}
                                   </div>
                                   <ul className="space-y-2 text-[11px] text-foreground/60">
                                     {activeTab !== "external" ? (
@@ -709,22 +704,22 @@ function KnowledgePage() {
                                             [1]
                                           </span>
                                           <span>
-                                            Select target{" "}
-                                            {activeTab === "brands" ? "Brand" : "Department"} in
-                                            sidebar
+                                            {activeTab === "brands"
+                                              ? tk.checklistSelectBrand
+                                              : tk.checklistSelectDept}
                                           </span>
                                         </li>
                                         <li className="flex items-center gap-2">
                                           <span className="font-mono text-[9px] text-[var(--accent)]">
                                             [2]
                                           </span>
-                                          <span>Specify SOP or Dogma class</span>
+                                          <span>{tk.checklistSpecifyClass}</span>
                                         </li>
                                         <li className="flex items-center gap-2">
                                           <span className="font-mono text-[9px] text-[var(--accent)]">
                                             [3]
                                           </span>
-                                          <span>Drop PDF/TXT/MD file & click Process</span>
+                                          <span>{tk.checklistDropFile}</span>
                                         </li>
                                       </>
                                     ) : (
@@ -733,19 +728,19 @@ function KnowledgePage() {
                                           <span className="font-mono text-[9px] text-[var(--accent)]">
                                             [1]
                                           </span>
-                                          <span>Drop external PDF/TXT/MD/DOCX file in sidebar</span>
+                                          <span>{tk.checklistDropExternal}</span>
                                         </li>
                                         <li className="flex items-center gap-2">
                                           <span className="font-mono text-[9px] text-[var(--accent)]">
                                             [2]
                                           </span>
-                                          <span>Enter document title (optional)</span>
+                                          <span>{tk.checklistEnterTitle}</span>
                                         </li>
                                         <li className="flex items-center gap-2">
                                           <span className="font-mono text-[9px] text-[var(--accent)]">
                                             [3]
                                           </span>
-                                          <span>Click Process Knowledge to ingest</span>
+                                          <span>{tk.checklistClickProcess}</span>
                                         </li>
                                       </>
                                     )}
@@ -754,13 +749,13 @@ function KnowledgePage() {
                               </div>
                             ) : (
                               <div className="py-6 text-[12px] text-foreground/40 transition-all duration-300 motion-safe:animate-in motion-safe:fade-in">
-                                <p>No documents found matching search filter.</p>
+                                <p>{tk.noDocsFilter}</p>
                                 <button
                                   type="button"
                                   onClick={() => setQuery("")}
                                   className="mt-3 inline-flex border border-foreground/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-foreground/80 hover:border-foreground/35 hover:text-foreground"
                                 >
-                                  Clear filter
+                                  {tk.clearFilter}
                                 </button>
                               </div>
                             )}
@@ -809,6 +804,7 @@ function KnowledgePage() {
 }
 
 function DownloadButton({ asset }: { asset: KnowledgeAsset }) {
+  const tk = useT("knowledge");
   const m = useMutation({ mutationFn: () => knowledgeApi.downloadAsset(asset) });
   const disabled = asset.vectorization_status !== "Embedded" || m.isPending;
   return (
@@ -818,7 +814,7 @@ function DownloadButton({ asset }: { asset: KnowledgeAsset }) {
       disabled={disabled}
       className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-foreground/70 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-default disabled:opacity-30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
     >
-      <Download className="size-3" strokeWidth={1.5} /> Download
+      <Download className="size-3" strokeWidth={1.5} /> {tk.download}
     </button>
   );
 }
@@ -830,23 +826,25 @@ function VectorStatus({
   status: "Pending" | "Embedded" | "Error";
   percent?: number;
 }) {
+  const tk = useT("knowledge");
   if (status === "Pending") {
     const displayPercent = percent !== undefined ? ` (${Math.round(percent)}%)` : "";
     return (
       <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-foreground/50">
-        <PassivePulse className="size-1" /> Ingesting{displayPercent}…
+        <PassivePulse className="size-1" /> {tk.ingesting}
+        {displayPercent}…
       </span>
     );
   }
   if (status === "Error")
     return (
       <span className="text-[10px] uppercase tracking-[0.22em] text-destructive font-medium">
-        Error
+        {tk.error}
       </span>
     );
   return (
     <span className="text-[10px] uppercase tracking-[0.22em] text-foreground/75 font-medium">
-      Embedded
+      {tk.embedded}
     </span>
   );
 }
@@ -854,6 +852,7 @@ function VectorStatus({
 /* ---------- Brands CRUD drawer ---------- */
 
 function BrandsManager({ brands, onClose }: { brands: Brand[]; onClose: () => void }) {
+  const tk = useT("knowledge");
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["brands"] });
 
@@ -874,9 +873,9 @@ function BrandsManager({ brands, onClose }: { brands: Brand[]; onClose: () => vo
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">
-              Administration
+              {tk.eyebrow}
             </div>
-            <div className="text-[15px] text-foreground">Brands</div>
+            <div className="text-[15px] text-foreground">{tk.brands}</div>
           </div>
           <button
             type="button"
@@ -907,13 +906,13 @@ function BrandsManager({ brands, onClose }: { brands: Brand[]; onClose: () => vo
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Brand name"
+              placeholder={tk.brandNamePlaceholder}
               className="border border-border bg-transparent px-3 py-2 text-[13px] text-foreground outline-none transition-colors duration-300 focus:border-foreground/35"
             />
             <input
               value={newIndustry}
               onChange={(e) => setNewIndustry(e.target.value)}
-              placeholder="Industry"
+              placeholder={tk.industryPlaceholder}
               className="border border-border bg-transparent px-3 py-2 text-[13px] text-foreground outline-none transition-colors duration-300 focus:border-foreground/35"
             />
             <button
@@ -921,17 +920,17 @@ function BrandsManager({ brands, onClose }: { brands: Brand[]; onClose: () => vo
               disabled={createM.isPending || !newName.trim()}
               className="inline-flex items-center gap-1 border border-foreground/15 px-3.5 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/90 transition-all hover:border-[var(--accent)] hover:text-foreground disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
-              <Plus className="size-3" strokeWidth={2} /> New
+              <Plus className="size-3" strokeWidth={2} /> {tk.new}
             </button>
           </form>
           {createM.isError ? (
             <div className="px-4 pb-3">
-              <ErrorBanner message="Couldn't create brand. Please try again." />
+              <ErrorBanner message={tk.errCreateBrand} />
             </div>
           ) : null}
           {updateM.isError ? (
             <div className="px-4 pb-3">
-              <ErrorBanner message="Couldn't update brand. Please try again." />
+              <ErrorBanner message={tk.errUpdateBrand} />
             </div>
           ) : null}
 
@@ -947,7 +946,7 @@ function BrandsManager({ brands, onClose }: { brands: Brand[]; onClose: () => vo
           </ul>
           {deleteM.isError ? (
             <div className="p-4">
-              <ErrorBanner message="Couldn't delete brand. Please try again." />
+              <ErrorBanner message={tk.errDeleteBrand} />
             </div>
           ) : null}
         </div>
@@ -965,6 +964,7 @@ function BrandRow({
   onSave: (patch: { name?: string; industry?: string }) => void;
   onDelete: () => void;
 }) {
+  const tk = useT("knowledge");
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(brand.name);
   const [industry, setIndustry] = useState(brand.industry);
@@ -991,7 +991,7 @@ function BrandRow({
             }}
             className="border border-foreground/15 px-3 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/80 transition-all hover:border-[var(--accent)] hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            Save
+            {tk.save}
           </button>
           <button
             type="button"
@@ -1002,7 +1002,7 @@ function BrandRow({
             }}
             className="border border-border px-3 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            Cancel
+            {tk.cancel}
           </button>
         </div>
       </li>
@@ -1023,14 +1023,14 @@ function BrandRow({
           onClick={() => setEditing(true)}
           className="text-foreground/45 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          [Edit]
+          [{tk.edit}]
         </button>
         <button
           type="button"
           onClick={onDelete}
           className="text-destructive/60 hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          [Delete]
+          [{tk.delete}]
         </button>
       </div>
     </li>
@@ -1047,6 +1047,7 @@ interface EditBrandModalProps {
 }
 
 function EditBrandModal({ asset, brands, onClose, onSave }: EditBrandModalProps) {
+  const tk = useT("knowledge");
   const [selectedBrandId, setSelectedBrandId] = useState(asset.brand_id || "");
 
   return (
@@ -1055,9 +1056,9 @@ function EditBrandModal({ asset, brands, onClose, onSave }: EditBrandModalProps)
         <div className="flex items-center justify-between border-b border-border pb-3">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">
-              Asset
+              {tk.asset}
             </div>
-            <div className="text-[15px] font-medium text-foreground">Reassign Brand</div>
+            <div className="text-[15px] font-medium text-foreground">{tk.reassignBrandTitle}</div>
           </div>
           <button
             type="button"
@@ -1070,7 +1071,7 @@ function EditBrandModal({ asset, brands, onClose, onSave }: EditBrandModalProps)
 
         <div className="mt-4">
           <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
-            Select New Brand
+            {tk.selectNewBrand}
           </div>
           <select
             value={selectedBrandId}
@@ -1091,14 +1092,14 @@ function EditBrandModal({ asset, brands, onClose, onSave }: EditBrandModalProps)
             onClick={onClose}
             className="border border-border px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            Cancel
+            {tk.cancel}
           </button>
           <button
             type="button"
             onClick={() => onSave(selectedBrandId)}
             className="border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            Save
+            {tk.save}
           </button>
         </div>
       </div>
@@ -1123,6 +1124,7 @@ function DeleteDocDialog({
   onConfirm: () => void;
   onRetry?: () => void;
 }) {
+  const tk = useT("knowledge");
   const [confirm, setConfirm] = useState("");
   const matches = confirm.trim().toLowerCase() === asset.title.toLowerCase();
 
@@ -1132,9 +1134,9 @@ function DeleteDocDialog({
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-destructive">
-              Destructive
+              {tk.destructive}
             </div>
-            <div className="text-[15px] text-foreground">Delete document</div>
+            <div className="text-[15px] text-foreground">{tk.deleteDocument}</div>
           </div>
           <button
             type="button"
@@ -1146,9 +1148,9 @@ function DeleteDocDialog({
         </div>
         <div className="px-6 py-5">
           <p className="text-[13px] text-foreground/70">
-            This action permanently removes{" "}
-            <strong className="text-foreground">{asset.title}</strong> and its vectorized data. Type{" "}
-            <span className="font-mono text-[var(--accent)]">{asset.title}</span> to confirm.
+            {tk.delConfirmPre}{" "}
+            <strong className="text-foreground">{asset.title}</strong> {tk.delConfirmMid}{" "}
+            <span className="font-mono text-[var(--accent)]">{asset.title}</span> {tk.delConfirmPost}
           </p>
           <input
             type="text"
@@ -1159,10 +1161,7 @@ function DeleteDocDialog({
           />
           {error ? (
             <div className="mt-3">
-              <ErrorBanner
-                message="Couldn't delete document. Please try again."
-                onRetry={onRetry}
-              />
+              <ErrorBanner message={tk.errDeleteDoc} onRetry={onRetry} />
             </div>
           ) : null}
         </div>
@@ -1172,7 +1171,7 @@ function DeleteDocDialog({
             onClick={onClose}
             className="border border-border px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            Cancel
+            {tk.cancel}
           </button>
           <button
             type="button"
@@ -1180,7 +1179,7 @@ function DeleteDocDialog({
             onClick={onConfirm}
             className="border border-destructive bg-destructive/10 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-destructive hover:bg-destructive hover:text-destructive-foreground disabled:opacity-30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            {submitting ? "Deleting…" : "Delete document"}
+            {submitting ? tk.deleting : tk.deleteDocument}
           </button>
         </div>
       </div>
@@ -1191,6 +1190,7 @@ function DeleteDocDialog({
 /* ---------- Departments Manager drawer ---------- */
 
 function DepartmentsManager({ onClose }: { onClose: () => void }) {
+  const tk = useT("knowledge");
   const qc = useQueryClient();
   const deptsQ = useQuery({ queryKey: ["departments"], queryFn: departmentsApi.listDepartments });
   const operatorsQ = useQuery({ queryKey: ["operators"], queryFn: usersApi.listOperators });
@@ -1256,9 +1256,9 @@ function DepartmentsManager({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40 font-semibold">
-              Administration
+              {tk.eyebrow}
             </div>
-            <div className="text-[15px] text-foreground font-semibold">Departments &amp; Roles</div>
+            <div className="text-[15px] text-foreground font-semibold">{tk.departmentsRoles}</div>
           </div>
           <button
             type="button"
@@ -1283,7 +1283,7 @@ function DepartmentsManager({ onClose }: { onClose: () => void }) {
             <input
               value={newDeptName}
               onChange={(e) => setNewDeptName(e.target.value)}
-              placeholder="New department name..."
+              placeholder={tk.newDeptPlaceholder}
               className="flex-1 border border-border bg-transparent px-3 py-2 text-[13px] text-foreground outline-none transition-colors duration-300 focus:border-foreground/35"
             />
             <button
@@ -1291,12 +1291,12 @@ function DepartmentsManager({ onClose }: { onClose: () => void }) {
               disabled={createDeptM.isPending || !newDeptName.trim()}
               className="inline-flex items-center gap-1 border border-foreground/15 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/90 transition-all hover:border-[var(--accent)] hover:text-foreground disabled:opacity-40"
             >
-              <Plus className="size-3" strokeWidth={2} /> Add
+              <Plus className="size-3" strokeWidth={2} /> {tk.add}
             </button>
           </form>
 
           {deptsQ.isLoading ? (
-            <div className="text-[12px] font-mono text-foreground/45">Loading...</div>
+            <div className="text-[12px] font-mono text-foreground/45">{tk.loading}</div>
           ) : (
             <div className="flex flex-col gap-4">
               {deptsQ.data?.map((dept) => (
@@ -1344,6 +1344,7 @@ function DepartmentSection({
   assignUserM: any;
   unassignUserM: any;
 }) {
+  const tk = useT("knowledge");
   const [editingDept, setEditingDept] = useState(false);
   const [deptName, setDeptName] = useState(dept.name);
   const [newRoleName, setNewRoleName] = useState("");
@@ -1372,7 +1373,7 @@ function DepartmentSection({
               className="flex-1 border-b border-border bg-transparent font-semibold py-0.5 text-[13px] text-foreground outline-none"
             />
             <button type="submit" className="text-[11px] font-mono text-[var(--accent)]">
-              [Save]
+              [{tk.save}]
             </button>
             <button
               type="button"
@@ -1382,7 +1383,7 @@ function DepartmentSection({
               }}
               className="text-[11px] font-mono text-foreground/45"
             >
-              [Cancel]
+              [{tk.cancel}]
             </button>
           </form>
         ) : (
@@ -1393,10 +1394,10 @@ function DepartmentSection({
                 onClick={() => setEditingDept(true)}
                 className="text-foreground/45 hover:text-foreground"
               >
-                [Edit]
+                [{tk.edit}]
               </button>
               <button onClick={onDeleteDept} className="text-destructive/60 hover:text-destructive">
-                [Delete]
+                [{tk.delete}]
               </button>
             </div>
           </>
@@ -1405,7 +1406,7 @@ function DepartmentSection({
 
       <div className="pl-4 flex flex-col gap-2">
         <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/45">
-          Roles in Department
+          {tk.rolesInDept}
         </span>
 
         {dept.roles && dept.roles.length > 0 ? (
@@ -1420,9 +1421,7 @@ function DepartmentSection({
             ))}
           </ul>
         ) : (
-          <span className="text-[11px] text-foreground/40 italic font-mono">
-            No roles configured.
-          </span>
+          <span className="text-[11px] text-foreground/40 italic font-mono">{tk.noRoles}</span>
         )}
 
         <form
@@ -1438,7 +1437,7 @@ function DepartmentSection({
           <input
             value={newRoleName}
             onChange={(e) => setNewRoleName(e.target.value)}
-            placeholder="Add new role..."
+            placeholder={tk.addRolePlaceholder}
             className="flex-1 border-b border-border/60 bg-transparent py-0.5 font-mono text-[12px] text-foreground outline-none placeholder:text-foreground/30 focus:border-foreground/35"
           />
           <button
@@ -1446,7 +1445,7 @@ function DepartmentSection({
             disabled={!newRoleName.trim()}
             className="text-[11px] uppercase tracking-[0.15em] font-medium text-foreground/75 disabled:opacity-30"
           >
-            Add Role
+            {tk.addRole}
           </button>
         </form>
       </div>
@@ -1454,7 +1453,7 @@ function DepartmentSection({
       {/* User Assignment section */}
       <div className="pl-4 mt-4 border-t border-dashed border-border/60 pt-3 flex flex-col gap-2">
         <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/45">
-          Assigned Users
+          {tk.assignedUsers}
         </span>
 
         {assignedUsers.length > 0 ? (
@@ -1476,15 +1475,13 @@ function DepartmentSection({
                   disabled={unassignUserM.isPending}
                   className="text-destructive/50 hover:text-destructive whitespace-nowrap focus-visible:outline-none"
                 >
-                  [Remove]
+                  [{tk.remove}]
                 </button>
               </li>
             ))}
           </ul>
         ) : (
-          <span className="text-[11px] text-foreground/40 italic font-mono">
-            No users assigned.
-          </span>
+          <span className="text-[11px] text-foreground/40 italic font-mono">{tk.noUsersAssigned}</span>
         )}
 
         <form
@@ -1511,7 +1508,7 @@ function DepartmentSection({
           className="mt-2 flex flex-col gap-2 bg-foreground/[0.02] p-2 border border-border/40 rounded-[3px]"
         >
           <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-foreground/40">
-            Assign User
+            {tk.assignUser}
           </span>
 
           <select
@@ -1519,7 +1516,7 @@ function DepartmentSection({
             onChange={(e) => setAssignUserId(e.target.value)}
             className="w-full bg-background border border-border/60 py-1 px-2 text-[11px] font-mono text-foreground outline-none cursor-pointer"
           >
-            <option value="">Select User...</option>
+            <option value="">{tk.selectUser}</option>
             {operators.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.full_name} ({u.email})
@@ -1533,7 +1530,7 @@ function DepartmentSection({
             disabled={!assignUserId}
             className="w-full bg-background border border-border/60 py-1 px-2 text-[11px] font-mono text-foreground outline-none cursor-pointer disabled:opacity-40"
           >
-            <option value="">Select Role (Optional)...</option>
+            <option value="">{tk.selectRoleOptional}</option>
             {dept.roles?.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
@@ -1546,7 +1543,7 @@ function DepartmentSection({
             disabled={!assignUserId || assignUserM.isPending}
             className="w-full border border-foreground/15 py-1 text-[10px] uppercase tracking-[0.15em] font-medium text-foreground hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors disabled:opacity-30"
           >
-            {assignUserM.isPending ? "Assigning..." : "Assign"}
+            {assignUserM.isPending ? tk.assigning : tk.assign}
           </button>
         </form>
       </div>
@@ -1563,6 +1560,7 @@ function RoleItem({
   onUpdate: (name: string) => void;
   onDelete: () => void;
 }) {
+  const tk = useT("knowledge");
   const [editing, setEditing] = useState(false);
   const [roleName, setRoleName] = useState(role.name);
 
@@ -1583,7 +1581,7 @@ function RoleItem({
           }}
           className="text-[11px] font-mono text-[var(--accent)]"
         >
-          [Save]
+          [{tk.save}]
         </button>
         <button
           onClick={() => {
@@ -1592,7 +1590,7 @@ function RoleItem({
           }}
           className="text-[11px] font-mono text-foreground/45"
         >
-          [Cancel]
+          [{tk.cancel}]
         </button>
       </li>
     );
@@ -1606,10 +1604,10 @@ function RoleItem({
           onClick={() => setEditing(true)}
           className="text-foreground/40 hover:text-foreground"
         >
-          [Edit]
+          [{tk.edit}]
         </button>
         <button onClick={onDelete} className="text-destructive/50 hover:text-destructive">
-          [Delete]
+          [{tk.delete}]
         </button>
       </div>
     </li>

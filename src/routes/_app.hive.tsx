@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/brand/PageHeader";
 
 import { useSessionStore } from "@/stores/session";
 import { oracleCopy } from "@/lib/i18n/oracle";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_app/hive")({
   head: () => {
@@ -28,6 +29,7 @@ function HivePage() {
 
   const language = useSessionStore((s) => s.chatLanguage);
   const t = oracleCopy(language);
+  const th = useT("hive");
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<OperatorRow | null>(null);
@@ -64,7 +66,7 @@ function HivePage() {
   return (
     <div className="flex h-screen flex-col">
       <PageHeader
-        eyebrow="Administration"
+        eyebrow={th.eyebrow}
         title={t.userManagement}
         actions={
           <div className="flex gap-2">
@@ -74,7 +76,7 @@ function HivePage() {
               className="inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <Plus className="size-3.5" strokeWidth={2} />
-              Register Operator
+              {th.registerOperator}
             </button>
           </div>
         }
@@ -85,24 +87,18 @@ function HivePage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b-4 border-double border-border bg-foreground/[0.03] text-[10px] uppercase tracking-[0.22em] text-foreground/60">
-                <Th>Operator</Th>
-                <Th>Role</Th>
-                <Th>Department / Role</Th>
-                <Th
-                  className="text-right"
-                  title="Friction level: 0.0–10.0 scale of dialectical resistance"
-                >
-                  Friction
+                <Th>{th.colOperator}</Th>
+                <Th>{th.colRole}</Th>
+                <Th>{th.colDeptRole}</Th>
+                <Th className="text-right" title={th.colFrictionTip}>
+                  {th.colFriction}
                 </Th>
-                <Th
-                  className="text-right"
-                  title="Calcification: delta of defensive pattern rigidity across sessions"
-                >
-                  Calcification
+                <Th className="text-right" title={th.colCalcificationTip}>
+                  {th.colCalcification}
                 </Th>
-                <Th>Brands</Th>
-                <Th>Created</Th>
-                <Th className="text-right">Actions</Th>
+                <Th>{th.colBrands}</Th>
+                <Th>{th.colCreated}</Th>
+                <Th className="text-right">{th.colActions}</Th>
               </tr>
             </thead>
             <tbody>
@@ -120,13 +116,13 @@ function HivePage() {
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-[12px] text-destructive">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <span>Failed to load operators.</span>
+                      <span>{th.failOperators}</span>
                       <button
                         type="button"
                         onClick={() => operatorsQ.refetch()}
                         className="text-[11px] underline text-foreground/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       >
-                        Retry Refetch
+                        {th.retry}
                       </button>
                     </div>
                   </td>
@@ -134,13 +130,13 @@ function HivePage() {
               ) : operatorsQ.data?.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-[12px] text-foreground/40">
-                    No operators registered.{" "}
+                    {th.noOperators}{" "}
                     <button
                       type="button"
                       onClick={() => setDrawerOpen(true)}
                       className="text-[var(--accent)] underline-offset-2 hover:underline"
                     >
-                      Register the first operator.
+                      {th.registerFirst}
                     </button>
                   </td>
                 </tr>
@@ -216,14 +212,14 @@ function HivePage() {
                           onClick={() => setEditing(o)}
                           className="text-foreground/45 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         >
-                          [Edit]
+                          [{th.edit}]
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleting(o)}
                           className="text-destructive/60 hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         >
-                          [Delete]
+                          [{th.delete}]
                         </button>
                       </div>
                     </Td>
@@ -326,6 +322,7 @@ function RegisterDrawer({
     department_role_id?: UUID;
   }) => void;
 }) {
+  const t = useT("hive");
   const [full_name, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -347,9 +344,9 @@ function RegisterDrawer({
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">
-              New
+              {t.new}
             </div>
-            <div className="text-[15px] text-foreground">Register Operator</div>
+            <div className="text-[15px] text-foreground">{t.registerOperator}</div>
           </div>
           <button
             type="button"
@@ -375,10 +372,10 @@ function RegisterDrawer({
             });
           }}
         >
-          <Input label="Full name" value={full_name} onChange={setFullName} required />
-          <Input label="Email" type="email" value={email} onChange={setEmail} required />
+          <Input label={t.fullName} value={full_name} onChange={setFullName} required />
+          <Input label={t.email} type="email" value={email} onChange={setEmail} required />
           <Input
-            label="Access key"
+            label={t.accessKey}
             type="password"
             value={password}
             onChange={setPassword}
@@ -386,7 +383,7 @@ function RegisterDrawer({
           />
 
           <div>
-            <Label>Global role</Label>
+            <Label>{t.globalRole}</Label>
             <div className="mt-2 flex gap-2">
               {(["operator", "admin"] as GlobalRole[]).map((r) => (
                 <button
@@ -407,7 +404,7 @@ function RegisterDrawer({
           </div>
 
           <div>
-            <Label>Department</Label>
+            <Label>{t.department}</Label>
             <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
               <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
               <select
@@ -419,7 +416,7 @@ function RegisterDrawer({
                 className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
               >
                 <option value="" className="bg-background text-foreground/50">
-                  Select Department
+                  {t.selectDepartment}
                 </option>
                 {deptsQ.data?.map((d) => (
                   <option key={d.id} value={d.id} className="bg-background text-foreground">
@@ -432,7 +429,7 @@ function RegisterDrawer({
           </div>
 
           <div>
-            <Label>Department Role</Label>
+            <Label>{t.departmentRole}</Label>
             <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
               <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
               <select
@@ -442,7 +439,7 @@ function RegisterDrawer({
                 className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
               >
                 <option value="" className="bg-background text-foreground/50">
-                  Select Role
+                  {t.selectRole}
                 </option>
                 {deptRoles.map((r) => (
                   <option key={r.id} value={r.id} className="bg-background text-foreground">
@@ -455,7 +452,7 @@ function RegisterDrawer({
           </div>
 
           <div>
-            <Label>Knowledge Linkage · Brands</Label>
+            <Label>{t.brandsLink}</Label>
             <div className="mt-2 flex flex-wrap gap-2">
               {brands.map((b) => {
                 const on = brandIds.includes(b.id);
@@ -479,7 +476,7 @@ function RegisterDrawer({
           </div>
 
           {error ? (
-            <ErrorBanner message="Couldn't register the operator. Please try again." />
+            <ErrorBanner message={t.errRegister} />
           ) : null}
 
           <button
@@ -487,7 +484,7 @@ function RegisterDrawer({
             disabled={submitting}
             className="mt-auto inline-flex items-center justify-between border border-[var(--accent)] px-5 py-3 text-[11px] uppercase tracking-[0.28em] text-foreground transition-all hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <span>Commit Operator</span>
+            <span>{t.commitOperator}</span>
             <span className="font-mono text-[10px] opacity-60">›</span>
           </button>
         </form>
@@ -553,6 +550,7 @@ function EditDrawer({
     department_role_id?: UUID | null;
   }) => void;
 }) {
+  const t = useT("hive");
   const [full_name, setFullName] = useState(operator.full_name);
   const [email, setEmail] = useState(operator.email);
   const [role, setRole] = useState<GlobalRole>(operator.global_role);
@@ -575,7 +573,7 @@ function EditDrawer({
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">
-              Edit
+              {t.editLabel}
             </div>
             <div className="text-[15px] text-foreground">{operator.full_name}</div>
           </div>
@@ -602,11 +600,11 @@ function EditDrawer({
             });
           }}
         >
-          <Input label="Full name" value={full_name} onChange={setFullName} required />
-          <Input label="Email" type="email" value={email} onChange={setEmail} required />
+          <Input label={t.fullName} value={full_name} onChange={setFullName} required />
+          <Input label={t.email} type="email" value={email} onChange={setEmail} required />
 
           <div>
-            <Label>Global role</Label>
+            <Label>{t.globalRole}</Label>
             <div className="mt-2 flex gap-2">
               {(["operator", "admin"] as GlobalRole[]).map((r) => (
                 <button
@@ -627,7 +625,7 @@ function EditDrawer({
           </div>
 
           <div>
-            <Label>Department</Label>
+            <Label>{t.department}</Label>
             <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
               <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
               <select
@@ -639,7 +637,7 @@ function EditDrawer({
                 className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer"
               >
                 <option value="" className="bg-background text-foreground/50">
-                  Select Department
+                  {t.selectDepartment}
                 </option>
                 {deptsQ.data?.map((d) => (
                   <option key={d.id} value={d.id} className="bg-background text-foreground">
@@ -652,7 +650,7 @@ function EditDrawer({
           </div>
 
           <div>
-            <Label>Department Role</Label>
+            <Label>{t.departmentRole}</Label>
             <div className="flex items-center gap-1 mt-1 border border-border bg-foreground/[0.01] px-2 focus-within:border-[var(--accent)] transition-colors shadow-sm rounded-[3px]">
               <span className="font-mono text-foreground/30 select-none text-[13px] pr-1">[</span>
               <select
@@ -662,7 +660,7 @@ function EditDrawer({
                 className="w-full bg-transparent py-1.5 text-[13px] text-foreground outline-none cursor-pointer disabled:opacity-40"
               >
                 <option value="" className="bg-background text-foreground/50">
-                  Select Role
+                  {t.selectRole}
                 </option>
                 {deptRoles.map((r) => (
                   <option key={r.id} value={r.id} className="bg-background text-foreground">
@@ -675,7 +673,7 @@ function EditDrawer({
           </div>
 
           <div>
-            <Label>Knowledge Linkage · Brands</Label>
+            <Label>{t.brandsLink}</Label>
             <div className="mt-2 flex flex-wrap gap-2">
               {brands.map((b) => {
                 const on = brandIds.includes(b.id);
@@ -699,21 +697,21 @@ function EditDrawer({
           </div>
 
           <div className="rounded-[3px] border border-border p-4">
-            <Label>Telemetry (read-only)</Label>
+            <Label>{t.telemetryRO}</Label>
             <div className="mt-2 grid grid-cols-2 gap-3 font-mono text-[12px] text-foreground/70">
-              <div>Friction: {operator.friction_level ?? "—"}</div>
-              <div>Calcification: {operator.calcification_level ?? "—"}</div>
+              <div>{t.friction}: {operator.friction_level ?? "—"}</div>
+              <div>{t.calcification}: {operator.calcification_level ?? "—"}</div>
             </div>
           </div>
 
-          {error ? <ErrorBanner message="Couldn't save changes. Please try again." /> : null}
+          {error ? <ErrorBanner message={t.errSave} /> : null}
 
           <button
             type="submit"
             disabled={submitting}
             className="mt-auto inline-flex items-center justify-between border border-[var(--accent)] px-5 py-3 text-[11px] uppercase tracking-[0.28em] text-foreground transition-all hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <span>{submitting ? "Saving…" : "Save changes"}</span>
+            <span>{submitting ? t.saving : t.saveChanges}</span>
             <span className="font-mono text-[10px] opacity-60">›</span>
           </button>
         </form>
@@ -737,6 +735,7 @@ function DeleteDialog({
   onConfirm: () => void;
   onRetry?: () => void;
 }) {
+  const t = useT("hive");
   const [confirm, setConfirm] = useState("");
   const matches = confirm.trim().toLowerCase() === operator.email.toLowerCase();
 
@@ -746,9 +745,9 @@ function DeleteDialog({
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-destructive">
-              Destructive
+              {t.destructive}
             </div>
-            <div className="text-[15px] text-foreground">Delete operator</div>
+            <div className="text-[15px] text-foreground">{t.deleteOperator}</div>
           </div>
           <button
             type="button"
@@ -760,10 +759,9 @@ function DeleteDialog({
         </div>
         <div className="px-6 py-5">
           <p className="text-[13px] text-foreground/70">
-            This action permanently removes{" "}
-            <strong className="text-foreground">{operator.full_name}</strong> and revokes their
-            access. Type <span className="font-mono text-[var(--accent)]">{operator.email}</span> to
-            confirm.
+            {t.delConfirmPre}{" "}
+            <strong className="text-foreground">{operator.full_name}</strong> {t.delConfirmMid}{" "}
+            <span className="font-mono text-[var(--accent)]">{operator.email}</span> {t.delConfirmPost}
           </p>
           <input
             type="text"
@@ -774,10 +772,7 @@ function DeleteDialog({
           />
           {error ? (
             <div className="mt-3">
-              <ErrorBanner
-                message="Couldn't delete operator. Please try again."
-                onRetry={onRetry}
-              />
+              <ErrorBanner message={t.errDelete} onRetry={onRetry} />
             </div>
           ) : null}
         </div>
@@ -787,7 +782,7 @@ function DeleteDialog({
             onClick={onClose}
             className="border border-border px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -795,7 +790,7 @@ function DeleteDialog({
             onClick={onConfirm}
             className="border border-destructive bg-destructive/10 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-destructive hover:bg-destructive hover:text-destructive-foreground disabled:opacity-30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            {submitting ? "Deleting…" : "Delete operator"}
+            {submitting ? t.deleting : t.deleteOperator}
           </button>
         </div>
       </div>

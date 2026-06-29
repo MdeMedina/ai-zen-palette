@@ -8,6 +8,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { BrandLogo } from "@/components/brand/Logo";
 import { PassivePulse } from "@/components/brand/PassivePulse";
 import { PageBackground } from "@/components/brand/PageBackground";
+import { useT } from "@/lib/i18n";
 
 const searchSchema = z.object({
   alert: z.string().optional(),
@@ -31,6 +32,7 @@ function LoginPage() {
   const token = useSessionStore((s) => s.token);
   const capture = useDeepLinkStore((s) => s.capture);
   const consume = useDeepLinkStore((s) => s.consume);
+  const t = useT("login");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,11 +66,7 @@ function LoginPage() {
     } catch (err) {
       const status =
         err instanceof Error && "status" in err ? (err as { status?: number }).status : undefined;
-      setError(
-        status === 401 || status === 403
-          ? "Email or access key not recognized. Check your credentials and try again."
-          : "Couldn't reach the authentication service. Try again in a moment.",
-      );
+      setError(status === 401 || status === 403 ? t.errAuth : t.errNetwork);
     } finally {
       setPending(false);
     }
@@ -80,12 +78,12 @@ function LoginPage() {
         <div className="mb-8 flex flex-col items-center gap-3">
           <BrandLogo />
           <p className="font-sans text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/55">
-            Authentication Gateway
+            {t.gateway}
           </p>
         </div>
 
         <form onSubmit={onSubmit} className="border-double-thick bg-card p-8 shadow-xl">
-          <Field label="Corporate Email / Operator ID">
+          <Field label={t.emailLabel}>
             <input
               type="email"
               value={email}
@@ -98,7 +96,7 @@ function LoginPage() {
             />
           </Field>
 
-          <Field label="Access Key">
+          <Field label={t.accessKeyLabel}>
             <input
               type="password"
               value={password}
@@ -126,7 +124,7 @@ function LoginPage() {
               "disabled:cursor-default disabled:opacity-40",
             ].join(" ")}
           >
-            <span>{pending ? "Initializing…" : "Initialize Session"}</span>
+            <span>{pending ? t.initializing : t.initialize}</span>
             {pending ? (
               <PassivePulse />
             ) : (
@@ -135,11 +133,7 @@ function LoginPage() {
           </button>
 
           <p role="status" className="sr-only">
-            {pending
-              ? "Initializing session…"
-              : hydrated && token
-                ? "Access granted. Redirecting…"
-                : ""}
+            {pending ? t.srInitializing : hydrated && token ? t.srGranted : ""}
           </p>
         </form>
 
@@ -148,18 +142,18 @@ function LoginPage() {
             href="mailto:ops@pkgd.os?subject=Access%20key%20recovery"
             className="text-foreground/55 underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline"
           >
-            Forgot access key?
+            {t.forgotKey}
           </a>
           <a
             href="mailto:support@pkgd.os"
             className="text-foreground/55 underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline"
           >
-            Need help?
+            {t.needHelp}
           </a>
         </div>
 
         <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-[0.32em] text-foreground/55">
-          PKGD OS · v0.1 · Restricted Access
+          {t.restricted}
         </p>
       </div>
     </PageBackground>
