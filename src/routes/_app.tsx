@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useSessionStore, isAdmin } from "@/stores/session";
 import { useDeepLinkStore } from "@/stores/deep-link";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useAutoLogout } from "@/hooks/use-auto-logout";
 import { AppShell } from "@/components/brand/AppShell";
 
 const ADMIN_ROUTES = ["/hive", "/knowledge", "/audit"];
@@ -18,6 +19,10 @@ function AppLayout() {
   const navigate = useNavigate();
   const loc = useLocation();
   const capture = useDeepLinkStore((s) => s.capture);
+
+  // Logs out the instant the JWT expires (proactive); the 401 handler in
+  // apiFetch covers the reactive case.
+  useAutoLogout();
 
   useEffect(() => {
     if (!hydrated) return;

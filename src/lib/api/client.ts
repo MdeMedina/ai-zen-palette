@@ -1,4 +1,5 @@
 import { useSessionStore } from "@/stores/session";
+import { forceLogout } from "@/lib/auth/logout";
 
 export const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 export const USE_MOCKS =
@@ -53,6 +54,12 @@ export async function apiFetch<T>(path: string, opts: ApiFetchOptions = {}): Pro
   const data = text ? safeJson(text) : null;
 
   if (!res.ok) {
+    // Reactive auto-logout: an authenticated request rejected with 401 means
+    // the token is expired/invalid. Clear the session (the /_app layout then
+    // redirects to /login). Anonymous calls (e.g. login) are exempt.
+    if (res.status === 401 && !anonymous) {
+      forceLogout({ expired: true });
+    }
     throw new ApiError(
       (data && typeof data === "object" && "message" in data
         ? String((data as Record<string, unknown>).message)
