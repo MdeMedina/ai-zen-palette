@@ -315,7 +315,6 @@ function RegisterDrawer({
   onSubmit: (input: {
     full_name: string;
     email: string;
-    password: string;
     global_role: GlobalRole;
     brand_ids: UUID[];
     department_id?: UUID;
@@ -325,7 +324,6 @@ function RegisterDrawer({
   const t = useT("hive");
   const [full_name, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<GlobalRole>("operator");
   const [brandIds, setBrandIds] = useState<UUID[]>([]);
   const [departmentId, setDepartmentId] = useState<UUID | "">("");
@@ -364,7 +362,6 @@ function RegisterDrawer({
             onSubmit({
               full_name,
               email,
-              password,
               global_role: role,
               brand_ids: brandIds,
               department_id: departmentId || undefined,
@@ -374,13 +371,10 @@ function RegisterDrawer({
         >
           <Input label={t.fullName} value={full_name} onChange={setFullName} required />
           <Input label={t.email} type="email" value={email} onChange={setEmail} required />
-          <Input
-            label={t.accessKey}
-            type="password"
-            value={password}
-            onChange={setPassword}
-            required
-          />
+          <p className="-mt-1 font-mono text-[10px] leading-relaxed text-foreground/45">
+            Se enviará un correo de activación a esta dirección con un enlace para
+            definir la contraseña y acceder.
+          </p>
 
           <div>
             <Label>{t.globalRole}</Label>
@@ -452,7 +446,24 @@ function RegisterDrawer({
           </div>
 
           <div>
-            <Label>{t.brandsLink}</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>{t.brandsLink}</Label>
+              {brands.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setBrandIds(
+                      brandIds.length === brands.length
+                        ? []
+                        : brands.map((b) => b.id),
+                    )
+                  }
+                  className="border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.24em] text-foreground/60 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  {brandIds.length === brands.length ? t.clearBrands : t.addAllBrands}
+                </button>
+              ) : null}
+            </div>
             <div className="mt-2 flex flex-wrap gap-2">
               {brands.map((b) => {
                 const on = brandIds.includes(b.id);
@@ -673,7 +684,24 @@ function EditDrawer({
           </div>
 
           <div>
-            <Label>{t.brandsLink}</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>{t.brandsLink}</Label>
+              {brands.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setBrandIds(
+                      brandIds.length === brands.length
+                        ? []
+                        : brands.map((b) => b.id),
+                    )
+                  }
+                  className="border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.24em] text-foreground/60 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  {brandIds.length === brands.length ? t.clearBrands : t.addAllBrands}
+                </button>
+              ) : null}
+            </div>
             <div className="mt-2 flex flex-wrap gap-2">
               {brands.map((b) => {
                 const on = brandIds.includes(b.id);

@@ -36,6 +36,7 @@ function OraclePage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [awaiting, setAwaiting] = useState<string | null>(null);
+  const [activeTurn, setActiveTurn] = useState<string | null>(null);
   const [composerError, setComposerError] = useState<
     { kind: "create"; scope: null } | { kind: "send"; scope: string; prompt: string } | null
   >(null);
@@ -79,12 +80,24 @@ function OraclePage() {
         setMessages((m) => [...m, msg, ...(concepto_entry ? [concepto_entry] : [])]);
       }
       setAwaiting((a) => (a === variables.session_id ? null : a));
+      setActiveTurn(null);
       qc.invalidateQueries({ queryKey: ["my-sessions", user.id] });
     },
     onError: (_err, variables) => {
       setAwaiting((a) => (a === variables.session_id ? null : a));
+      setActiveTurn(null);
       setComposerError({ kind: "send", scope: variables.session_id, prompt: variables.prompt });
     },
+  });
+
+  // Poll this turn's pipeline stage while awaiting a reply (loader only).
+  const progressQ = useQuery({
+    queryKey: ["turn-progress", sessionId, activeTurn],
+    queryFn: () => chatApi.getTurnProgress(sessionId!, activeTurn!),
+    enabled: awaiting !== null && awaiting === sessionId && !!activeTurn && !!sessionId,
+    refetchInterval: 800,
+    gcTime: 0,
+    staleTime: 0,
   });
 
   const submitPrompt = async (text: string) => {
@@ -107,8 +120,13 @@ function OraclePage() {
       setMessages((m) => [...m, userMsg]);
     }
     setComposerError(null);
+    const turnId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setActiveTurn(turnId);
     setAwaiting(sid);
-    send.mutate({ session_id: sid, prompt: text, language });
+    send.mutate({ session_id: sid, prompt: text, language, turn_id: turnId });
   };
 
   const submit = () => {
@@ -179,6 +197,7 @@ function OraclePage() {
           <DialecticThread
             messages={messages}
             awaiting={awaiting !== null && awaiting === sessionId}
+            progress={progressQ.data}
             emptyHint={t.emptyHint}
             language={language}
           />

@@ -4,16 +4,19 @@ import type { ChatLanguage } from "@/stores/session";
 import { oracleCopy } from "@/lib/i18n/oracle";
 import { MessageBubble } from "./MessageBubble";
 import { MarkdownRenderer } from "./MarkdownRenderer";
-import { IntervalIndicator } from "./IntervalIndicator";
+import { StageIndicator } from "./StageIndicator";
+import type { TurnProgress } from "@/lib/api/chat";
 
 export function DialecticThread({
   messages,
   awaiting = false,
+  progress,
   emptyHint,
   language,
 }: {
   messages: ChatMessage[];
   awaiting?: boolean;
+  progress?: TurnProgress | null;
   emptyHint?: string;
   language: ChatLanguage;
 }) {
@@ -43,8 +46,8 @@ export function DialecticThread({
         <MessageBubble key={m.id} message={m} language={language} />
       ))}
       {awaiting ? (
-        <div className="opacity-60 transition-opacity duration-700">
-          <IntervalIndicator />
+        <div className="opacity-80 transition-opacity duration-700">
+          <StageIndicator progress={progress} />
         </div>
       ) : null}
       {conceptos.map((c) => (

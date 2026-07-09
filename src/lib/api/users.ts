@@ -21,7 +21,6 @@ export async function listOperators(): Promise<OperatorRow[]> {
 export interface CreateOperatorInput {
   full_name: string;
   email: string;
-  password: string;
   global_role: GlobalRole;
   brand_ids: UUID[];
   department_id?: UUID;
@@ -45,7 +44,7 @@ export async function createOperator(input: CreateOperatorInput): Promise<Operat
       id: mockId(),
       full_name: input.full_name,
       email: input.email,
-      password_hash: `mock_hash:${input.password}`,
+      password_hash: `mock_hash:pending_activation`,
       global_role: input.global_role,
       friction_level: 0,
       calcification_level: 0,

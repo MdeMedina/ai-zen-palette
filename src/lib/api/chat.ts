@@ -7,6 +7,30 @@ export interface SendPromptInput {
   session_id: UUID;
   prompt: string;
   language: ChatLanguage;
+  /** Client-generated id so the loader can poll this turn's pipeline stage. */
+  turn_id?: UUID;
+}
+
+/** Current pipeline stage of an in-flight turn, for the staged loader. */
+export interface TurnProgress {
+  stage: string | null;
+  label?: string;
+  detail?: string | null;
+  route?: string | null;
+  seq?: number;
+}
+
+/**
+ * Reads the latest pipeline stage for a turn. Side channel only — a failure
+ * here never affects the prompt response, so it resolves to an empty stage.
+ */
+export async function getTurnProgress(session_id: UUID, turn_id: UUID): Promise<TurnProgress> {
+  if (USE_MOCKS) return { stage: null };
+  try {
+    return await apiFetch<TurnProgress>(`/api/sessions/${session_id}/progress?turn_id=${turn_id}`);
+  } catch {
+    return { stage: null };
+  }
 }
 
 /**
@@ -41,6 +65,7 @@ export async function sendPrompt(input: SendPromptInput): Promise<ChatMessage> {
     body: {
       prompt: input.prompt,
       language: input.language,
+      turn_id: input.turn_id ?? null,
     },
   });
 }

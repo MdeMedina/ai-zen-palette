@@ -32,6 +32,32 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
   });
 }
 
+export interface ActivationInfo {
+  email: string;
+  full_name: string;
+}
+
+/** GET /api/auth/activate/:token — valida el token y devuelve a quién pertenece. */
+export async function validateActivation(token: string): Promise<ActivationInfo> {
+  return apiFetch<ActivationInfo>(`/api/auth/activate/${encodeURIComponent(token)}`, {
+    anonymous: true,
+  });
+}
+
+export interface SetPasswordInput {
+  token: string;
+  password: string;
+}
+
+/** POST /api/auth/set-password — fija la clave y devuelve sesión (auto-login). */
+export async function setPassword(input: SetPasswordInput): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>("/api/auth/set-password", {
+    method: "POST",
+    body: input,
+    anonymous: true,
+  });
+}
+
 /** GET /api/users/me — DTO purges friction/calcification for operators. */
 export async function me(): Promise<User> {
   if (USE_MOCKS) {
