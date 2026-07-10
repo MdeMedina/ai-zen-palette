@@ -3,9 +3,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 import { AlertTriangle, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
-import { knowledgeApi, sessionsApi, usersApi } from "@/lib/api";
-import type { DiagnosticPayload, Glitch, SessionRecord } from "@/lib/api/types";
+import { companyApi, knowledgeApi, sessionsApi, usersApi } from "@/lib/api";
+import type {
+  CompanyDiagnostic,
+  DiagnosticPayload,
+  Glitch,
+  SessionRecord,
+} from "@/lib/api/types";
 import { useSessionStore } from "@/stores/session";
+import { MarkdownRenderer } from "@/components/brand/MarkdownRenderer";
 import { DialecticThread } from "@/components/brand/DialecticThread";
 import { DeepLinkBanner } from "@/components/brand/DeepLinkBanner";
 import { ErrorBanner } from "@/components/brand/ErrorBanner";
@@ -41,6 +47,13 @@ function AuditPage() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Company-mood pre-screen: only for Dirección General, shown on every entry
+  // to the audit workspace until the director clicks "Enter".
+  const sessionUser = useSessionStore((s) => s.user);
+  const [showCompanyCover, setShowCompanyCover] = useState(true);
+  const me = operatorsQ.data?.find((o) => o.id === sessionUser?.id) ?? null;
+  const isDireccionGeneral = me?.department?.name === "Dirección General";
 
   const handleSelectSession = (id: string | null) => {
     setSessionId(id);
@@ -97,6 +110,30 @@ function AuditPage() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["all-sessions"] }),
   });
+
+  // Hold rendering until we know the operator's department, so a Dirección
+  // General director never flashes the workspace before the mood pre-screen.
+  if (operatorsQ.isLoading) {
+    return (
+      <div className="flex h-screen flex-col">
+        <PageHeader eyebrow={ta.eyebrow} title={t.auditSpace} />
+        <div className="flex flex-1 items-center justify-center">
+          <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-foreground/35">
+            {ta.companyLoading}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isDireccionGeneral && showCompanyCover) {
+    return (
+      <div className="flex h-screen flex-col">
+        <PageHeader eyebrow={ta.companyEyebrow} title={t.auditSpace} />
+        <CompanyMoodCover language={language} onEnter={() => setShowCompanyCover(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col">
@@ -314,6 +351,136 @@ function canApproveJewel(s: SessionRecord): boolean {
     s.gold_extraction_status === "Pending" &&
     s.extracted_asset_id != null &&
     s.close_reason === "jewel"
+  );
+}
+
+// Weekly company-mood pre-screen shown to Dirección General before the
+// audit workspace. Reads the latest snapshot from the n8n weekly flow.
+function CompanyMoodCover({
+  language,
+  onEnter,
+}: {
+  language: "en" | "es";
+  onEnter: () => void;
+}) {
+  const t = useT("audit");
+  const q = useQuery({ queryKey: ["company-diagnostic"], queryFn: companyApi.getDiagnostic });
+  const data: CompanyDiagnostic | undefined = q.data;
+  const p = data?.payload ?? null;
+  const locale = language === "es" ? "es-MX" : "en-US";
+  const fmt = (iso?: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "short" }) : "—";
+
+  const EnterButton = (
+    <button
+      onClick={onEnter}
+      className="mt-8 inline-flex items-center justify-between gap-6 border border-[var(--accent)] px-6 py-3.5 text-sm font-medium text-foreground transition-all shadow-md active-press cursor-pointer hover:bg-[var(--accent)] hover:text-black"
+    >
+      <span>{t.companyEnter}</span>
+      <span className="font-mono text-[10px] opacity-60">›</span>
+    </button>
+  );
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="mx-auto w-full max-w-[840px] px-8 py-10 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300 ease-out">
+        {q.isLoading ? (
+          <div className="flex h-[50vh] items-center justify-center">
+            <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-foreground/35">
+              {t.companyLoading}
+            </span>
+          </div>
+        ) : !data?.has_data ? (
+          <div className="border-double-thick bg-card p-8 shadow-md">
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">
+              {t.companyMood}
+            </div>
+            <p className="mt-4 text-[14px] leading-relaxed text-foreground/70">
+              {t.companyNoData}
+            </p>
+            {EnterButton}
+          </div>
+        ) : (
+          <>
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">
+              {t.companyMood}
+              {data.period_start || data.period_end ? (
+                <span className="ml-3 text-foreground/25">
+                  {t.companyPeriod}: {fmt(data.period_start)} – {fmt(data.period_end)}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-end gap-x-8 gap-y-2">
+              <h2 className="font-display text-[34px] leading-none text-[var(--accent)]">
+                {data.mood_label ?? "—"}
+              </h2>
+              {data.mood_score != null ? (
+                <div className="flex items-baseline gap-2">
+                  <span className="font-sonoran text-[40px] leading-none text-foreground">
+                    {data.mood_score.toFixed(1)}
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/35">
+                    {t.companyMoodIndex} · 0–10
+                  </span>
+                </div>
+              ) : null}
+            </div>
+
+            {data.summary ? (
+              <div className="mt-6 border-double-thick bg-card p-6 shadow-md">
+                <MarkdownRenderer content={data.summary} />
+              </div>
+            ) : null}
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              <MoodList title={t.companySignals} items={p?.senales_positivas} accent />
+              <MoodList title={t.companyTensions} items={p?.tensiones} />
+              <MoodList title={t.companyFocus} items={p?.focos_de_atencion} />
+            </div>
+
+            {data.generated_at ? (
+              <div className="mt-6 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/30">
+                {new Date(data.generated_at).toLocaleString(locale)}
+              </div>
+            ) : null}
+
+            {EnterButton}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MoodList({
+  title,
+  items,
+  accent,
+}: {
+  title: string;
+  items?: string[];
+  accent?: boolean;
+}) {
+  const list = items ?? [];
+  return (
+    <div className="border border-border/60 bg-card/40 p-4">
+      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/40">
+        {title}
+      </div>
+      {list.length > 0 ? (
+        <ul className="mt-2 space-y-1.5">
+          {list.map((item, i) => (
+            <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-foreground/75">
+              <span className={accent ? "text-[var(--accent)]" : "text-foreground/40"}>›</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-[12px] text-foreground/30">—</p>
+      )}
+    </div>
   );
 }
 

@@ -158,6 +158,31 @@ export interface OperatorDiagnostic {
   trigger_reason?: string | null;
 }
 
+/**
+ * Weekly company-mood diagnostic produced by the n8n flow
+ * "PKGD - Diagnóstico Semanal de Empresa". Shown as a pre-screen in the
+ * audit workspace for Dirección General only.
+ */
+export interface CompanyDiagnosticPayload {
+  mood_label?: string | null;
+  mood_score?: number | null;
+  tensiones?: string[];
+  focos_de_atencion?: string[];
+  senales_positivas?: string[];
+  metricas?: Record<string, unknown>;
+}
+
+export interface CompanyDiagnostic {
+  has_data: boolean;
+  summary?: string;
+  mood_label?: string | null;
+  mood_score?: number | null;
+  payload?: CompanyDiagnosticPayload | null;
+  period_start?: string | null;
+  period_end?: string | null;
+  generated_at?: string | null;
+}
+
 export interface AuthResponse {
   token: string;
   user: User;
