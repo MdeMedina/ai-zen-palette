@@ -53,6 +53,16 @@ function OraclePage() {
   const isProposalClose = isGoldClose || isJewelClose; // produced an asset proposal
   const isMaxClose = closeReason === "coupling_max";
 
+  // Auto-grow the composer textarea per line (capped, then scrolls)
+  useEffect(() => {
+    const ta = taRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    const max = 200;
+    ta.style.height = `${Math.min(ta.scrollHeight, max)}px`;
+    ta.style.overflowY = ta.scrollHeight > max ? "auto" : "hidden";
+  }, [draft]);
+
   // Load transcript when switching session
   useEffect(() => {
     if (!selected) {
