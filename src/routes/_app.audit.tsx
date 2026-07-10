@@ -137,7 +137,21 @@ function AuditPage() {
 
   return (
     <div className="flex h-screen flex-col">
-      <PageHeader eyebrow={ta.eyebrow} title={t.auditSpace} />
+      <PageHeader
+        eyebrow={ta.eyebrow}
+        title={t.auditSpace}
+        actions={
+          isDireccionGeneral ? (
+            <button
+              onClick={() => setShowCompanyCover(true)}
+              className="inline-flex items-center gap-2 border border-border px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/70 transition-all shadow-sm active-press cursor-pointer hover:border-[var(--accent)] hover:text-foreground"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {ta.companyBack}
+            </button>
+          ) : undefined
+        }
+      />
       {search.alert === "structural_gold" ? (
         <DeepLinkBanner message={ta.goldAlert} />
       ) : null}

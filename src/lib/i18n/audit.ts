@@ -84,6 +84,7 @@ export const AUDIT_COPY = {
     companyPeriod: "Period",
     companyMoodIndex: "Mood index",
     companyLoading: "Reading the company's pulse…",
+    companyBack: "Company reading",
   },
   es: {
     eyebrow: "Dirección General",
@@ -170,5 +171,6 @@ export const AUDIT_COPY = {
     companyPeriod: "Periodo",
     companyMoodIndex: "Índice de ánimo",
     companyLoading: "Leyendo el pulso de la empresa…",
+    companyBack: "Lectura de empresa",
   },
 } as const satisfies Record<ChatLanguage, Record<string, string>>;
