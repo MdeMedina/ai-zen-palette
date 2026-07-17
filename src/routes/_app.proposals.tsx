@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Check, Gem, Trash2 } from "lucide-react";
+import { ArrowUpRight, Check, Gem, Trash2 } from "lucide-react";
 import { knowledgeApi } from "@/lib/api";
 import type { KnowledgeAsset, UUID } from "@/lib/api/types";
 import { PageHeader } from "@/components/brand/PageHeader";
@@ -21,6 +21,7 @@ type PropType = "Jewel" | "Gold";
 
 function ProposalsPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const language = useSessionStore((s) => s.chatLanguage);
   const es = language === "es";
   const [type, setType] = useState<PropType>("Jewel");
@@ -107,6 +108,15 @@ function ProposalsPage() {
                   proposal={p}
                   es={es}
                   busy={pending(p.id)}
+                  onOpenConversation={
+                    p.source_session_id
+                      ? () =>
+                          navigate({
+                            to: "/audit",
+                            search: { session: p.source_session_id! },
+                          })
+                      : undefined
+                  }
                   onApprove={() => approveM.mutate(p.id)}
                   onReject={() => {
                     if (
@@ -146,12 +156,14 @@ function ProposalCard({
   proposal,
   es,
   busy,
+  onOpenConversation,
   onApprove,
   onReject,
 }: {
   proposal: KnowledgeAsset;
   es: boolean;
   busy: boolean;
+  onOpenConversation?: () => void;
   onApprove: () => void;
   onReject: () => void;
 }) {
@@ -161,8 +173,37 @@ function ProposalCard({
     proposal.department_role?.name,
   ].filter(Boolean) as string[];
 
+  const openable = !!onOpenConversation;
+
   return (
-    <li className="flex flex-col gap-3 border-l border-border bg-[var(--card)] p-4 rounded-[4px] sm:flex-row sm:items-center sm:justify-between">
+    <li
+      onClick={onOpenConversation}
+      role={openable ? "button" : undefined}
+      tabIndex={openable ? 0 : undefined}
+      onKeyDown={
+        openable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpenConversation?.();
+              }
+            }
+          : undefined
+      }
+      title={
+        openable
+          ? es
+            ? "Abrir la conversación donde se desarrolló"
+            : "Open the conversation where it was developed"
+          : undefined
+      }
+      className={[
+        "group flex flex-col gap-3 border-l border-border bg-[var(--card)] p-4 rounded-[4px] sm:flex-row sm:items-center sm:justify-between transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+        openable
+          ? "cursor-pointer hover:border-[var(--accent)] hover:bg-foreground/[0.03]"
+          : "",
+      ].join(" ")}
+    >
       <div className="min-w-0">
         <div className="mb-1 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.24em] text-[var(--accent)]">
           <span className="border border-[var(--accent)]/40 px-1.5 py-0.5">
@@ -172,8 +213,14 @@ function ProposalCard({
             {new Date(proposal.created_at).toLocaleDateString()}
           </time>
         </div>
-        <p className="truncate text-[14px] text-foreground" title={proposal.title}>
-          {proposal.title}
+        <p className="flex items-center gap-1.5 truncate text-[14px] text-foreground" title={proposal.title}>
+          <span className="truncate">{proposal.title}</span>
+          {openable ? (
+            <ArrowUpRight
+              className="size-3.5 shrink-0 text-foreground/30 transition-colors group-hover:text-[var(--accent)]"
+              strokeWidth={2}
+            />
+          ) : null}
         </p>
         {meta.length > 0 ? (
           <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45">
@@ -186,7 +233,10 @@ function ProposalCard({
         <button
           type="button"
           disabled={busy}
-          onClick={onApprove}
+          onClick={(e) => {
+            e.stopPropagation();
+            onApprove();
+          }}
           className="inline-flex items-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-foreground)] transition-opacity hover:opacity-90 disabled:opacity-30"
         >
           <Check className="size-3" strokeWidth={2.5} />
@@ -195,7 +245,10 @@ function ProposalCard({
         <button
           type="button"
           disabled={busy}
-          onClick={onReject}
+          onClick={(e) => {
+            e.stopPropagation();
+            onReject();
+          }}
           className="inline-flex items-center gap-1.5 border border-destructive/50 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-destructive transition-colors hover:bg-destructive hover:text-background disabled:opacity-30"
         >
           <Trash2 className="size-3" strokeWidth={2} />
