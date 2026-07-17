@@ -70,13 +70,15 @@ function AuditPage() {
     });
   };
 
-  // Resolve deep-link: ?session=<id> → pick user & session
+  // Resolve deep-link: ?session=<id> → pick user & session, skipping the
+  // weekly company-reading cover so we land straight on the conversation.
   useEffect(() => {
     if (!search.session || !sessionsQ.data) return;
     const s = sessionsQ.data.find((x) => x.id === search.session);
     if (s) {
       setUserId(s.user_id);
       setSessionId(s.id);
+      setShowCompanyCover(false);
     }
   }, [search.session, sessionsQ.data]);
 
@@ -126,7 +128,7 @@ function AuditPage() {
     );
   }
 
-  if (isDireccionGeneral && showCompanyCover) {
+  if (isDireccionGeneral && showCompanyCover && !search.session) {
     return (
       <div className="flex h-screen flex-col">
         <PageHeader eyebrow={ta.companyEyebrow} title={t.auditSpace} />
