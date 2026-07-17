@@ -82,11 +82,13 @@ function AuditPage() {
     }
   }, [search.session, sessionsQ.data]);
 
-  // Default selection: first member in the directory (operator or admin)
+  // Default selection: first member in the directory (operator or admin).
+  // Skip when a ?session deep-link is pending — that resolver owns the user
+  // pick, and defaulting here would clobber it in the same commit.
   useEffect(() => {
-    if (userId || !operatorsQ.data?.length) return;
+    if (userId || !operatorsQ.data?.length || search.session) return;
     setUserId(operatorsQ.data[0].id);
-  }, [operatorsQ.data, userId]);
+  }, [operatorsQ.data, userId, search.session]);
 
   const selectedUser = operatorsQ.data?.find((o) => o.id === userId) ?? null;
   const userSessions =
