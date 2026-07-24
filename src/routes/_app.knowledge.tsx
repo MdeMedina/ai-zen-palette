@@ -428,7 +428,7 @@ function KnowledgePage() {
                   <Upload className="mx-auto size-4 text-foreground/35" strokeWidth={1.5} />
                   <div className="mt-2 text-[12px] text-foreground/75">{tk.dropDocument}</div>
                   <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/35">
-                    PDF · MD · TXT · DOCX
+                    PDF · MD · TXT · DOCX · XLSX
                   </div>
                 </div>
               )}
@@ -436,7 +436,7 @@ function KnowledgePage() {
                 ref={fileRef}
                 type="file"
                 hidden
-                accept=".pdf,.txt,.md,.docx"
+                accept=".pdf,.txt,.md,.docx,.xlsx,.xls,.csv"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
 
