@@ -91,6 +91,35 @@ export async function deleteFile(id: UUID): Promise<void> {
   return apiFetch<void>(`/api/drive/files/${id}`, { method: "DELETE" });
 }
 
+/** Office formats the backend can turn into HTML via Tika (docx, xlsx, pptx, odt, rtf…). */
+const CONVERTIBLE_MIMES = new Set([
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.oasis.opendocument.text",
+  "application/vnd.oasis.opendocument.spreadsheet",
+  "application/vnd.oasis.opendocument.presentation",
+  "application/rtf",
+  "text/rtf",
+  "application/epub+zip",
+]);
+const CONVERTIBLE_EXTS =
+  /\.(docx?|xlsx?|pptx?|odt|ods|odp|rtf|epub)$/i;
+
+/** Mirrors the backend's allowlist so we only ask for a preview that can exist. */
+export function isConvertible(mime: string, name: string): boolean {
+  return CONVERTIBLE_MIMES.has(mime) || CONVERTIBLE_EXTS.test(name);
+}
+
+/** GET /api/drive/files/:id/preview — sanitized HTML rendering of an office document. */
+export async function getPreviewHtml(id: UUID): Promise<string> {
+  const { html } = await apiFetch<{ id: UUID; html: string }>(`/api/drive/files/${id}/preview`);
+  return html;
+}
+
 /** Absolute URL for a stored file (for <img>/<iframe>/text fetch). Handles same-origin ("") base. */
 export function fileUrl(relativeUrl: string): string {
   return `${BASE_URL}${relativeUrl}`;

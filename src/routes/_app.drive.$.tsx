@@ -7,6 +7,7 @@ import {
   Download,
   File as FileIcon,
   FileImage,
+  FileSpreadsheet,
   FileText,
   Folder,
   FolderPlus,
@@ -670,7 +671,7 @@ function FileCard({
   onDragStartItem: () => void;
   onDragEndItem: () => void;
 }) {
-  const Icon = iconFor(file.mime_type);
+  const Icon = iconFor(file.mime_type, file.name);
   const [dragged, setDragged] = useState(false);
   return (
     <div
@@ -880,19 +881,53 @@ function NewFolderDialog({
 }
 
 /* ---------- preview modal ---------- */
+/** Styles Tika's converted document HTML to the PKGD reading voice. */
+const DOC_HTML_CLASS = [
+  "text-[13px] leading-relaxed text-foreground/85",
+  "[&_h1]:mb-3 [&_h1]:mt-6 [&_h1]:font-display [&_h1]:text-[16px] [&_h1]:uppercase [&_h1]:tracking-[0.04em] [&_h1]:text-foreground",
+  "[&_h2]:mb-2 [&_h2]:mt-5 [&_h2]:text-[14px] [&_h2]:font-medium [&_h2]:text-foreground",
+  "[&_h3]:mb-2 [&_h3]:mt-4 [&_h3]:text-[13px] [&_h3]:font-medium [&_h3]:text-foreground",
+  "[&_p]:my-2 [&_p:empty]:hidden",
+  "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1",
+  "[&_a]:text-[var(--accent)] [&_a]:underline",
+  "[&_strong]:font-medium [&_strong]:text-foreground",
+  "[&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-[var(--accent)]/50 [&_blockquote]:pl-3 [&_blockquote]:text-foreground/70",
+  "[&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:border [&_pre]:border-border [&_pre]:bg-background [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-[11px]",
+  // Spreadsheets/slides come out as tables — keep them scrollable, never break the layout.
+  "[&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_table]:text-[12px]",
+  "[&_th]:border [&_th]:border-border [&_th]:bg-foreground/[0.04] [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-medium",
+  "[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top",
+  // Tika wraps each unit in a div: .page (docx), .sheet (xlsx tab), .slide-content (pptx).
+  // Draw the seam between consecutive units so a workbook/deck reads as sections.
+  "[&_.page+.page]:mt-6 [&_.page+.page]:border-t [&_.page+.page]:border-dashed [&_.page+.page]:border-border [&_.page+.page]:pt-6",
+  "[&_.sheet+.sheet]:mt-6 [&_.sheet+.sheet]:border-t [&_.sheet+.sheet]:border-dashed [&_.sheet+.sheet]:border-border [&_.sheet+.sheet]:pt-6",
+  "[&_.slide-content+.slide-content]:mt-6 [&_.slide-content+.slide-content]:border-t [&_.slide-content+.slide-content]:border-dashed [&_.slide-content+.slide-content]:border-border [&_.slide-content+.slide-content]:pt-6",
+].join(" ");
+
 function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: () => void }) {
   const isImage = !!file && file.mime_type.startsWith("image/");
   const isPdf = !!file && file.mime_type === "application/pdf";
+  const isVideo = !!file && file.mime_type.startsWith("video/");
+  const isAudio = !!file && file.mime_type.startsWith("audio/");
   const isText =
     !!file &&
     (file.mime_type.startsWith("text/") ||
       file.mime_type === "application/json" ||
       /\.(md|txt|csv|json)$/i.test(file.name));
+  // Office documents: the backend converts them to sanitized HTML with Tika.
+  const isDoc = !!file && !isText && driveApi.isConvertible(file.mime_type, file.name);
 
   const textQ = useQuery({
     queryKey: ["drive-preview", file?.id],
     queryFn: () => driveApi.fetchText(file!.url),
     enabled: !!file && isText,
+  });
+  const docQ = useQuery({
+    queryKey: ["drive-doc-preview", file?.id],
+    queryFn: () => driveApi.getPreviewHtml(file!.id),
+    enabled: !!file && isDoc,
+    staleTime: Infinity, // uploads are immutable
+    retry: false,
   });
 
   return (
@@ -900,7 +935,7 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
       <DialogContent className="max-w-[880px] gap-0 border-border bg-[var(--card)] p-0">
         <DialogHeader className="border-b border-border px-6 py-4">
           <DialogTitle className="flex items-center gap-2 text-[15px] text-foreground">
-            {file ? <FilePreviewIcon mime={file.mime_type} /> : null}
+            {file ? <FilePreviewIcon mime={file.mime_type} name={file.name} /> : null}
             <span className="truncate">{file?.name}</span>
           </DialogTitle>
           <DialogDescription className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/40">
@@ -922,11 +957,17 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
               title={file.name}
               className="h-[60vh] w-full rounded-[3px] border border-border bg-white"
             />
+          ) : isVideo ? (
+            <video
+              src={driveApi.fileUrl(file.url)}
+              controls
+              className="mx-auto max-h-[60vh] w-full rounded-[3px] border border-border bg-black"
+            />
+          ) : isAudio ? (
+            <audio src={driveApi.fileUrl(file.url)} controls className="w-full" />
           ) : isText ? (
             textQ.isLoading ? (
-              <div className="flex items-center gap-2 font-mono text-[11px] text-foreground/50">
-                <Loader2 className="size-3 animate-spin" strokeWidth={2} /> Cargando…
-              </div>
+              <PreviewLoading />
             ) : textQ.isError ? (
               <p className="text-[12px] text-destructive">No se pudo leer el archivo.</p>
             ) : (
@@ -934,21 +975,23 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
                 {textQ.data}
               </pre>
             )
+          ) : isDoc ? (
+            docQ.isLoading ? (
+              <PreviewLoading label="Convirtiendo documento…" />
+            ) : docQ.isError ? (
+              <PreviewFallback
+                file={file}
+                message={(docQ.error as Error)?.message || "No se pudo convertir el documento."}
+              />
+            ) : (
+              <div
+                className={DOC_HTML_CLASS}
+                // Sanitized server-side (allowlist in drive-preview.service.ts) before it ships.
+                dangerouslySetInnerHTML={{ __html: docQ.data ?? "" }}
+              />
+            )
           ) : (
-            <div className="py-10 text-center">
-              <FileIcon className="mx-auto size-8 text-foreground/30" strokeWidth={1.5} />
-              <p className="mt-3 text-[13px] text-foreground/60">
-                Vista previa no disponible para este tipo de archivo.
-              </p>
-              <a
-                href={driveApi.fileUrl(file.url)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
-              >
-                <Download className="size-3.5" strokeWidth={1.5} /> Descargar
-              </a>
-            </div>
+            <PreviewFallback file={file} message="Vista previa no disponible para este tipo de archivo." />
           )}
         </div>
       </DialogContent>
@@ -956,13 +999,41 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
   );
 }
 
+function PreviewLoading({ label = "Cargando…" }: { label?: string }) {
+  return (
+    <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-foreground/50">
+      <Loader2 className="size-3 animate-spin text-[var(--accent)]" strokeWidth={2} /> {label}
+    </div>
+  );
+}
+
+/** Shown when a format has no preview, or the conversion failed — always offer the download. */
+function PreviewFallback({ file, message }: { file: DriveTreeFile; message: string }) {
+  return (
+    <div className="py-10 text-center">
+      <FileIcon className="mx-auto size-8 text-foreground/30" strokeWidth={1.5} />
+      <p className="mt-3 text-[13px] text-foreground/60">{message}</p>
+      <a
+        href={driveApi.fileUrl(file.url)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+      >
+        <Download className="size-3.5" strokeWidth={1.5} /> Descargar
+      </a>
+    </div>
+  );
+}
+
 /* ---------- icon helpers ---------- */
-function iconFor(mime: string) {
+function iconFor(mime: string, name = "") {
   if (mime.startsWith("image/")) return FileImage;
+  if (/spreadsheet|ms-excel|\.(xlsx?|ods|csv)$/i.test(mime + name)) return FileSpreadsheet;
   if (mime === "application/pdf" || mime.startsWith("text/")) return FileText;
+  if (driveApi.isConvertible(mime, name)) return FileText;
   return FileIcon;
 }
-function FilePreviewIcon({ mime }: { mime: string }) {
-  const Icon = iconFor(mime);
+function FilePreviewIcon({ mime, name }: { mime: string; name: string }) {
+  const Icon = iconFor(mime, name);
   return <Icon className="size-4 shrink-0 text-foreground/50" strokeWidth={1.5} />;
 }
