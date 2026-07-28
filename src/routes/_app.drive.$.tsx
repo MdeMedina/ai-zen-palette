@@ -701,7 +701,20 @@ function FileCard({
           {file.mime_type.split("/")[1]?.toUpperCase() || "ARCHIVO"}
           <BrandTag name={file.brand_name} />
         </span>
-        <DeleteBtn onDelete={onDelete} confirmLabel={`¿Eliminar "${file.name}"?`} />
+        <div className="flex shrink-0 items-center gap-1.5">
+          {/* Download straight from the grid, without opening the preview. */}
+          <a
+            href={driveApi.fileUrl(file.url)}
+            download={file.name}
+            draggable={false}
+            onClick={(e) => e.stopPropagation()}
+            className="text-foreground/30 opacity-0 transition-all hover:text-[var(--accent)] group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none"
+            title={`Descargar "${file.name}"`}
+          >
+            <Download className="size-3.5" strokeWidth={1.5} />
+          </a>
+          <DeleteBtn onDelete={onDelete} confirmLabel={`¿Eliminar "${file.name}"?`} />
+        </div>
       </div>
     </div>
   );
@@ -933,15 +946,20 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
   return (
     <Dialog open={!!file} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-[880px] gap-0 border-border bg-[var(--card)] p-0">
-        <DialogHeader className="border-b border-border px-6 py-4">
-          <DialogTitle className="flex items-center gap-2 text-[15px] text-foreground">
-            {file ? <FilePreviewIcon mime={file.mime_type} name={file.name} /> : null}
-            <span className="truncate">{file?.name}</span>
-          </DialogTitle>
-          <DialogDescription className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/40">
-            {file?.full_path}
-            {file?.brand_name ? ` · ${file.brand_name}` : ""}
-          </DialogDescription>
+        {/* pr-14 keeps the title clear of the dialog's own close button (absolute right-4). */}
+        <DialogHeader className="flex-row items-start justify-between gap-4 border-b border-border px-6 py-4 pr-14">
+          <div className="min-w-0">
+            <DialogTitle className="flex items-center gap-2 text-[15px] text-foreground">
+              {file ? <FilePreviewIcon mime={file.mime_type} name={file.name} /> : null}
+              <span className="truncate">{file?.name}</span>
+            </DialogTitle>
+            <DialogDescription className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/40">
+              {file?.full_path}
+              {file?.brand_name ? ` · ${file.brand_name}` : ""}
+            </DialogDescription>
+          </div>
+          {/* Previewing is not a substitute for having the file: always offer the download. */}
+          {file ? <DownloadLink file={file} /> : null}
         </DialogHeader>
 
         <div className="max-h-[70vh] overflow-auto p-6">
@@ -996,6 +1014,23 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * Download a stored file under its display name. The stored filename is prefixed with a
+ * timestamp, so `download` is given the Drive name; it works because /uploads is same-origin.
+ */
+function DownloadLink({ file }: { file: DriveTreeFile }) {
+  return (
+    <a
+      href={driveApi.fileUrl(file.url)}
+      download={file.name}
+      className="inline-flex shrink-0 items-center gap-2 self-center border border-[var(--accent)] px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      title={`Descargar "${file.name}"`}
+    >
+      <Download className="size-3.5" strokeWidth={1.5} /> Descargar
+    </a>
   );
 }
 
