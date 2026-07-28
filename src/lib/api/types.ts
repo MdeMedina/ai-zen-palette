@@ -187,3 +187,59 @@ export interface AuthResponse {
   token: string;
   user: User;
 }
+
+/* ---------- Drive (file manager) ---------- */
+
+export interface DriveFolder {
+  id: UUID;
+  name: string;
+  parent_id: UUID | null;
+  full_path: string; // materialized path, e.g. "/Marketing/2026/"
+  brand_id: UUID | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriveFile {
+  id: UUID;
+  name: string;
+  url: string; // static path, e.g. "/uploads/<uuid>.pdf"
+  mime_type: string;
+  size: number;
+  folder_id: UUID | null;
+  brand_id: UUID | null;
+  full_path: string; // "/Marketing/2026/brief.pdf"
+  created_at: string;
+}
+
+/** Node shapes returned by GET /api/drive/tree (unified) */
+export interface DriveTreeFile {
+  id: UUID;
+  name: string;
+  type: "file";
+  full_path: string;
+  mime_type: string;
+  url: string;
+  /** Optional related brand (defaults to PKGD server-side). */
+  brand_id: UUID | null;
+  brand_name: string | null;
+}
+
+export interface DriveTreeFolder {
+  id: UUID;
+  name: string;
+  type: "folder";
+  full_path: string;
+  /** Optional related brand (defaults to PKGD server-side). */
+  brand_id: UUID | null;
+  brand_name: string | null;
+  folders: DriveTreeFolder[];
+  files: DriveTreeFile[];
+}
+
+export interface DriveTree {
+  brand_id: UUID | null;
+  folder_count: number;
+  file_count: number;
+  tree: { folders: DriveTreeFolder[]; files: DriveTreeFile[] };
+}

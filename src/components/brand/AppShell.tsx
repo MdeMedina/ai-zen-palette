@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { BrainCircuit, Hexagon, LibraryBig, ShieldCheck, Gem, LogOut, Sun, Moon } from "lucide-react";
+import { BrainCircuit, Hexagon, LibraryBig, ShieldCheck, Gem, LogOut, Sun, Moon, FolderOpen } from "lucide-react";
 import { useSessionStore, isAdmin } from "@/stores/session";
 import { authApi } from "@/lib/api";
 import { useState, type ReactNode } from "react";
@@ -94,6 +94,22 @@ export function AppShell({ children }: { children: ReactNode }) {
               </RailTooltip>
             );
           })}
+          {/* Drive — splat route, needs explicit params. Visible to all authenticated users. */}
+          <RailTooltip label="Drive">
+            <Link
+              to="/drive/$"
+              params={{ _splat: "" }}
+              aria-label="Drive"
+              className={[
+                "grid size-11 place-items-center rounded-[3px] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring",
+                loc.pathname.startsWith("/drive")
+                  ? "bg-sidebar-foreground/10 text-[var(--accent)]"
+                  : "text-sidebar-foreground/50 hover:bg-sidebar-foreground/5 hover:text-sidebar-foreground",
+              ].join(" ")}
+            >
+              <FolderOpen className="size-4" strokeWidth={1.5} />
+            </Link>
+          </RailTooltip>
         </nav>
         <div className="flex flex-col items-center gap-2 border-t border-sidebar-border pt-4">
           <RailTooltip label={theme === "dark" ? t.themeLight : t.themeDark}>

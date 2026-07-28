@@ -6,4 +6,5 @@ export * as chatApi from "./chat";
 export * as knowledgeApi from "./knowledge";
 export * as departmentsApi from "./departments";
 export * as companyApi from "./company";
+export * as driveApi from "./drive";
 export type * from "./types";

@@ -18,6 +18,7 @@ import { Route as AppOracleRouteImport } from './routes/_app.oracle'
 import { Route as AppKnowledgeRouteImport } from './routes/_app.knowledge'
 import { Route as AppHiveRouteImport } from './routes/_app.hive'
 import { Route as AppAuditRouteImport } from './routes/_app.audit'
+import { Route as AppDriveSplatRouteImport } from './routes/_app.drive.$'
 
 const SetPasswordRoute = SetPasswordRouteImport.update({
   id: '/set-password',
@@ -63,6 +64,11 @@ const AppAuditRoute = AppAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDriveSplatRoute = AppDriveSplatRouteImport.update({
+  id: '/drive/$',
+  path: '/drive/$',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/knowledge': typeof AppKnowledgeRoute
   '/oracle': typeof AppOracleRoute
   '/proposals': typeof AppProposalsRoute
+  '/drive/$': typeof AppDriveSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof AppKnowledgeRoute
   '/oracle': typeof AppOracleRoute
   '/proposals': typeof AppProposalsRoute
+  '/drive/$': typeof AppDriveSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/_app/knowledge': typeof AppKnowledgeRoute
   '/_app/oracle': typeof AppOracleRoute
   '/_app/proposals': typeof AppProposalsRoute
+  '/_app/drive/$': typeof AppDriveSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/oracle'
     | '/proposals'
+    | '/drive/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/oracle'
     | '/proposals'
+    | '/drive/$'
   id:
     | '__root__'
     | '/'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/_app/knowledge'
     | '/_app/oracle'
     | '/_app/proposals'
+    | '/_app/drive/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -202,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAuditRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/drive/$': {
+      id: '/_app/drive/$'
+      path: '/drive/$'
+      fullPath: '/drive/$'
+      preLoaderRoute: typeof AppDriveSplatRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -211,6 +230,7 @@ interface AppRouteChildren {
   AppKnowledgeRoute: typeof AppKnowledgeRoute
   AppOracleRoute: typeof AppOracleRoute
   AppProposalsRoute: typeof AppProposalsRoute
+  AppDriveSplatRoute: typeof AppDriveSplatRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -219,6 +239,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppKnowledgeRoute: AppKnowledgeRoute,
   AppOracleRoute: AppOracleRoute,
   AppProposalsRoute: AppProposalsRoute,
+  AppDriveSplatRoute: AppDriveSplatRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -1,0 +1,104 @@
+import { USE_MOCKS, BASE_URL, apiFetch, delay } from "./client";
+import type { DriveFile, DriveFolder, DriveTree, UUID } from "./types";
+
+/** Empty tree used as a graceful fallback in mock mode (feature targets the real backend). */
+const emptyTree = (): DriveTree => ({
+  brand_id: null,
+  folder_count: 0,
+  file_count: 0,
+  tree: { folders: [], files: [] },
+});
+
+/** GET /api/drive/tree — the whole unified folder/file map (the UI navigates it in-memory). */
+export async function getTree(): Promise<DriveTree> {
+  if (USE_MOCKS) {
+    await delay(120);
+    return emptyTree();
+  }
+  return apiFetch<DriveTree>(`/api/drive/tree`);
+}
+
+export interface CreateFolderInput {
+  name: string;
+  parent_id?: UUID | null;
+  /** OPTIONAL related brand. Omit → backend relates it to PKGD. */
+  brand_id?: UUID | null;
+}
+
+/** POST /api/drive/folders */
+export async function createFolder(input: CreateFolderInput): Promise<DriveFolder> {
+  if (USE_MOCKS) {
+    await delay(200);
+    throw new Error("El Drive requiere el backend real (mocks desactivados).");
+  }
+  return apiFetch<DriveFolder>("/api/drive/folders", {
+    method: "POST",
+    body: {
+      name: input.name,
+      parent_id: input.parent_id ?? null,
+      // Only send brand_id when explicitly chosen; otherwise the backend defaults to PKGD.
+      ...(input.brand_id ? { brand_id: input.brand_id } : {}),
+    },
+  });
+}
+
+/**
+ * PATCH /api/drive/folders/:id — rename, move and/or re-brand. Changing brand_id cascades
+ * the new related brand to descendants that were inheriting the old one.
+ */
+export async function updateFolder(
+  id: UUID,
+  patch: { name?: string; parent_id?: UUID | null; brand_id?: UUID | null },
+): Promise<DriveFolder> {
+  return apiFetch<DriveFolder>(`/api/drive/folders/${id}`, { method: "PATCH", body: patch });
+}
+
+/** DELETE /api/drive/folders/:id — cascades subtree + files. */
+export async function deleteFolder(id: UUID): Promise<void> {
+  return apiFetch<void>(`/api/drive/folders/${id}`, { method: "DELETE" });
+}
+
+export interface UploadInput {
+  file: File;
+  folder_id?: UUID | null;
+}
+
+/**
+ * POST /api/drive/upload — multipart; backend persists the file and notifies n8n for
+ * vectorization. The file's related brand is inherited from its folder (PKGD at root).
+ */
+export async function uploadFile(input: UploadInput): Promise<DriveFile> {
+  if (USE_MOCKS) {
+    await delay(400);
+    throw new Error("El Drive requiere el backend real (mocks desactivados).");
+  }
+  const fd = new FormData();
+  fd.append("file", input.file);
+  if (input.folder_id) fd.append("folder_id", input.folder_id);
+  return apiFetch<DriveFile>("/api/drive/upload", { method: "POST", body: fd });
+}
+
+/** PATCH /api/drive/files/:id — rename and/or move. */
+export async function updateFile(
+  id: UUID,
+  patch: { name?: string; folder_id?: UUID | null },
+): Promise<DriveFile> {
+  return apiFetch<DriveFile>(`/api/drive/files/${id}`, { method: "PATCH", body: patch });
+}
+
+/** DELETE /api/drive/files/:id — removes row (cascades chunks) + physical file. */
+export async function deleteFile(id: UUID): Promise<void> {
+  return apiFetch<void>(`/api/drive/files/${id}`, { method: "DELETE" });
+}
+
+/** Absolute URL for a stored file (for <img>/<iframe>/text fetch). Handles same-origin ("") base. */
+export function fileUrl(relativeUrl: string): string {
+  return `${BASE_URL}${relativeUrl}`;
+}
+
+/** Fetches a plain-text/markdown file's content for the preview modal. */
+export async function fetchText(relativeUrl: string): Promise<string> {
+  const res = await fetch(fileUrl(relativeUrl));
+  if (!res.ok) throw new Error(`No se pudo leer el archivo (${res.status})`);
+  return res.text();
+}

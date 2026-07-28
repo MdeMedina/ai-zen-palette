@@ -1,11 +1,110 @@
 import React from "react";
 
-// Renders inline formatting: bold, italic, inline code
+// Only http(s) and app-relative URLs are rendered as links/images; anything else
+// (javascript:, data:, …) falls through to plain text.
+function safeUrl(raw: string): string | null {
+  const url = raw.trim();
+  if (url.startsWith("/")) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  return null;
+}
+
+// Same-origin /uploads assets are served by express.static: force a download
+// instead of navigating away from the chat.
+function isDownloadable(url: string): boolean {
+  try {
+    const u = new URL(url, window.location.origin);
+    return u.origin === window.location.origin && u.pathname.startsWith("/uploads/");
+  } catch {
+    return false;
+  }
+}
+
+// Matches the "(url)" tail of a markdown link, tolerating an optional "title".
+// Parens are counted, not searched: filenames like "foo_(cropped).webp" would
+// otherwise truncate the URL at the first ")" and 404.
+function parseTarget(text: string, openParen: number): { url: string; end: number } | null {
+  if (text[openParen] !== "(") return null;
+  let depth = 0;
+  let closing = -1;
+  for (let j = openParen; j < text.length; j++) {
+    const ch = text[j];
+    if (ch === "\n") break;
+    if (ch === "(") depth++;
+    else if (ch === ")") {
+      depth--;
+      if (depth === 0) {
+        closing = j;
+        break;
+      }
+    }
+  }
+  if (closing === -1) return null;
+  const inner = text.slice(openParen + 1, closing).trim();
+  const url = safeUrl(inner.split(/\s+/)[0] ?? "");
+  return url ? { url, end: closing + 1 } : null;
+}
+
+// Renders inline formatting: images, links, bold, italic, inline code
 function renderInline(text: string): React.ReactNode {
   const result: React.ReactNode[] = [];
   let i = 0;
 
   while (i < text.length) {
+    // Image: ![alt](url) — checked before links, since it starts with "!["
+    if (text.startsWith("![", i)) {
+      const closeBracket = text.indexOf("]", i + 2);
+      if (closeBracket !== -1) {
+        const target = parseTarget(text, closeBracket + 1);
+        if (target) {
+          const alt = text.slice(i + 2, closeBracket);
+          result.push(
+            <a
+              key={`img-${i}`}
+              href={target.url}
+              target="_blank"
+              rel="noreferrer"
+              className="block my-3 w-fit border border-border/40 rounded overflow-hidden hover:border-[var(--accent)]/60 transition-colors"
+            >
+              <img
+                src={target.url}
+                alt={alt}
+                loading="lazy"
+                className="max-w-full max-h-[320px] object-contain block"
+              />
+            </a>,
+          );
+          i = target.end;
+          continue;
+        }
+      }
+    }
+
+    // Link: [text](url)
+    if (text[i] === "[") {
+      const closeBracket = text.indexOf("]", i + 1);
+      if (closeBracket !== -1) {
+        const target = parseTarget(text, closeBracket + 1);
+        if (target) {
+          const label = text.slice(i + 1, closeBracket);
+          result.push(
+            <a
+              key={`link-${i}`}
+              href={target.url}
+              target="_blank"
+              rel="noreferrer"
+              download={isDownloadable(target.url) ? "" : undefined}
+              className="text-[var(--accent)] underline underline-offset-2 decoration-[var(--accent)]/40 hover:decoration-[var(--accent)] transition-colors"
+            >
+              {renderInline(label)}
+            </a>,
+          );
+          i = target.end;
+          continue;
+        }
+      }
+    }
+
     // Inline code
     if (text[i] === "`") {
       const closing = text.indexOf("`", i + 1);
@@ -58,7 +157,8 @@ function renderInline(text: string): React.ReactNode {
 
     // Find next delimiter
     let nextDelim = text.length;
-    const delims = ["`", "**", "__", "*", "_"];
+    // "![" precedes "[" so an image is never split into a stray "!" + a link.
+    const delims = ["![", "[", "`", "**", "__", "*", "_"];
     for (const d of delims) {
       const idx = text.indexOf(d, i);
       if (idx !== -1 && idx < nextDelim) {
