@@ -80,3 +80,26 @@ export async function logout(): Promise<void> {
     /* swallow — token is cleared locally either way */
   }
 }
+
+export interface ChangePasswordInput {
+  current_password: string;
+  new_password: string;
+}
+
+/**
+ * POST /api/auth/change-password — el operador cambia su propia clave.
+ * Exige la actual: la sesión prueba que el navegador es suyo, no que la persona lo sea.
+ */
+export async function changePassword(input: ChangePasswordInput): Promise<void> {
+  if (USE_MOCKS) {
+    await delay(300);
+    if (input.new_password.length < 8) {
+      throw Object.assign(new Error("Password must be at least 8 characters"), { status: 400 });
+    }
+    return;
+  }
+  await apiFetch<{ ok: boolean }>("/api/auth/change-password", {
+    method: "POST",
+    body: input,
+  });
+}

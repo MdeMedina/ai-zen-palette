@@ -209,3 +209,47 @@ function renderDiagnostic(d: {
 
 // Ensure mock array consumer (silences unused-import in strict builds).
 void mockUserBrands;
+
+/* ---------- about me (perfil del operador) ---------- */
+
+/**
+ * El "about me" del operador: quién es, a qué se dedica y cómo quiere que se le trate.
+ * Se vectoriza a pgvector y además se inyecta en el mensaje de sistema del agente en cada turno.
+ */
+export interface MyProfile {
+  source_file_url: string;
+  source_file_name: string;
+  mime_type: string;
+  size: number;
+  /** Pending | Embedded | Error — estado de la vectorización. */
+  status: string;
+  /** Primeras líneas del texto leído, para confirmar que se extrajo lo correcto. */
+  excerpt: string;
+  char_count: number;
+  updated_at: string;
+}
+
+/** GET /api/users/me/profile — null cuando el operador no ha subido ninguno. */
+export async function getMyProfile(): Promise<MyProfile | null> {
+  if (USE_MOCKS) {
+    await delay(180);
+    return null;
+  }
+  return apiFetch<MyProfile | null>("/api/users/me/profile");
+}
+
+/** POST /api/users/me/profile — sube o reemplaza el about me (no acumula historial). */
+export async function uploadMyProfile(file: File): Promise<MyProfile> {
+  if (USE_MOCKS) {
+    await delay(400);
+    throw new Error("El about me requiere el backend real (mocks desactivados).");
+  }
+  const fd = new FormData();
+  fd.append("file", file);
+  return apiFetch<MyProfile>("/api/users/me/profile", { method: "POST", body: fd });
+}
+
+/** DELETE /api/users/me/profile — retira el about me y lo saca de pgvector. */
+export async function deleteMyProfile(): Promise<void> {
+  await apiFetch<{ ok: boolean }>("/api/users/me/profile", { method: "DELETE" });
+}

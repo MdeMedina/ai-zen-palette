@@ -4,6 +4,7 @@ import { useSessionStore, isAdmin } from "@/stores/session";
 import { authApi } from "@/lib/api";
 import { useState, type ReactNode } from "react";
 import { oracleCopy } from "@/lib/i18n/oracle";
+import { OperatorPanel } from "@/components/brand/OperatorPanel";
 
 const NAV = [
   { to: "/oracle", label: "Oracle", icon: BrainCircuit, adminOnly: false },
@@ -36,6 +37,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const t = oracleCopy(language);
 
   const [loggingOut, setLoggingOut] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const onLogout = async () => {
     if (loggingOut) return;
@@ -126,10 +128,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               )}
             </button>
           </RailTooltip>
+          {/* El nombre del operador abre su panel: contraseña y about me. */}
           <RailTooltip label={`${user?.full_name ?? ""} · ${user?.global_role ?? ""}`}>
-            <div className="grid size-9 place-items-center rounded-[3px] border border-sidebar-border font-mono text-[11px] text-[var(--accent)]">
+            <button
+              type="button"
+              onClick={() => setPanelOpen(true)}
+              aria-label={`${user?.full_name ?? "Operador"} — ajustes de cuenta`}
+              className="grid size-9 place-items-center rounded-[3px] border border-sidebar-border font-mono text-[11px] text-[var(--accent)] transition-colors hover:border-[var(--accent)] hover:bg-sidebar-foreground/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+            >
               {initials}
-            </div>
+            </button>
           </RailTooltip>
           <RailTooltip label={t.logout}>
             <button
@@ -144,6 +152,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
       <main className="flex min-h-screen flex-1 flex-col">{children}</main>
+      <OperatorPanel user={user} open={panelOpen} onClose={() => setPanelOpen(false)} />
     </div>
   );
 }
