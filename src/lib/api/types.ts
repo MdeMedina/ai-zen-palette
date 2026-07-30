@@ -203,13 +203,41 @@ export interface DriveFolder {
 export interface DriveFile {
   id: UUID;
   name: string;
+  /** Mirrors the CURRENT version's binary (see DriveFileVersion). */
   url: string; // static path, e.g. "/uploads/<uuid>.pdf"
   mime_type: string;
   size: number;
   folder_id: UUID | null;
   brand_id: UUID | null;
   full_path: string; // "/Marketing/2026/brief.pdf"
+  current_version_id: UUID | null;
+  version_count: number;
   created_at: string;
+}
+
+/**
+ * One upload of a file. Uploading over a file adds a version instead of overwriting it;
+ * moving the current pointer back/forward changes what previews AND what the agent reads.
+ */
+export interface DriveFileVersion {
+  id: UUID;
+  version: number;
+  name: string; // original filename of that upload
+  url: string;
+  mime_type: string;
+  size: number;
+  note: string | null;
+  uploaded_by: UUID | null;
+  uploader_name: string | null;
+  created_at: string;
+}
+
+export interface DriveVersionHistory {
+  file_id: UUID;
+  name: string;
+  current_version_id: UUID | null;
+  version_count: number;
+  versions: DriveFileVersion[]; // newest first
 }
 
 /** Node shapes returned by GET /api/drive/tree (unified) */
@@ -223,6 +251,9 @@ export interface DriveTreeFile {
   /** Optional related brand (defaults to PKGD server-side). */
   brand_id: UUID | null;
   brand_name: string | null;
+  /** History: 1 when the file has only ever been uploaded once. */
+  version_count: number;
+  current_version_id: UUID | null;
 }
 
 export interface DriveTreeFolder {

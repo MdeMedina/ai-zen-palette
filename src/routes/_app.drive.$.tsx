@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import {
+  ChevronLeft,
   ChevronRight,
   Download,
   File as FileIcon,
@@ -11,8 +12,10 @@ import {
   FileText,
   Folder,
   FolderPlus,
+  History,
   Loader2,
   Pencil,
+  RotateCcw,
   Trash2,
   Upload,
   X,
@@ -22,6 +25,7 @@ import { brandsApi, driveApi } from "@/lib/api";
 import type {
   Brand,
   DriveFile,
+  DriveFileVersion,
   DriveFolder,
   DriveTree,
   DriveTreeFile,
@@ -383,7 +387,7 @@ function DrivePage() {
         />
       ) : null}
 
-      <PreviewModal file={preview} onClose={() => setPreview(null)} />
+      <PreviewModal file={preview} onClose={() => setPreview(null)} onChanged={invalidate} />
     </div>
   );
 }
@@ -527,14 +531,16 @@ function FolderCard({
             : "border-border hover:border-[var(--accent)] hover:shadow-md"
       } ${dragged ? "opacity-40" : ""}`}
     >
-      <button type="button" onClick={onOpen} className="flex flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none">
+      <button type="button" onClick={onOpen} className="flex w-full min-w-0 flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none">
         <Folder className="size-7 text-[var(--accent)]" strokeWidth={1.5} />
-        <span className="line-clamp-2 break-words text-[13px] text-foreground" title={folder.name}>
+        {/* w-full + overflow-wrap:anywhere: sin esto un nombre largo sin espacios toma su
+            ancho max-content como flex item y se sale de la tarjeta. */}
+        <span className="line-clamp-2 w-full [overflow-wrap:anywhere] text-[13px] text-foreground" title={folder.name}>
           {folder.name}
         </span>
       </button>
-      <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-2">
-        <span className="truncate font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/35">
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border/50 pt-2">
+        <span className="min-w-0 truncate font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/35">
           {folder.folders.length + folder.files.length} elementos
           <BrandTag name={folder.brand_name} />
         </span>
@@ -690,15 +696,26 @@ function FileCard({
         dragged ? "opacity-40" : ""
       }`}
     >
-      <button type="button" onClick={onOpen} className="flex flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none">
+      <button type="button" onClick={onOpen} className="flex w-full min-w-0 flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none">
         <Icon className="size-7 text-foreground/45" strokeWidth={1.5} />
-        <span className="line-clamp-2 break-words text-[13px] text-foreground" title={file.name}>
+        <span className="line-clamp-2 w-full [overflow-wrap:anywhere] text-[13px] text-foreground" title={file.name}>
           {file.name}
         </span>
       </button>
-      <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-2">
-        <span className="truncate font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/35">
-          {file.mime_type.split("/")[1]?.toUpperCase() || "ARCHIVO"}
+      {/* Files with history wear the size of that history (not the current version number,
+          which can be any of them after a rollback); a single upload stays unmarked. */}
+      {file.version_count > 1 ? (
+        <span
+          className="pointer-events-none absolute right-2 top-2 flex items-center gap-1 border border-border px-1.5 py-0.5 font-mono text-[9px] text-foreground/45"
+          title={`${file.version_count} versiones`}
+        >
+          <History className="size-2.5" strokeWidth={1.5} />
+          {file.version_count}
+        </span>
+      ) : null}
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border/50 pt-2">
+        <span className="min-w-0 truncate font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/35">
+          {kindLabel(file.mime_type, file.name)}
           <BrandTag name={file.brand_name} />
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -896,7 +913,9 @@ function NewFolderDialog({
 /* ---------- preview modal ---------- */
 /** Styles Tika's converted document HTML to the PKGD reading voice. */
 const DOC_HTML_CLASS = [
-  "text-[13px] leading-relaxed text-foreground/85",
+  // overflow-wrap:anywhere en la raíz: las hojas de cálculo traen cadenas largas sin espacios
+  // (URLs, SKUs, hashes) que de otro modo empujan el contenido fuera de la caja.
+  "text-[13px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]",
   "[&_h1]:mb-3 [&_h1]:mt-6 [&_h1]:font-display [&_h1]:text-[16px] [&_h1]:uppercase [&_h1]:tracking-[0.04em] [&_h1]:text-foreground",
   "[&_h2]:mb-2 [&_h2]:mt-5 [&_h2]:text-[14px] [&_h2]:font-medium [&_h2]:text-foreground",
   "[&_h3]:mb-2 [&_h3]:mt-4 [&_h3]:text-[13px] [&_h3]:font-medium [&_h3]:text-foreground",
@@ -907,9 +926,13 @@ const DOC_HTML_CLASS = [
   "[&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-[var(--accent)]/50 [&_blockquote]:pl-3 [&_blockquote]:text-foreground/70",
   "[&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:border [&_pre]:border-border [&_pre]:bg-background [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-[11px]",
   // Spreadsheets/slides come out as tables — keep them scrollable, never break the layout.
-  "[&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_table]:text-[12px]",
+  // w-auto + min-w-full: una hoja ancha se lee y se desplaza dentro del scroll del modal,
+  // en vez de aplastar 30 columnas a 20px cada una (que es lo que hace w-full a secas).
+  "[&_table]:my-4 [&_table]:w-auto [&_table]:min-w-full [&_table]:border-collapse [&_table]:text-[12px]",
   "[&_th]:border [&_th]:border-border [&_th]:bg-foreground/[0.04] [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-medium",
-  "[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top",
+  // max-w por celda: una celda con un párrafo entero no debe estirar la tabla al infinito.
+  "[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top [&_td]:max-w-[420px]",
+  "[&_th]:max-w-[420px]",
   // Tika wraps each unit in a div: .page (docx), .sheet (xlsx tab), .slide-content (pptx).
   // Draw the seam between consecutive units so a workbook/deck reads as sections.
   "[&_.page+.page]:mt-6 [&_.page+.page]:border-t [&_.page+.page]:border-dashed [&_.page+.page]:border-border [&_.page+.page]:pt-6",
@@ -917,29 +940,57 @@ const DOC_HTML_CLASS = [
   "[&_.slide-content+.slide-content]:mt-6 [&_.slide-content+.slide-content]:border-t [&_.slide-content+.slide-content]:border-dashed [&_.slide-content+.slide-content]:border-border [&_.slide-content+.slide-content]:pt-6",
 ].join(" ");
 
-function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: () => void }) {
-  const isImage = !!file && file.mime_type.startsWith("image/");
-  const isPdf = !!file && file.mime_type === "application/pdf";
-  const isVideo = !!file && file.mime_type.startsWith("video/");
-  const isAudio = !!file && file.mime_type.startsWith("audio/");
+function PreviewModal({
+  file,
+  onClose,
+  onChanged,
+}: {
+  file: DriveTreeFile | null;
+  onClose: () => void;
+  /** Called after a version upload/restore/delete so the grid picks up the new state. */
+  onChanged: () => void;
+}) {
+  // Which point of the history is on screen. null = whatever is current.
+  const [viewingId, setViewingId] = useState<UUID | null>(null);
+  useEffect(() => setViewingId(null), [file?.id]);
+
+  const historyQ = useQuery({
+    queryKey: ["drive", "versions", file?.id],
+    queryFn: () => driveApi.getVersions(file!.id),
+    enabled: !!file,
+  });
+  const versions = historyQ.data?.versions ?? []; // newest first
+  const currentId = historyQ.data?.current_version_id ?? null;
+  const viewing = versions.find((v) => v.id === (viewingId ?? currentId)) ?? null;
+
+  // The preview always renders the bytes of the version being viewed — not the file row —
+  // so stepping through the history shows each version's own content and format.
+  const shown = viewing
+    ? { url: viewing.url, mime_type: viewing.mime_type, name: viewing.name }
+    : file;
+
+  const isImage = !!shown && shown.mime_type.startsWith("image/");
+  const isPdf = !!shown && shown.mime_type === "application/pdf";
+  const isVideo = !!shown && shown.mime_type.startsWith("video/");
+  const isAudio = !!shown && shown.mime_type.startsWith("audio/");
   const isText =
-    !!file &&
-    (file.mime_type.startsWith("text/") ||
-      file.mime_type === "application/json" ||
-      /\.(md|txt|csv|json)$/i.test(file.name));
+    !!shown &&
+    (shown.mime_type.startsWith("text/") ||
+      shown.mime_type === "application/json" ||
+      /\.(md|txt|csv|json)$/i.test(shown.name));
   // Office documents: the backend converts them to sanitized HTML with Tika.
-  const isDoc = !!file && !isText && driveApi.isConvertible(file.mime_type, file.name);
+  const isDoc = !!shown && !isText && driveApi.isConvertible(shown.mime_type, shown.name);
 
   const textQ = useQuery({
-    queryKey: ["drive-preview", file?.id],
-    queryFn: () => driveApi.fetchText(file!.url),
-    enabled: !!file && isText,
+    queryKey: ["drive-preview", file?.id, viewing?.id],
+    queryFn: () => driveApi.fetchText(shown!.url),
+    enabled: !!shown && isText,
   });
   const docQ = useQuery({
-    queryKey: ["drive-doc-preview", file?.id],
-    queryFn: () => driveApi.getPreviewHtml(file!.id),
+    queryKey: ["drive-doc-preview", file?.id, viewing?.id],
+    queryFn: () => driveApi.getPreviewHtml(file!.id, viewing?.id),
     enabled: !!file && isDoc,
-    staleTime: Infinity, // uploads are immutable
+    staleTime: Infinity, // a version's bytes never change
     retry: false,
   });
 
@@ -958,31 +1009,48 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
               {file?.brand_name ? ` · ${file.brand_name}` : ""}
             </DialogDescription>
           </div>
-          {/* Previewing is not a substitute for having the file: always offer the download. */}
-          {file ? <DownloadLink file={file} /> : null}
+          {/* Previewing is not a substitute for having the file: always offer the download —
+              of the version on screen, not necessarily the current one. */}
+          {shown ? <DownloadLink url={shown.url} name={file?.name ?? shown.name} /> : null}
         </DialogHeader>
 
+        {/* Version rail: step back and forward through the history, restore, add a version. */}
+        {file ? (
+          <VersionRail
+            fileId={file.id}
+            versions={versions}
+            currentId={currentId}
+            viewing={viewing}
+            loading={historyQ.isLoading}
+            onView={setViewingId}
+            onChanged={() => {
+              setViewingId(null); // after a change, follow whatever is current
+              onChanged();
+            }}
+          />
+        ) : null}
+
         <div className="max-h-[70vh] overflow-auto p-6">
-          {!file ? null : isImage ? (
+          {!shown ? null : isImage ? (
             <img
-              src={driveApi.fileUrl(file.url)}
-              alt={file.name}
+              src={driveApi.fileUrl(shown.url)}
+              alt={shown.name}
               className="mx-auto max-h-[60vh] max-w-full rounded-[3px] border border-border"
             />
           ) : isPdf ? (
             <iframe
-              src={driveApi.fileUrl(file.url)}
-              title={file.name}
+              src={driveApi.fileUrl(shown.url)}
+              title={shown.name}
               className="h-[60vh] w-full rounded-[3px] border border-border bg-white"
             />
           ) : isVideo ? (
             <video
-              src={driveApi.fileUrl(file.url)}
+              src={driveApi.fileUrl(shown.url)}
               controls
               className="mx-auto max-h-[60vh] w-full rounded-[3px] border border-border bg-black"
             />
           ) : isAudio ? (
-            <audio src={driveApi.fileUrl(file.url)} controls className="w-full" />
+            <audio src={driveApi.fileUrl(shown.url)} controls className="w-full" />
           ) : isText ? (
             textQ.isLoading ? (
               <PreviewLoading />
@@ -998,7 +1066,7 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
               <PreviewLoading label="Convirtiendo documento…" />
             ) : docQ.isError ? (
               <PreviewFallback
-                file={file}
+                url={shown.url}
                 message={(docQ.error as Error)?.message || "No se pudo convertir el documento."}
               />
             ) : (
@@ -1009,7 +1077,7 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
               />
             )
           ) : (
-            <PreviewFallback file={file} message="Vista previa no disponible para este tipo de archivo." />
+            <PreviewFallback url={shown.url} message="Vista previa no disponible para este tipo de archivo." />
           )}
         </div>
       </DialogContent>
@@ -1020,17 +1088,233 @@ function PreviewModal({ file, onClose }: { file: DriveTreeFile | null; onClose: 
 /**
  * Download a stored file under its display name. The stored filename is prefixed with a
  * timestamp, so `download` is given the Drive name; it works because /uploads is same-origin.
+ * `url` is the version on screen, so downloading from an old version gets THAT binary.
  */
-function DownloadLink({ file }: { file: DriveTreeFile }) {
+function DownloadLink({ url, name }: { url: string; name: string }) {
   return (
     <a
-      href={driveApi.fileUrl(file.url)}
-      download={file.name}
+      href={driveApi.fileUrl(url)}
+      download={name}
       className="inline-flex shrink-0 items-center gap-2 self-center border border-[var(--accent)] px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-      title={`Descargar "${file.name}"`}
+      title={`Descargar "${name}"`}
     >
       <Download className="size-3.5" strokeWidth={1.5} /> Descargar
     </a>
+  );
+}
+
+/* ---------- versions ---------- */
+
+const VERSION_DATE = new Intl.DateTimeFormat("es-MX", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+const formatVersionDate = (iso: string) => VERSION_DATE.format(new Date(iso));
+const formatSize = (bytes: number) =>
+  bytes >= 1_048_576 ? `${(bytes / 1_048_576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+
+/**
+ * The version rail of the preview modal.
+ *
+ * Uploading over a file never overwrites it: it adds a version and that version becomes the
+ * current one. The arrows walk the history (← older, → newer) WITHOUT changing anything;
+ * "Restaurar" is what moves the current pointer — and that pointer is also what the agent
+ * searches and reads, so restoring an old version rolls back what the OS knows about the file.
+ */
+function VersionRail({
+  fileId,
+  versions,
+  currentId,
+  viewing,
+  loading,
+  onView,
+  onChanged,
+}: {
+  fileId: UUID;
+  versions: DriveFileVersion[]; // newest first
+  currentId: UUID | null;
+  viewing: DriveFileVersion | null;
+  loading: boolean;
+  onView: (id: UUID | null) => void;
+  onChanged: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+
+  const uploadM = useMutation({
+    mutationFn: (v: { file: File; note?: string }) => driveApi.uploadVersion(fileId, v.file, v.note),
+    onSuccess: ({ version }) => {
+      onChanged();
+      toast.success(`v${version.version} subida · vectorizando en segundo plano`);
+    },
+    onError: (e: Error) => toast.error(e.message || "No se pudo subir la nueva versión"),
+  });
+  const restoreM = useMutation({
+    mutationFn: (versionId: UUID) => driveApi.restoreVersion(fileId, versionId),
+    onSuccess: ({ version }) => {
+      onChanged();
+      toast.success(`v${version.version} es ahora la versión vigente · el agente ya lee esta`);
+    },
+    onError: (e: Error) => toast.error(e.message || "No se pudo restaurar la versión"),
+  });
+  const deleteM = useMutation({
+    mutationFn: (versionId: UUID) => driveApi.deleteVersion(fileId, versionId),
+    onSuccess: () => {
+      onChanged();
+      toast.success("Versión eliminada del historial");
+    },
+    onError: (e: Error) => toast.error(e.message || "No se pudo eliminar la versión"),
+  });
+  const busy = uploadM.isPending || restoreM.isPending || deleteM.isPending;
+
+  // versions[0] is the newest: "older" walks forward in the array, "newer" walks back.
+  const idx = viewing ? versions.findIndex((v) => v.id === viewing.id) : -1;
+  const older = idx >= 0 ? versions[idx + 1] : undefined;
+  const newer = idx > 0 ? versions[idx - 1] : undefined;
+  const isCurrent = !!viewing && viewing.id === currentId;
+
+  const pickVersion = () => inputRef.current?.click();
+  const onPicked = (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    const note = window.prompt("¿Qué cambia en esta versión? (opcional)") ?? undefined;
+    uploadM.mutate({ file, note: note || undefined });
+    if (inputRef.current) inputRef.current.value = ""; // allow re-picking the same file
+  };
+
+  return (
+    <div className="border-b border-border bg-foreground/[0.02] px-6 py-2.5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <button
+          type="button"
+          onClick={() => older && onView(older.id)}
+          disabled={!older || busy}
+          className="text-foreground/40 transition-colors hover:text-foreground disabled:opacity-25 disabled:hover:text-foreground/40"
+          title={older ? `Ver v${older.version}` : "No hay versión anterior"}
+        >
+          <ChevronLeft className="size-4" strokeWidth={1.5} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/60 transition-colors hover:text-foreground"
+          title="Ver el historial completo"
+        >
+          <History className="size-3.5" strokeWidth={1.5} />
+          {loading ? "Cargando…" : viewing ? `v${viewing.version} de ${versions.length}` : "—"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => newer && onView(newer.id)}
+          disabled={!newer || busy}
+          className="text-foreground/40 transition-colors hover:text-foreground disabled:opacity-25 disabled:hover:text-foreground/40"
+          title={newer ? `Ver v${newer.version}` : "No hay versión posterior"}
+        >
+          <ChevronRight className="size-4" strokeWidth={1.5} />
+        </button>
+
+        {viewing ? (
+          <span className="min-w-0 truncate font-mono text-[10px] tracking-[0.08em] text-foreground/35">
+            {formatVersionDate(viewing.created_at)}
+            {viewing.uploader_name ? ` · ${viewing.uploader_name}` : ""}
+            {viewing.note ? ` · ${viewing.note}` : ""}
+          </span>
+        ) : null}
+
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {isCurrent ? (
+            <span className="border border-[var(--accent)]/60 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--accent)]">
+              Vigente
+            </span>
+          ) : viewing ? (
+            <button
+              type="button"
+              onClick={() => restoreM.mutate(viewing.id)}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/70 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-40"
+            >
+              {restoreM.isPending ? (
+                <Loader2 className="size-3 animate-spin" strokeWidth={2} />
+              ) : (
+                <RotateCcw className="size-3" strokeWidth={1.5} />
+              )}
+              Restaurar
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={pickVersion}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.22em] text-foreground/70 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-40"
+            title="Subir una versión nueva de este archivo"
+          >
+            {uploadM.isPending ? (
+              <Loader2 className="size-3 animate-spin" strokeWidth={2} />
+            ) : (
+              <Upload className="size-3" strokeWidth={1.5} />
+            )}
+            Nueva versión
+          </button>
+          <input
+            ref={inputRef}
+            type="file"
+            className="hidden"
+            onChange={(e) => onPicked(e.target.files)}
+          />
+        </div>
+      </div>
+
+      {open && versions.length ? (
+        <ul className="mt-2 border-t border-border/60 pt-2">
+          {versions.map((v) => {
+            const current = v.id === currentId;
+            return (
+              <li
+                key={v.id}
+                className={`flex items-center gap-3 py-1 ${
+                  viewing?.id === v.id ? "text-foreground" : "text-foreground/50"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => onView(v.id)}
+                  className="flex min-w-0 flex-1 items-baseline gap-2 text-left hover:text-foreground"
+                >
+                  <span className="font-mono text-[10px] tracking-[0.18em]">v{v.version}</span>
+                  <span className="truncate text-[11px]">{v.name}</span>
+                  <span className="shrink-0 font-mono text-[9px] tracking-[0.08em] text-foreground/30">
+                    {formatVersionDate(v.created_at)} · {formatSize(v.size)}
+                  </span>
+                </button>
+                {current ? (
+                  <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--accent)]">
+                    Vigente
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm(`¿Eliminar la versión v${v.version} del historial?`))
+                        deleteM.mutate(v.id);
+                    }}
+                    disabled={busy}
+                    className="shrink-0 text-foreground/25 transition-colors hover:text-destructive disabled:opacity-30"
+                    title={`Eliminar v${v.version}`}
+                  >
+                    <Trash2 className="size-3" strokeWidth={1.5} />
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -1043,13 +1327,13 @@ function PreviewLoading({ label = "Cargando…" }: { label?: string }) {
 }
 
 /** Shown when a format has no preview, or the conversion failed — always offer the download. */
-function PreviewFallback({ file, message }: { file: DriveTreeFile; message: string }) {
+function PreviewFallback({ url, message }: { url: string; message: string }) {
   return (
     <div className="py-10 text-center">
       <FileIcon className="mx-auto size-8 text-foreground/30" strokeWidth={1.5} />
       <p className="mt-3 text-[13px] text-foreground/60">{message}</p>
       <a
-        href={driveApi.fileUrl(file.url)}
+        href={driveApi.fileUrl(url)}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-4 inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
@@ -1061,6 +1345,18 @@ function PreviewFallback({ file, message }: { file: DriveTreeFile; message: stri
 }
 
 /* ---------- icon helpers ---------- */
+/**
+ * Etiqueta corta del tipo de archivo. La extensión gana porque el mime de Office es
+ * kilométrico ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") y
+ * desbordaba el pie de la tarjeta; el subtipo del mime queda como respaldo, recortado.
+ */
+function kindLabel(mime: string, name: string) {
+  const ext = name.split(".").pop();
+  if (ext && ext !== name && ext.length <= 5) return ext.toUpperCase();
+  const sub = mime.split("/")[1]?.split(/[.+;]/).pop();
+  return (sub ? sub.slice(0, 12) : "archivo").toUpperCase();
+}
+
 function iconFor(mime: string, name = "") {
   if (mime.startsWith("image/")) return FileImage;
   if (/spreadsheet|ms-excel|\.(xlsx?|ods|csv)$/i.test(mime + name)) return FileSpreadsheet;

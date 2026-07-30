@@ -1,5 +1,12 @@
 import { USE_MOCKS, BASE_URL, apiFetch, delay } from "./client";
-import type { DriveFile, DriveFolder, DriveTree, UUID } from "./types";
+import type {
+  DriveFile,
+  DriveFileVersion,
+  DriveFolder,
+  DriveTree,
+  DriveVersionHistory,
+  UUID,
+} from "./types";
 
 /** Empty tree used as a graceful fallback in mock mode (feature targets the real backend). */
 const emptyTree = (): DriveTree => ({
@@ -114,10 +121,55 @@ export function isConvertible(mime: string, name: string): boolean {
   return CONVERTIBLE_MIMES.has(mime) || CONVERTIBLE_EXTS.test(name);
 }
 
-/** GET /api/drive/files/:id/preview — sanitized HTML rendering of an office document. */
-export async function getPreviewHtml(id: UUID): Promise<string> {
-  const { html } = await apiFetch<{ id: UUID; html: string }>(`/api/drive/files/${id}/preview`);
+/**
+ * GET /api/drive/files/:id/preview[?version=…] — sanitized HTML rendering of an office
+ * document. Without a version it renders the current one.
+ */
+export async function getPreviewHtml(id: UUID, versionId?: UUID | null): Promise<string> {
+  const qs = versionId ? `?version=${versionId}` : "";
+  const { html } = await apiFetch<{ id: UUID; html: string }>(`/api/drive/files/${id}/preview${qs}`);
   return html;
+}
+
+/* ---------- versions ---------- */
+
+/** GET /api/drive/files/:id/versions — history, newest first. */
+export async function getVersions(id: UUID): Promise<DriveVersionHistory> {
+  return apiFetch<DriveVersionHistory>(`/api/drive/files/${id}/versions`);
+}
+
+/**
+ * POST /api/drive/files/:id/versions — upload a new version of an existing file. It becomes
+ * the current one (so it is what previews and what the agent searches); nothing is deleted.
+ */
+export async function uploadVersion(
+  id: UUID,
+  file: File,
+  note?: string,
+): Promise<{ file: DriveFile; version: DriveFileVersion }> {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (note?.trim()) fd.append("note", note.trim());
+  return apiFetch<{ file: DriveFile; version: DriveFileVersion }>(
+    `/api/drive/files/${id}/versions`,
+    { method: "POST", body: fd },
+  );
+}
+
+/** POST …/versions/:versionId/current — go back (or forward) to a version. Non-destructive. */
+export async function restoreVersion(
+  id: UUID,
+  versionId: UUID,
+): Promise<{ file: DriveFile; version: DriveFileVersion }> {
+  return apiFetch<{ file: DriveFile; version: DriveFileVersion }>(
+    `/api/drive/files/${id}/versions/${versionId}/current`,
+    { method: "POST" },
+  );
+}
+
+/** DELETE …/versions/:versionId — prunes one point of the history (never the current one). */
+export async function deleteVersion(id: UUID, versionId: UUID): Promise<void> {
+  return apiFetch<void>(`/api/drive/files/${id}/versions/${versionId}`, { method: "DELETE" });
 }
 
 /** Absolute URL for a stored file (for <img>/<iframe>/text fetch). Handles same-origin ("") base. */
