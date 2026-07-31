@@ -92,6 +92,20 @@ export interface ChatMessage {
    * `concepto` (resumen de Oro) que debe pintarse como bloque amarillo.
    */
   concepto_entry?: ChatMessage;
+  /**
+   * Decisión que el agente delega al usuario: se pinta como botones bajo el
+   * último mensaje. Al pulsar uno se envía su `prompt` como turno normal.
+   * Hoy lo usa la Joya ("seguir afilando" vs "ponlo como propuesta").
+   */
+  actions?: ChatAction[];
+}
+
+export interface ChatAction {
+  id: string;
+  label: string;
+  /** Texto que se manda como turno del usuario al pulsar el botón. */
+  prompt: string;
+  kind?: "primary" | "secondary" | string;
 }
 
 /**

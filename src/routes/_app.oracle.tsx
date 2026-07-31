@@ -210,6 +210,11 @@ function OraclePage() {
             progress={progressQ.data}
             emptyHint={t.emptyHint}
             language={language}
+            onAction={(actionPrompt) => {
+              if (awaiting !== null || mode !== "open") return;
+              setComposerError(null);
+              void submitPrompt(actionPrompt);
+            }}
           />
         </div>
 

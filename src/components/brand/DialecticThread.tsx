@@ -13,12 +13,15 @@ export function DialecticThread({
   progress,
   emptyHint,
   language,
+  onAction,
 }: {
   messages: ChatMessage[];
   awaiting?: boolean;
   progress?: TurnProgress | null;
   emptyHint?: string;
   language: ChatLanguage;
+  /** Se llama con el `prompt` del botón pulsado (decisión del turno). */
+  onAction?: (prompt: string) => void;
 }) {
   const t = oracleCopy(language);
   const ref = useRef<HTMLDivElement>(null);
@@ -30,6 +33,11 @@ export function DialecticThread({
   // final de la sesión cerrada (centrado, fondo amarillo).
   const bubbles = messages.filter((m) => m.role !== "concepto");
   const conceptos = messages.filter((m) => m.role === "concepto");
+  // Los botones sólo viven en el último mensaje: los de turnos anteriores ya
+  // fueron contestados y quedan como historia.
+  const last = bubbles[bubbles.length - 1];
+  const pendingActions =
+    !awaiting && onAction && last?.role === "ai-ceo" && last.actions?.length ? last.actions : null;
 
   return (
     <div
@@ -45,6 +53,28 @@ export function DialecticThread({
       {bubbles.map((m) => (
         <MessageBubble key={m.id} message={m} language={language} />
       ))}
+      {pendingActions ? (
+        <div className="flex flex-wrap items-center gap-3 pl-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+          {pendingActions.map((a) => {
+            const primary = a.kind === "primary";
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => onAction?.(a.prompt)}
+                className={[
+                  "inline-flex items-center px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                  primary
+                    ? "border border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent)]/85"
+                    : "border border-[var(--accent)]/50 text-[var(--accent)] hover:bg-[var(--accent)]/10",
+                ].join(" ")}
+              >
+                {a.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
       {awaiting ? (
         <div className="opacity-80 transition-opacity duration-700">
           <StageIndicator progress={progress} />
