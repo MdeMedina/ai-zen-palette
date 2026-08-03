@@ -6,7 +6,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { useAutoLogout } from "@/hooks/use-auto-logout";
 import { AppShell } from "@/components/brand/AppShell";
 
-const ADMIN_ROUTES = ["/hive", "/knowledge", "/audit"];
+const ADMIN_ROUTES = ["/hive", "/knowledge", "/audit", "/pulse"];
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,

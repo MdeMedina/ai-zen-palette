@@ -13,6 +13,7 @@ import { Route as SetPasswordRouteImport } from './routes/set-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppPulseRouteImport } from './routes/_app.pulse'
 import { Route as AppProposalsRouteImport } from './routes/_app.proposals'
 import { Route as AppOracleRouteImport } from './routes/_app.oracle'
 import { Route as AppKnowledgeRouteImport } from './routes/_app.knowledge'
@@ -38,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppPulseRoute = AppPulseRouteImport.update({
+  id: '/pulse',
+  path: '/pulse',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppProposalsRoute = AppProposalsRouteImport.update({
   id: '/proposals',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/knowledge': typeof AppKnowledgeRoute
   '/oracle': typeof AppOracleRoute
   '/proposals': typeof AppProposalsRoute
+  '/pulse': typeof AppPulseRoute
   '/drive/$': typeof AppDriveSplatRoute
 }
 export interface FileRoutesByTo {
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof AppKnowledgeRoute
   '/oracle': typeof AppOracleRoute
   '/proposals': typeof AppProposalsRoute
+  '/pulse': typeof AppPulseRoute
   '/drive/$': typeof AppDriveSplatRoute
 }
 export interface FileRoutesById {
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_app/knowledge': typeof AppKnowledgeRoute
   '/_app/oracle': typeof AppOracleRoute
   '/_app/proposals': typeof AppProposalsRoute
+  '/_app/pulse': typeof AppPulseRoute
   '/_app/drive/$': typeof AppDriveSplatRoute
 }
 export interface FileRouteTypes {
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/oracle'
     | '/proposals'
+    | '/pulse'
     | '/drive/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/oracle'
     | '/proposals'
+    | '/pulse'
     | '/drive/$'
   id:
     | '__root__'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_app/knowledge'
     | '/_app/oracle'
     | '/_app/proposals'
+    | '/_app/pulse'
     | '/_app/drive/$'
   fileRoutesById: FileRoutesById
 }
@@ -178,6 +190,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/pulse': {
+      id: '/_app/pulse'
+      path: '/pulse'
+      fullPath: '/pulse'
+      preLoaderRoute: typeof AppPulseRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/proposals': {
       id: '/_app/proposals'
@@ -230,6 +249,7 @@ interface AppRouteChildren {
   AppKnowledgeRoute: typeof AppKnowledgeRoute
   AppOracleRoute: typeof AppOracleRoute
   AppProposalsRoute: typeof AppProposalsRoute
+  AppPulseRoute: typeof AppPulseRoute
   AppDriveSplatRoute: typeof AppDriveSplatRoute
 }
 
@@ -239,6 +259,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppKnowledgeRoute: AppKnowledgeRoute,
   AppOracleRoute: AppOracleRoute,
   AppProposalsRoute: AppProposalsRoute,
+  AppPulseRoute: AppPulseRoute,
   AppDriveSplatRoute: AppDriveSplatRoute,
 }
 

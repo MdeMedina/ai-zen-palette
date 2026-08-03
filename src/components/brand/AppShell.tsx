@@ -1,5 +1,16 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { BrainCircuit, Hexagon, LibraryBig, ShieldCheck, Gem, LogOut, Sun, Moon, FolderOpen } from "lucide-react";
+import {
+  BrainCircuit,
+  Hexagon,
+  LibraryBig,
+  ShieldCheck,
+  Gem,
+  LogOut,
+  Sun,
+  Moon,
+  FolderOpen,
+  Activity,
+} from "lucide-react";
 import { useSessionStore, isAdmin } from "@/stores/session";
 import { authApi } from "@/lib/api";
 import { useState, type ReactNode } from "react";
@@ -12,6 +23,7 @@ const NAV = [
   { to: "/knowledge", label: "Knowledge", icon: LibraryBig, adminOnly: true },
   { to: "/proposals", label: "Proposals", icon: Gem, adminOnly: true },
   { to: "/audit", label: "Audit", icon: ShieldCheck, adminOnly: true },
+  { to: "/pulse", label: "Quincenal Pulse", icon: Activity, adminOnly: true },
 ] as const;
 
 function RailTooltip({ label, children }: { label: string; children: ReactNode }) {
@@ -78,7 +90,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                     ? t.knowledgeBases
                     : n.to === "/audit"
                       ? t.auditSpace
-                      : t.proposals;
+                      : n.to === "/pulse"
+                        ? t.quincenalPulse
+                        : t.proposals;
             return (
               <RailTooltip key={n.to} label={label}>
                 <Link
