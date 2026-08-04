@@ -8,6 +8,7 @@ import { Web } from './sections/Web';
 import { Paid } from './sections/Paid';
 import { MetaAds } from './sections/MetaAds';
 import { Instagram } from './sections/Instagram';
+import { Facebook } from './sections/Facebook';
 import { YouTube } from './sections/YouTube';
 import { TikTok } from './sections/TikTok';
 import { LinkedIn } from './sections/LinkedIn';
@@ -89,6 +90,7 @@ export function PulseDashboard() {
       <Paid enabled={paidOn} />
       <MetaAds enabled={paidOn} />
       <Instagram />
+      <Facebook />
       <YouTube />
       <TikTok />
       <LinkedIn />

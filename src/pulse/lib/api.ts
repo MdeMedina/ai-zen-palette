@@ -1,6 +1,6 @@
 import type {
   MetaResponse, KpiResponse, SeriesResponse, OverlayResponse, BreakdownResponse,
-  ProvenanceRow, Granularity,
+  ProvenanceRow, Granularity, MultiSeriesResponse,
 } from '@/pulse/shared';
 import { apiFetch } from '@/lib/api/client';
 
@@ -35,6 +35,18 @@ export const api = {
     if (opts.to) q.set('to', opts.to);
     return get<SeriesResponse>(`/series?${q}`);
   },
+  /**
+   * Varias métricas en la misma serie (gráfico progresivo). Un solo request para
+   * que las líneas compartan exactamente los mismos puntos del eje X.
+   */
+  multiSeries: (metrics: string[], g: Granularity, opts: { brand?: string; lang?: string; from?: string; to?: string } = {}) => {
+    const q = new URLSearchParams({ metrics: metrics.join(','), granularity: g });
+    if (opts.brand) q.set('brand', opts.brand);
+    if (opts.lang) q.set('lang', opts.lang);
+    if (opts.from) q.set('from', opts.from);
+    if (opts.to) q.set('to', opts.to);
+    return get<MultiSeriesResponse>(`/multi-series?${q}`);
+  },
   overlay: (metric: string, g: Granularity, a: string, b: string, brand?: string) => {
     const q = new URLSearchParams({ metric, granularity: g, a, b });
     if (brand) q.set('brand', brand);
@@ -45,7 +57,7 @@ export const api = {
     if (brand) q.set('brand', brand);
     return get<BreakdownResponse>(`/breakdown?${q}`);
   },
-  audience: () => get<{ instagram: number | null; youtube: number | null; tiktok: number | null; linkedin: number | null; total: number }>('/audience'),
+  audience: () => get<{ instagram: number | null; facebook: number | null; youtube: number | null; tiktok: number | null; linkedin: number | null; total: number }>('/audience'),
   topEngagement: (opts: { granularity?: string; b?: string; limit?: number } = {}) => {
     const q = new URLSearchParams();
     if (opts.granularity) q.set('granularity', opts.granularity);
@@ -93,12 +105,15 @@ export const api = {
       count: number;
     }>(`/stories?${q}`);
   },
-  postsRanking: (opts: { brand?: string; granularity?: string; b?: string; top?: number } = {}) => {
+  // channel: 'facebook' reusa el mismo ranking para las páginas de Facebook
+  // (PostStat guarda ambos canales con el mismo modelo).
+  postsRanking: (opts: { brand?: string; granularity?: string; b?: string; top?: number; channel?: string } = {}) => {
     const q = new URLSearchParams();
     if (opts.brand) q.set('brand', opts.brand);
     if (opts.granularity) q.set('granularity', opts.granularity);
     if (opts.b) q.set('b', opts.b);
     if (opts.top) q.set('top', String(opts.top));
+    if (opts.channel) q.set('channel', opts.channel);
     return get<{ best: RankedPost[]; worst: RankedPost | null; total: number }>(`/posts/ranking?${q}`);
   },
   provenance: () => get<ProvenanceRow[]>('/provenance'),

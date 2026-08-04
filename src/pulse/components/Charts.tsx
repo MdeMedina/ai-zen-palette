@@ -5,6 +5,7 @@ import {
 import {
   formatValue, MIN_POINTS_FOR_CHART, labelOf,
   type SeriesResponse, type OverlayResponse, type BreakdownResponse, type PeriodSpec,
+  type MultiSeriesResponse,
 } from '@/pulse/shared';
 import { useI18n } from '../lib/i18n';
 import { Delta } from './Delta';
@@ -37,6 +38,70 @@ export function HistoryChart({ data, format, height = 200 }: { data: SeriesRespo
           <Line type="monotone" dataKey="value" stroke={C.b} strokeWidth={2} dot={{ r: 2 }} />
         </LineChart>
       </ResponsiveContainer>
+    </div>
+  );
+}
+
+/**
+ * Gráfico PROGRESIVO: varias métricas como líneas sobre el mismo eje temporal
+ * (p. ej. Alcance y Vistas por mes de los últimos 13 meses).
+ *
+ * A diferencia de HistoryChart no se compara contra el selector A/B: es la
+ * trayectoria del año, independiente del periodo elegido. El gate de puntos es
+ * más bajo (≥3) porque a grano MENSUAL exigir 6 dejaría el gráfico en blanco
+ * medio año; si hay menos meses de los pedidos, lo dice en vez de callarlo.
+ */
+export function ProgressiveChart({ data, height = 240 }: { data: MultiSeriesResponse; height?: number }) {
+  const { lang, t } = useI18n();
+  // Un punto cuenta si al menos una de las métricas tiene valor.
+  const points = data.points.filter((p) => data.metrics.some((m) => p.values[m.key] != null));
+  if (points.length < 3) {
+    return (
+      <div className="loading">
+        {t(
+          'Not enough history yet for the progressive chart (need ≥3 months). It fills in as syncs accumulate.',
+          'Aún no hay suficiente historia para el gráfico progresivo (≥3 meses). Se completa a medida que se acumulan los syncs.',
+        )}
+      </div>
+    );
+  }
+  // Recharts necesita las series como columnas planas de cada fila.
+  const rows = points.map((p) => {
+    const row: Record<string, string | number | null> = { label: p.label };
+    for (const m of data.metrics) row[m.key] = p.values[m.key] ?? null;
+    return row;
+  });
+  const colors = [C.a, C.b, C.yellow];
+  // Todas las métricas del gráfico comparten formato (int); se toma el primero.
+  const format = data.metrics[0]?.format;
+  return (
+    <div className="chart-wrap">
+      <ResponsiveContainer width="100%" height={height}>
+        <LineChart data={rows} margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
+          <CartesianGrid stroke={C.grid} strokeDasharray="2 3" vertical={false} />
+          <XAxis dataKey="label" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
+          <YAxis tick={{ fontSize: 9 }} width={48} tickFormatter={(v) => formatValue(v, format)} />
+          <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatValue(v, format)} />
+          <Legend wrapperStyle={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10 }} />
+          {data.metrics.map((m, i) => (
+            <Line
+              key={m.key}
+              name={m.label[lang]}
+              type="monotone"
+              dataKey={m.key}
+              stroke={colors[i % colors.length]}
+              strokeWidth={2}
+              dot={{ r: 2 }}
+              connectNulls
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+      <div className="chart-title-row" style={{ marginTop: 4 }}>
+        <span className="sel-tag">
+          {points.length} {t('months with data', 'meses con datos')} · {points[0].label} → {points[points.length - 1].label}
+        </span>
+      </div>
     </div>
   );
 }

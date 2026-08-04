@@ -8,6 +8,7 @@ export const CHANNELS = [
   'google_ads',
   'meta_ads',
   'instagram',
+  'facebook',
   'youtube',
   'tiktok',
   'linkedin',
@@ -20,6 +21,9 @@ export const CHANNEL_LABELS: Record<Channel, string> = {
   google_ads: 'Google Ads',
   meta_ads: 'Meta Ads',
   instagram: 'Instagram',
+  // 'facebook' = páginas ORGÁNICAS (conector facebook_organic). No confundir con
+  // 'meta_ads' (conector facebook), que es la inversión publicitaria de Meta.
+  facebook: 'Facebook',
   youtube: 'YouTube',
   tiktok: 'TikTok',
   linkedin: 'LinkedIn',
@@ -63,6 +67,16 @@ export const BRAND_LABELS: Record<string, string> = {
 
 /** Marcas con Instagram conectado (tabs de la §3). Orden por relevancia. */
 export const IG_BRANDS: Brand[] = [
+  'g4', 'palomo', 'pkgd', 'el_ateo', 'arriesgado',
+  'dos_locos', 'el_acabo', 'el_viejito', 'esperalo', 'ultramundo',
+];
+
+/**
+ * Marcas con página de Facebook conectada. Windsor (facebook_organic) devuelve
+ * las mismas 10 páginas que Instagram, así que el set coincide; se declara
+ * aparte para que un canal no arrastre al otro si cambia.
+ */
+export const FB_BRANDS: Brand[] = [
   'g4', 'palomo', 'pkgd', 'el_ateo', 'arriesgado',
   'dos_locos', 'el_acabo', 'el_viejito', 'esperalo', 'ultramundo',
 ];

@@ -83,6 +83,24 @@ export const METRICS: MetricDef[] = [
   { key: 'ig_eng_rate', channel: 'instagram', label: { en: 'Engagement Rate', es: 'Tasa de Engagement' }, origin: 'D', agg: 'ratio', format: 'pct', ratioOf: { num: 'ig_interactions', den: 'ig_reach' } },
   { key: 'ig_net_followers', channel: 'instagram', label: { en: 'Net Follower Growth', es: 'Crecimiento Neto Seguidores' }, origin: 'D', agg: 'sum', format: 'int' },
 
+  // ── 3b · Facebook (páginas orgánicas, conector facebook_organic) ──
+  // Espejo de Instagram. Nombres Windsor → nuestro: page_impressions_unique es el
+  // ALCANCE (personas únicas) y page_impressions son las VISTAS/impresiones del
+  // contenido de la página — Facebook no publica una métrica "views" unificada
+  // como Instagram, así que las impresiones son su equivalente más cercano.
+  { key: 'fb_reach', channel: 'facebook', label: { en: 'Reach', es: 'Alcance' }, origin: 'F', agg: 'sum', format: 'int' },
+  { key: 'fb_views', channel: 'facebook', label: { en: 'Views (impressions)', es: 'Vistas (impresiones)' }, origin: 'F', agg: 'sum', format: 'int' },
+  { key: 'fb_interactions', channel: 'facebook', label: { en: 'Interactions', es: 'Interacciones' }, origin: 'F', agg: 'sum', format: 'int' },
+  { key: 'fb_followers', channel: 'facebook', label: { en: 'Followers', es: 'Seguidores' }, origin: 'F', agg: 'last', format: 'int' },
+  { key: 'fb_posts', channel: 'facebook', label: { en: 'Publications', es: 'Publicaciones' }, origin: 'F', agg: 'sum', format: 'int' },
+  { key: 'fb_reactions', channel: 'facebook', label: { en: 'Reactions', es: 'Reacciones' }, origin: 'F', agg: 'sum', format: 'int' },
+  { key: 'fb_video_views', channel: 'facebook', label: { en: 'Video Views', es: 'Vistas de Video' }, origin: 'F', agg: 'sum', format: 'int' },
+  { key: 'fb_page_views', channel: 'facebook', label: { en: 'Page Visits', es: 'Visitas a la Página' }, origin: 'F', agg: 'sum', format: 'int' },
+  { key: 'fb_eng_rate', channel: 'facebook', label: { en: 'Engagement Rate', es: 'Tasa de Engagement' }, origin: 'D', agg: 'ratio', format: 'pct', ratioOf: { num: 'fb_interactions', den: 'fb_reach' } },
+  // Neto = page_daily_follows − page_daily_unfollows, calculado en la ingesta
+  // (el catálogo no tiene una agregación "resta"), igual que ig_net_followers.
+  { key: 'fb_net_followers', channel: 'facebook', label: { en: 'Net Follower Growth', es: 'Crecimiento Neto Seguidores' }, origin: 'D', agg: 'sum', format: 'int' },
+
   // ── 4 · YouTube ──
   { key: 'yt_views', channel: 'youtube', label: { en: 'Views', es: 'Vistas' }, origin: 'F', agg: 'sum', format: 'int' },
   { key: 'yt_minutes_watched', channel: 'youtube', label: { en: 'Min. Watched', es: 'Min. Vistos' }, origin: 'F', agg: 'sum', format: 'int' },
@@ -131,7 +149,7 @@ export const SOURCE_METRICS = METRICS.filter((m) => m.origin === 'F');
  * El agente de n8n genera un `body` por (section, periodId, lang [, brand]).
  */
 export const AI_SECTIONS = [
-  'ga4', 'google_ads', 'meta_ads', 'instagram', 'youtube', 'tiktok', 'linkedin', 'klaviyo', 'highlights', 'next_steps',
+  'ga4', 'google_ads', 'meta_ads', 'instagram', 'facebook', 'youtube', 'tiktok', 'linkedin', 'klaviyo', 'highlights', 'next_steps',
 ] as const;
 export type AiSection = (typeof AI_SECTIONS)[number];
 
@@ -144,6 +162,7 @@ export const SECTION_METRICS: Record<AiSection, string[]> = {
   google_ads: ['spend', 'impressions', 'clicks', 'conversions', 'ctr', 'cpc', 'cpa', 'conv_rate'],
   meta_ads: ['meta_spend', 'meta_impressions', 'meta_reach', 'meta_clicks', 'meta_link_clicks', 'meta_ctr', 'meta_cpc', 'meta_cplc'],
   instagram: ['ig_reach', 'ig_views', 'ig_interactions', 'ig_shares', 'ig_eng_rate'],
+  facebook: ['fb_reach', 'fb_views', 'fb_interactions', 'fb_followers', 'fb_net_followers', 'fb_eng_rate'],
   youtube: ['yt_views', 'yt_minutes_watched', 'yt_likes'],
   tiktok: ['tt_likes', 'tt_avg_watch_time', 'tt_net_followers'],
   linkedin: ['li_impressions', 'li_followers', 'li_posts'],

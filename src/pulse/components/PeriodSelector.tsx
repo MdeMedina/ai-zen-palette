@@ -1,11 +1,19 @@
-import { GRANULARITIES, GRANULARITY_LABELS, labelOf, type Granularity } from '@/pulse/shared';
+import { GRANULARITIES, GRANULARITY_LABELS, CHANNEL_LABELS, labelOf, rangeOf, type Granularity, type Channel } from '@/pulse/shared';
 import { usePeriods } from '../state/periods';
 import { useI18n } from '../lib/i18n';
 
 /** Selector A/B de dos pasos (doc §1): modalidad + dos periodos concretos. */
 export function PeriodSelector() {
-  const { granularity, setGranularity, a, b, setA, setB, options } = usePeriods();
+  const { granularity, setGranularity, a, b, setA, setB, options, meta } = usePeriods();
   const { lang, t } = useI18n();
+
+  // Canales cuyo histórico EMPIEZA después del periodo A elegido: sus KPIs
+  // saldrían en 0 y se leerían como caídas. Instagram y Facebook llegan 13 meses
+  // atrás (backfill); el resto solo ~90 días, así que hay que decirlo explícito.
+  const aStart = a ? rangeOf({ granularity, id: a }).start : null;
+  const uncovered = Object.entries(meta?.channelRanges ?? {})
+    .filter(([, r]) => aStart != null && r.from > aStart)
+    .map(([ch]) => CHANNEL_LABELS[ch as Channel] ?? ch);
 
   return (
     <div className="selector">
@@ -42,6 +50,15 @@ export function PeriodSelector() {
 
       {options.length === 0 && (
         <span className="sel-tag">{t('No periods with data for this modality.', 'No hay periodos con datos para esta modalidad.')}</span>
+      )}
+
+      {uncovered.length > 0 && (
+        <div className="note warn" style={{ flexBasis: '100%', marginTop: 10 }}>
+          {t(
+            `Period A predates the history of: ${uncovered.join(', ')}. Only Instagram and Facebook go back 13 months — those sections will read 0 for A, which is missing history, not a drop.`,
+            `El periodo A precede al histórico de: ${uncovered.join(', ')}. Solo Instagram y Facebook llegan 13 meses atrás — esas secciones saldrán en 0 en A, que es falta de histórico, no una caída.`,
+          )}
+        </div>
       )}
     </div>
   );

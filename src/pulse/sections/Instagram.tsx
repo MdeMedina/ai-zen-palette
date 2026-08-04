@@ -7,7 +7,8 @@ import { useI18n } from '../lib/i18n';
 import { Collapsible } from '../components/Collapsible';
 import { AiInsights } from '../components/AiInsights';
 import { KpiRow } from '../components/KpiRow';
-import { HistoryChart, StackedCompare } from '../components/Charts';
+import { HistoryChart, StackedCompare, ProgressiveChart } from '../components/Charts';
+import { lastMonthsRange, PROGRESSIVE_MONTHS } from '../lib/progressive';
 
 /** Etiqueta legible del tipo de publicación de Instagram. */
 function postTypeLabel(mediaType: string, productType: string, es: boolean): string {
@@ -54,8 +55,10 @@ export function Instagram() {
     () => (a && b ? api.kpis(granularity, a, b, ['ig_reach', 'ig_views', 'ig_interactions', 'ig_shares'], {}) : Promise.resolve(null)),
     [granularity, a, b],
   );
+  // ig_followers = total ABSOLUTO de seguidores de la marca (snapshot al cierre
+  // del periodo); ig_net_followers = lo que creció/decreció dentro del periodo.
   const brandKpis = useAsync(
-    () => (a && b ? api.kpis(granularity, a, b, ['ig_reach', 'ig_interactions', 'ig_eng_rate', 'ig_net_followers', 'ig_posts'], { brand }) : Promise.resolve(null)),
+    () => (a && b ? api.kpis(granularity, a, b, ['ig_followers', 'ig_reach', 'ig_interactions', 'ig_eng_rate', 'ig_net_followers', 'ig_posts'], { brand }) : Promise.resolve(null)),
     [granularity, a, b, brand],
   );
   const breakdown = useAsync(
@@ -67,6 +70,11 @@ export function Instagram() {
     () => (bRange ? api.series('ig_interactions', 'day', { brand, from: bRange.start, to: bRange.end }) : Promise.resolve(null)),
     [brand, bRange?.start, bRange?.end],
   );
+  // Gráfico progresivo del año: Alcance vs Vistas por mes, ajeno al selector A/B.
+  const progressive = useAsync(() => {
+    const { from, to } = lastMonthsRange();
+    return api.multiSeries(['ig_reach', 'ig_views'], 'month', { brand, lang, from, to });
+  }, [brand, lang]);
   const topPost = useAsync(() => api.topPosts(brand, 1), [brand]);
   // Ranking por vistas del periodo: top 3 + la menos vista.
   const ranking = useAsync(
@@ -94,7 +102,15 @@ export function Instagram() {
         ))}
       </div>
 
-      {brandKpis.data && <KpiRow values={brandKpis.data.values} cols={5} />}
+      {brandKpis.data && <KpiRow values={brandKpis.data.values} cols={6} />}
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-h">
+          <div className="card-title">{t('Reach vs Views · monthly progression', 'Alcance vs Vistas · progresión mensual')}</div>
+          <div className="card-badge">{t(`Last ${PROGRESSIVE_MONTHS} months`, `Últimos ${PROGRESSIVE_MONTHS} meses`)}</div>
+        </div>
+        {progressive.data && <ProgressiveChart data={progressive.data} />}
+      </div>
 
       <div className="g2">
         <div className="card">
@@ -180,7 +196,10 @@ export function Instagram() {
           <a className="bw-link" href={topPost.data[0].permalink}>{topPost.data[0].postType}</a>
         </div>
       )}
-      <div className="note warn">{t('YoY for Instagram is disabled until we accumulate our own history (Windsor does not provide the past).', 'El YoY de Instagram está deshabilitado hasta acumular histórico propio (Windsor no da el pasado).')}</div>
+      <div className="note info">{t(
+        `Windsor does serve daily Instagram history: reach, views and interactions are backfilled ${PROGRESSIVE_MONTHS} months (see the progression chart). Followers are the exception — the connector only returns the current count, so that series starts on the first sync.`,
+        `Windsor sí entrega histórico diario de Instagram: alcance, vistas e interacciones están rellenados ${PROGRESSIVE_MONTHS} meses atrás (ver el gráfico de progresión). La excepción son los seguidores — el conector solo devuelve el conteo actual, así que esa serie arranca en el primer sync.`,
+      )}</div>
       <AiInsights network="instagram" brand={brand} />
     </Collapsible>
   );

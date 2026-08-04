@@ -28,12 +28,13 @@ export function Executive() {
   if (!ready) return null;
   const get = (k: string) => kpis.data?.values.find((v) => v.key === k);
   const ig = audience.data?.instagram ?? 0;
+  const fb = audience.data?.facebook ?? null; // null si el canal aún no sincronizó
   const yt = audience.data?.youtube ?? 0;
   const tk = audience.data?.tiktok ?? null; // null si no hay ancla configurada
   const li = audience.data?.linkedin ?? null; // null si no hay ancla configurada
   const total = audience.data?.total ?? 0;
-  const audienceSub = ['IG', 'YT', tk != null ? 'TK' : null, li != null ? 'LI' : null].filter(Boolean).join(' + ');
-  const extraTiles = (tk != null ? 1 : 0) + (li != null ? 1 : 0);
+  const audienceSub = ['IG', fb != null ? 'FB' : null, 'YT', tk != null ? 'TK' : null, li != null ? 'LI' : null].filter(Boolean).join(' + ');
+  const extraTiles = (fb != null ? 1 : 0) + (tk != null ? 1 : 0) + (li != null ? 1 : 0);
 
   return (
     <Collapsible num="00" title={t('Overview', 'Resumen')} meta={t('Portfolio Summary', 'Resumen del Portafolio')}>
@@ -41,7 +42,7 @@ export function Executive() {
         <div className="eyebrow">{t('Overview · Portfolio Summary', 'Overview · Resumen del Portafolio')}</div>
         <div className="overview-grid">
           <Tile label={t('Total Audience', 'Audiencia Total')} value={formatValue(total, 'int')}
-            sub={`IG ${formatValue(ig, 'int')} · YT ${formatValue(yt, 'int')}${tk != null ? ` · TK ${formatValue(tk, 'int')}` : ''}${li != null ? ` · LI ${formatValue(li, 'int')}` : ''}`} />
+            sub={`IG ${formatValue(ig, 'int')}${fb != null ? ` · FB ${formatValue(fb, 'int')}` : ''} · YT ${formatValue(yt, 'int')}${tk != null ? ` · TK ${formatValue(tk, 'int')}` : ''}${li != null ? ` · LI ${formatValue(li, 'int')}` : ''}`} />
           <Tile label={t('IG Portfolio Reach', 'Alcance Portafolio IG')} value={formatValue(get('ig_reach')?.b ?? null, 'int')} delta={get('ig_reach')?.delta ?? null} />
           <Tile label={t('IG Interactions', 'Interacciones IG')} value={formatValue(get('ig_interactions')?.b ?? null, 'int')} delta={get('ig_interactions')?.delta ?? null} />
           <Tile label={t('Web Sessions', 'Sesiones Web')} value={formatValue(get('sessions')?.b ?? null, 'int')} delta={get('sessions')?.delta ?? null}
@@ -56,6 +57,7 @@ export function Executive() {
 
       <div className="audience-row" style={{ gridTemplateColumns: `repeat(${3 + extraTiles},1fr)` }}>
         <Aud label="Instagram" value={ig} />
+        {fb != null && <Aud label="Facebook" value={fb} />}
         <Aud label="YouTube" value={yt} />
         {tk != null && <Aud label="TikTok" value={tk} />}
         {li != null && <Aud label="LinkedIn" value={li} />}
@@ -100,7 +102,8 @@ export function Executive() {
 }
 
 function platformLabel(p: string): string {
-  return p === 'instagram' ? 'Instagram' : p === 'youtube' ? 'YouTube' : p === 'tiktok' ? 'TikTok' : p;
+  return p === 'instagram' ? 'Instagram' : p === 'facebook' ? 'Facebook'
+    : p === 'youtube' ? 'YouTube' : p === 'tiktok' ? 'TikTok' : p;
 }
 
 function Tile({ label, value, delta, sub, spark }: { label: string; value: string; delta?: number | null; sub?: string; spark?: import('@/pulse/shared').SeriesResponse }) {

@@ -92,6 +92,7 @@
 .pulse-root .kpi-row.cols4{grid-template-columns:repeat(4,1fr)}
 .pulse-root .kpi-row.cols3{grid-template-columns:repeat(3,1fr)}
 .pulse-root .kpi-row.cols5{grid-template-columns:repeat(5,1fr)}
+.pulse-root .kpi-row.cols6{grid-template-columns:repeat(6,1fr)}
 .pulse-root .kpi{background:var(--card);padding:16px 18px}
 .pulse-root .kpi-label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
 .pulse-root .kpi-origin{font-size:8px;opacity:.5;border:1px solid var(--border);padding:1px 4px;border-radius:2px}
@@ -201,7 +202,7 @@
 @media(max-width:1100px){
   .pulse-root{padding:20px}
   .pulse-root .header-left h1{font-size:40px}
-  .pulse-root .overview-grid,.pulse-root .g2,.pulse-root .g3,.pulse-root .hl-grid,.pulse-root .kpi-row.cols4,.pulse-root .kpi-row.cols5,.pulse-root .kpi-row.cols3,.pulse-root .audience-row,.pulse-root .overview-bottom{grid-template-columns:1fr}
+  .pulse-root .overview-grid,.pulse-root .g2,.pulse-root .g3,.pulse-root .hl-grid,.pulse-root .kpi-row.cols4,.pulse-root .kpi-row.cols5,.pulse-root .kpi-row.cols6,.pulse-root .kpi-row.cols3,.pulse-root .audience-row,.pulse-root .overview-bottom{grid-template-columns:1fr}
 }
 
 /* Ranking de publicaciones por engagement rate */
@@ -227,5 +228,6 @@
 /* Badge de plataforma (top engagement cross-plataforma) */
 .pulse-root .platform-badge{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;color:var(--card);font-weight:600}
 .pulse-root .pb-instagram{background:#c13584}
+.pulse-root .pb-facebook{background:#1877f2}
 .pulse-root .pb-youtube{background:#c4302b}
 .pulse-root .pb-tiktok{background:#1c1a16}
