@@ -123,7 +123,7 @@ function DrivePage() {
     onError: (e: Error) => toast.error(e.message || "No se pudo crear la carpeta"),
   });
   const uploadM = useMutation({
-    mutationFn: (v: { file: File; doc_tier: "RECTOR" | "NORMAL" }) =>
+    mutationFn: (v: { file: File; doc_tier: "GLOBAL" | "RECTOR" | "NORMAL" }) =>
       driveApi.uploadFile({ file: v.file, folder_id: currentFolderId, doc_tier: v.doc_tier }),
     onSuccess: (f) => {
       invalidate();
@@ -134,11 +134,17 @@ function DrivePage() {
     onError: (e: Error) => toast.error(e.message || "Falló la subida"),
   });
   const setTierM = useMutation({
-    mutationFn: (v: { id: UUID; doc_tier: "RECTOR" | "NORMAL" }) =>
+    mutationFn: (v: { id: UUID; doc_tier: "GLOBAL" | "RECTOR" | "NORMAL" }) =>
       driveApi.setFileTier(v.id, v.doc_tier),
     onSuccess: (r) => {
       invalidate();
-      toast.success(r.doc_tier === "RECTOR" ? "Marcado como Rector" : "Marcado como Normal");
+      toast.success(
+        r.doc_tier === "GLOBAL"
+          ? "Marcado como Institucional (Global)"
+          : r.doc_tier === "RECTOR"
+            ? "Marcado como Rector"
+            : "Marcado como Normal",
+      );
     },
     onError: (e: Error) => toast.error(e.message || "No se pudo cambiar la jerarquía"),
   });
@@ -200,7 +206,7 @@ function DrivePage() {
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   // Jerarquía elegida en el popup; el input oculto la lee al seleccionar los archivos.
-  const pendingTierRef = useRef<"RECTOR" | "NORMAL">("NORMAL");
+  const pendingTierRef = useRef<"GLOBAL" | "RECTOR" | "NORMAL">("NORMAL");
 
   /** Wires any element as a move target (folder card, breadcrumb crumb). */
   const dropTargetProps = (targetId: UUID | null, targetLabel: string) => ({
@@ -213,7 +219,7 @@ function DrivePage() {
     },
   });
 
-  const uploadFiles = (files: FileList | File[], doc_tier: "RECTOR" | "NORMAL" = "NORMAL") =>
+  const uploadFiles = (files: FileList | File[], doc_tier: "GLOBAL" | "RECTOR" | "NORMAL" = "NORMAL") =>
     Array.from(files).forEach((f) => uploadM.mutate({ file: f, doc_tier }));
   const stalePath = treeQ.data && !current;
   const here = segments.length ? segments[segments.length - 1] : "Drive";
@@ -369,7 +375,9 @@ function DrivePage() {
                   onToggleTier={() =>
                     setTierM.mutate({
                       id: f.id,
-                      doc_tier: f.doc_tier === "RECTOR" ? "NORMAL" : "RECTOR",
+                      // Cicla Normal → Rector → Global → Normal.
+                      doc_tier:
+                        f.doc_tier === "NORMAL" ? "RECTOR" : f.doc_tier === "RECTOR" ? "GLOBAL" : "NORMAL",
                     })
                   }
                   onDragStartItem={() => setDragItem({ kind: "file", id: f.id, name: f.name })}
@@ -717,6 +725,11 @@ function FileCard({
 }) {
   const Icon = iconFor(file.mime_type, file.name);
   const isRector = file.doc_tier === "RECTOR";
+  const isGlobal = file.doc_tier === "GLOBAL";
+  const isTiered = isRector || isGlobal;
+  const tierLabel = isGlobal ? "Global" : isRector ? "Rector" : null;
+  const nextTierLabel =
+    file.doc_tier === "NORMAL" ? "Rector" : file.doc_tier === "RECTOR" ? "Global" : "Normal";
   const [dragged, setDragged] = useState(false);
   return (
     <div
@@ -732,21 +745,29 @@ function FileCard({
         },
       )}
       className={`group relative flex cursor-grab flex-col border bg-card p-4 shadow-sm transition-all hover:shadow-md active:cursor-grabbing rounded-[3px] ${
-        isRector ? "border-[var(--accent)]/70" : "border-border hover:border-foreground/25"
+        isTiered ? "border-[var(--accent)]/70" : "border-border hover:border-foreground/25"
       } ${dragged ? "opacity-40" : ""}`}
     >
-      {/* Documento RECTOR: siempre presente para el agente al hablar de su marca. */}
-      {isRector ? (
+      {/* GLOBAL = institucional (siempre presente en toda sesión). RECTOR = siempre por marca. */}
+      {isTiered ? (
         <span
-          className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 border border-[var(--accent)]/70 bg-[var(--accent)]/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--accent)]"
-          title="Rector: el agente lo tiene siempre presente al hablar de su marca"
+          className={`pointer-events-none absolute left-2 top-2 flex items-center gap-1 border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] ${
+            isGlobal
+              ? "border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]"
+              : "border-[var(--accent)]/70 bg-[var(--accent)]/10 text-[var(--accent)]"
+          }`}
+          title={
+            isGlobal
+              ? "Institucional (Global): el agente lo tiene SIEMPRE presente, en toda sesión"
+              : "Rector: el agente lo tiene siempre presente al hablar de su marca"
+          }
         >
-          <Shield className="size-2.5" strokeWidth={1.75} />
-          Rector
+          <Shield className="size-2.5" strokeWidth={1.75} fill={isGlobal ? "currentColor" : "none"} />
+          {tierLabel}
         </span>
       ) : null}
       <button type="button" onClick={onOpen} className="flex w-full min-w-0 flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none">
-        <Icon className={`size-7 ${isRector ? "text-[var(--accent)]/70" : "text-foreground/45"} ${isRector ? "mt-4" : ""}`} strokeWidth={1.5} />
+        <Icon className={`size-7 ${isTiered ? "text-[var(--accent)]/70" : "text-foreground/45"} ${isTiered ? "mt-4" : ""}`} strokeWidth={1.5} />
         <span className="line-clamp-2 w-full [overflow-wrap:anywhere] text-[13px] text-foreground" title={file.name}>
           {file.name}
         </span>
@@ -768,7 +789,7 @@ function FileCard({
           <BrandTag name={file.brand_name} />
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
-          {/* Alternar jerarquía Rector/Normal (metadato del agente). */}
+          {/* Cicla la jerarquía Normal → Rector → Global → Normal (metadato del agente). */}
           <button
             type="button"
             onClick={(e) => {
@@ -776,13 +797,13 @@ function FileCard({
               onToggleTier();
             }}
             className={`transition-all focus-visible:outline-none ${
-              isRector
+              isTiered
                 ? "text-[var(--accent)] hover:text-foreground"
                 : "text-foreground/30 opacity-0 hover:text-[var(--accent)] group-hover:opacity-100 focus-visible:opacity-100"
             }`}
-            title={isRector ? "Quitar Rector (volver a Normal)" : "Marcar como Rector"}
+            title={`Jerarquía: ${tierLabel ?? "Normal"} — click para cambiar a ${nextTierLabel}`}
           >
-            <Shield className="size-3.5" strokeWidth={1.5} fill={isRector ? "currentColor" : "none"} />
+            <Shield className="size-3.5" strokeWidth={1.5} fill={isTiered ? "currentColor" : "none"} />
           </button>
           {/* Download straight from the grid, without opening the preview. */}
           <a
@@ -875,9 +896,9 @@ function UploadDialog({
 }: {
   folderLabel: string;
   onClose: () => void;
-  onPick: (tier: "RECTOR" | "NORMAL") => void;
+  onPick: (tier: "GLOBAL" | "RECTOR" | "NORMAL") => void;
 }) {
-  const [tier, setTier] = useState<"RECTOR" | "NORMAL">("NORMAL");
+  const [tier, setTier] = useState<"GLOBAL" | "RECTOR" | "NORMAL">("NORMAL");
   const options = [
     {
       value: "NORMAL" as const,
@@ -888,6 +909,11 @@ function UploadDialog({
       value: "RECTOR" as const,
       title: "Documento Rector",
       desc: "El agente lo tiene SIEMPRE presente al hablar de la marca. Úsalo para lo que rige la marca.",
+    },
+    {
+      value: "GLOBAL" as const,
+      title: "Documento Institucional (Global)",
+      desc: "El agente lo tiene SIEMPRE presente en TODA sesión, sin importar la marca. Para el Charter y el guide de PKGD.",
     },
   ];
   return (
@@ -927,7 +953,7 @@ function UploadDialog({
                   <Shield
                     className={`mt-0.5 size-4 shrink-0 ${active ? "text-[var(--accent)]" : "text-foreground/35"}`}
                     strokeWidth={1.5}
-                    fill={active && o.value === "RECTOR" ? "currentColor" : "none"}
+                    fill={active && o.value !== "NORMAL" ? "currentColor" : "none"}
                   />
                   <span className="min-w-0">
                     <span className="block text-[13px] text-foreground">{o.title}</span>

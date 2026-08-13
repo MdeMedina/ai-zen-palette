@@ -215,7 +215,7 @@ export interface DriveFolder {
 }
 
 /** Jerarquía del documento ante el agente. RECTOR = siempre en contexto de su marca. */
-export type DocTier = "RECTOR" | "NORMAL";
+export type DocTier = "GLOBAL" | "RECTOR" | "NORMAL";
 
 export interface DriveFile {
   id: UUID;
