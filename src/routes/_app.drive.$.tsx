@@ -122,11 +122,9 @@ function DrivePage() {
     },
     onError: (e: Error) => toast.error(e.message || "No se pudo crear la carpeta"),
   });
-  // Jerarquía con la que se suben los próximos archivos (RECTOR = siempre en contexto de su marca).
-  const [uploadTier, setUploadTier] = useState<"NORMAL" | "RECTOR">("NORMAL");
   const uploadM = useMutation({
-    mutationFn: (file: File) =>
-      driveApi.uploadFile({ file, folder_id: currentFolderId, doc_tier: uploadTier }),
+    mutationFn: (v: { file: File; doc_tier: "RECTOR" | "NORMAL" }) =>
+      driveApi.uploadFile({ file: v.file, folder_id: currentFolderId, doc_tier: v.doc_tier }),
     onSuccess: (f) => {
       invalidate();
       toast.success(
@@ -194,11 +192,15 @@ function DrivePage() {
   });
 
   const [newFolderOpen, setNewFolderOpen] = useState(false);
+  // Popup de subida: pregunta la jerarquía (Rector/Normal) y desde ahí se eligen los archivos.
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [editFolder, setEditFolder] = useState<DriveTreeFolder | null>(null);
   const [preview, setPreview] = useState<DriveTreeFile | null>(null);
   const [dragging, setDragging] = useState(false);
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Jerarquía elegida en el popup; el input oculto la lee al seleccionar los archivos.
+  const pendingTierRef = useRef<"RECTOR" | "NORMAL">("NORMAL");
 
   /** Wires any element as a move target (folder card, breadcrumb crumb). */
   const dropTargetProps = (targetId: UUID | null, targetLabel: string) => ({
@@ -211,7 +213,8 @@ function DrivePage() {
     },
   });
 
-  const uploadFiles = (files: FileList | File[]) => Array.from(files).forEach((f) => uploadM.mutate(f));
+  const uploadFiles = (files: FileList | File[], doc_tier: "RECTOR" | "NORMAL" = "NORMAL") =>
+    Array.from(files).forEach((f) => uploadM.mutate({ file: f, doc_tier }));
   const stalePath = treeQ.data && !current;
   const here = segments.length ? segments[segments.length - 1] : "Drive";
 
@@ -229,35 +232,9 @@ function DrivePage() {
             >
               <FolderPlus className="size-3.5" strokeWidth={1.5} /> Nueva carpeta
             </button>
-            {/* Jerarquía de subida: NORMAL (default) vs RECTOR (siempre en contexto de su marca). */}
-            <div
-              className="inline-flex items-center border border-foreground/15 text-[10px] uppercase tracking-[0.18em]"
-              role="group"
-              aria-label="Jerarquía del documento al subir"
-            >
-              {(["NORMAL", "RECTOR"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setUploadTier(t)}
-                  title={
-                    t === "RECTOR"
-                      ? "Rector: el agente lo tiene SIEMPRE presente al hablar de su marca"
-                      : "Normal: el agente lo trae solo por búsqueda cuando es relevante"
-                  }
-                  className={`px-3 py-2 transition-colors ${
-                    uploadTier === t
-                      ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
-                      : "text-foreground/55 hover:text-foreground"
-                  }`}
-                >
-                  {t === "RECTOR" ? "Rector" : "Normal"}
-                </button>
-              ))}
-            </div>
             <button
               type="button"
-              onClick={() => fileRef.current?.click()}
+              onClick={() => setUploadOpen(true)}
               className="inline-flex items-center gap-2 border border-[var(--accent)] px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-foreground transition-colors hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <Upload className="size-3.5" strokeWidth={1.5} /> Subir archivo
@@ -304,8 +281,9 @@ function DrivePage() {
         hidden
         multiple
         onChange={(e) => {
-          if (e.target.files?.length) uploadFiles(e.target.files);
+          if (e.target.files?.length) uploadFiles(e.target.files, pendingTierRef.current);
           e.target.value = "";
+          setUploadOpen(false);
         }}
       />
 
@@ -366,7 +344,7 @@ function DrivePage() {
             </button>
           </div>
         ) : current && current.folders.length === 0 && current.files.length === 0 ? (
-          <EmptyFolder root={segments.length === 0} onUpload={() => fileRef.current?.click()} onNewFolder={() => setNewFolderOpen(true)} />
+          <EmptyFolder root={segments.length === 0} onUpload={() => setUploadOpen(true)} onNewFolder={() => setNewFolderOpen(true)} />
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
             {current?.folders.map((f, i) => (
@@ -416,6 +394,17 @@ function DrivePage() {
               { onSuccess: () => setNewFolderOpen(false) },
             )
           }
+        />
+      ) : null}
+
+      {uploadOpen ? (
+        <UploadDialog
+          folderLabel={here}
+          onClose={() => setUploadOpen(false)}
+          onPick={(tier) => {
+            pendingTierRef.current = tier;
+            fileRef.current?.click();
+          }}
         />
       ) : null}
 
@@ -875,6 +864,97 @@ function EmptyFolder({
 }
 
 /* ---------- new folder dialog (with optional related brand) ---------- */
+/**
+ * Popup al subir: pregunta la jerarquía (Rector/Normal) y luego abre el selector de archivos.
+ * `onPick(tier)` le pasa la jerarquía al padre, que dispara el input oculto de subida.
+ */
+function UploadDialog({
+  folderLabel,
+  onClose,
+  onPick,
+}: {
+  folderLabel: string;
+  onClose: () => void;
+  onPick: (tier: "RECTOR" | "NORMAL") => void;
+}) {
+  const [tier, setTier] = useState<"RECTOR" | "NORMAL">("NORMAL");
+  const options = [
+    {
+      value: "NORMAL" as const,
+      title: "Documento Normal",
+      desc: "El agente lo trae solo cuando la búsqueda lo encuentra relevante para una pregunta.",
+    },
+    {
+      value: "RECTOR" as const,
+      title: "Documento Rector",
+      desc: "El agente lo tiene SIEMPRE presente al hablar de la marca. Úsalo para lo que rige la marca.",
+    },
+  ];
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm transition-opacity duration-300 motion-safe:animate-in motion-safe:fade-in">
+      <div className="w-full max-w-[460px] border border-border bg-[var(--card)] shadow-xl rounded-[4px] transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] motion-safe:animate-in motion-safe:zoom-in-95">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/40">Drive · {folderLabel}</div>
+            <div className="text-[15px] text-foreground">Subir archivo</div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-[3px] p-1.5 text-foreground/40 hover:bg-foreground/5 hover:text-foreground"
+          >
+            <X className="size-4" strokeWidth={1.5} />
+          </button>
+        </div>
+        <div className="px-6 py-5">
+          <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/45">
+            ¿Qué tipo de documento es?
+          </span>
+          <div className="mt-3 grid gap-2">
+            {options.map((o) => {
+              const active = tier === o.value;
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => setTier(o.value)}
+                  className={`flex items-start gap-3 border p-3 text-left transition-colors rounded-[3px] ${
+                    active
+                      ? "border-[var(--accent)] bg-[var(--accent)]/10"
+                      : "border-border hover:border-foreground/30"
+                  }`}
+                >
+                  <Shield
+                    className={`mt-0.5 size-4 shrink-0 ${active ? "text-[var(--accent)]" : "text-foreground/35"}`}
+                    strokeWidth={1.5}
+                    fill={active && o.value === "RECTOR" ? "currentColor" : "none"}
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-[13px] text-foreground">{o.title}</span>
+                    <span className="mt-0.5 block text-[11px] leading-snug text-foreground/50">{o.desc}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            onClick={() => onPick(tier)}
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 border border-[var(--accent)] bg-[var(--accent)] px-4 py-2.5 text-[11px] uppercase tracking-[0.24em] text-[var(--accent-foreground)] transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-[3px]"
+          >
+            <Upload className="size-3.5" strokeWidth={1.5} />
+            Seleccionar archivo(s)
+          </button>
+          <p className="mt-3 text-center text-[10px] text-foreground/40">
+            Podrás elegir uno o varios archivos. Se subirán como{" "}
+            <span className="text-foreground/70">{tier === "RECTOR" ? "Rector" : "Normal"}</span>.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NewFolderDialog({
   brands,
   submitting,
