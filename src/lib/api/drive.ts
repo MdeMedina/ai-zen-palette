@@ -68,6 +68,8 @@ export async function deleteFolder(id: UUID): Promise<void> {
 export interface UploadInput {
   file: File;
   folder_id?: UUID | null;
+  /** Jerarquía ante el agente. Default NORMAL. RECTOR = siempre en contexto de su marca. */
+  doc_tier?: "RECTOR" | "NORMAL";
 }
 
 /**
@@ -82,6 +84,7 @@ export async function uploadFile(input: UploadInput): Promise<DriveFile> {
   const fd = new FormData();
   fd.append("file", input.file);
   if (input.folder_id) fd.append("folder_id", input.folder_id);
+  if (input.doc_tier === "RECTOR") fd.append("doc_tier", "RECTOR");
   return apiFetch<DriveFile>("/api/drive/upload", { method: "POST", body: fd });
 }
 
@@ -91,6 +94,20 @@ export async function updateFile(
   patch: { name?: string; folder_id?: UUID | null },
 ): Promise<DriveFile> {
   return apiFetch<DriveFile>(`/api/drive/files/${id}`, { method: "PATCH", body: patch });
+}
+
+/**
+ * PATCH /api/drive/files/:id/tier — cambia la jerarquía Rector/Normal (metadato del agente).
+ * Permitido también en archivos espejados de Dropbox (no muta nada en Dropbox).
+ */
+export async function setFileTier(
+  id: UUID,
+  doc_tier: "RECTOR" | "NORMAL",
+): Promise<{ id: UUID; doc_tier: "RECTOR" | "NORMAL" }> {
+  return apiFetch<{ id: UUID; doc_tier: "RECTOR" | "NORMAL" }>(`/api/drive/files/${id}/tier`, {
+    method: "PATCH",
+    body: { doc_tier },
+  });
 }
 
 /** DELETE /api/drive/files/:id — removes row (cascades chunks) + physical file. */

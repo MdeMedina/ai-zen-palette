@@ -16,6 +16,7 @@ import {
   Loader2,
   Pencil,
   RotateCcw,
+  Shield,
   Trash2,
   Upload,
   X,
@@ -121,13 +122,27 @@ function DrivePage() {
     },
     onError: (e: Error) => toast.error(e.message || "No se pudo crear la carpeta"),
   });
+  // Jerarquía con la que se suben los próximos archivos (RECTOR = siempre en contexto de su marca).
+  const [uploadTier, setUploadTier] = useState<"NORMAL" | "RECTOR">("NORMAL");
   const uploadM = useMutation({
-    mutationFn: (file: File) => driveApi.uploadFile({ file, folder_id: currentFolderId }),
+    mutationFn: (file: File) =>
+      driveApi.uploadFile({ file, folder_id: currentFolderId, doc_tier: uploadTier }),
     onSuccess: (f) => {
       invalidate();
-      toast.success(`"${f.name}" subido · vectorizando en segundo plano`);
+      toast.success(
+        `"${f.name}" subido${f.doc_tier === "RECTOR" ? " como RECTOR" : ""} · vectorizando en segundo plano`,
+      );
     },
     onError: (e: Error) => toast.error(e.message || "Falló la subida"),
+  });
+  const setTierM = useMutation({
+    mutationFn: (v: { id: UUID; doc_tier: "RECTOR" | "NORMAL" }) =>
+      driveApi.setFileTier(v.id, v.doc_tier),
+    onSuccess: (r) => {
+      invalidate();
+      toast.success(r.doc_tier === "RECTOR" ? "Marcado como Rector" : "Marcado como Normal");
+    },
+    onError: (e: Error) => toast.error(e.message || "No se pudo cambiar la jerarquía"),
   });
   const updateFolderM = useMutation({
     mutationFn: (v: { id: UUID; name?: string; brand_id?: string | null }) =>
@@ -206,7 +221,7 @@ function DrivePage() {
         eyebrow="PKGD OS · Almacén"
         title="Drive"
         actions={
-          <div className="flex gap-2">
+          <div className="flex items-stretch gap-2">
             <button
               type="button"
               onClick={() => setNewFolderOpen(true)}
@@ -214,6 +229,32 @@ function DrivePage() {
             >
               <FolderPlus className="size-3.5" strokeWidth={1.5} /> Nueva carpeta
             </button>
+            {/* Jerarquía de subida: NORMAL (default) vs RECTOR (siempre en contexto de su marca). */}
+            <div
+              className="inline-flex items-center border border-foreground/15 text-[10px] uppercase tracking-[0.18em]"
+              role="group"
+              aria-label="Jerarquía del documento al subir"
+            >
+              {(["NORMAL", "RECTOR"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setUploadTier(t)}
+                  title={
+                    t === "RECTOR"
+                      ? "Rector: el agente lo tiene SIEMPRE presente al hablar de su marca"
+                      : "Normal: el agente lo trae solo por búsqueda cuando es relevante"
+                  }
+                  className={`px-3 py-2 transition-colors ${
+                    uploadTier === t
+                      ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                      : "text-foreground/55 hover:text-foreground"
+                  }`}
+                >
+                  {t === "RECTOR" ? "Rector" : "Normal"}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
@@ -347,6 +388,12 @@ function DrivePage() {
                   file={f}
                   onOpen={() => setPreview(f)}
                   onDelete={() => deleteFileM.mutate(f.id)}
+                  onToggleTier={() =>
+                    setTierM.mutate({
+                      id: f.id,
+                      doc_tier: f.doc_tier === "RECTOR" ? "NORMAL" : "RECTOR",
+                    })
+                  }
                   onDragStartItem={() => setDragItem({ kind: "file", id: f.id, name: f.name })}
                   onDragEndItem={() => setDragItem(null)}
                 />
@@ -668,16 +715,19 @@ function FileCard({
   file,
   onOpen,
   onDelete,
+  onToggleTier,
   onDragStartItem,
   onDragEndItem,
 }: {
   file: DriveTreeFile;
   onOpen: () => void;
   onDelete: () => void;
+  onToggleTier: () => void;
   onDragStartItem: () => void;
   onDragEndItem: () => void;
 }) {
   const Icon = iconFor(file.mime_type, file.name);
+  const isRector = file.doc_tier === "RECTOR";
   const [dragged, setDragged] = useState(false);
   return (
     <div
@@ -692,12 +742,22 @@ function FileCard({
           onDragEndItem();
         },
       )}
-      className={`group relative flex cursor-grab flex-col border border-border bg-card p-4 shadow-sm transition-all hover:border-foreground/25 hover:shadow-md active:cursor-grabbing rounded-[3px] ${
-        dragged ? "opacity-40" : ""
-      }`}
+      className={`group relative flex cursor-grab flex-col border bg-card p-4 shadow-sm transition-all hover:shadow-md active:cursor-grabbing rounded-[3px] ${
+        isRector ? "border-[var(--accent)]/70" : "border-border hover:border-foreground/25"
+      } ${dragged ? "opacity-40" : ""}`}
     >
+      {/* Documento RECTOR: siempre presente para el agente al hablar de su marca. */}
+      {isRector ? (
+        <span
+          className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 border border-[var(--accent)]/70 bg-[var(--accent)]/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--accent)]"
+          title="Rector: el agente lo tiene siempre presente al hablar de su marca"
+        >
+          <Shield className="size-2.5" strokeWidth={1.75} />
+          Rector
+        </span>
+      ) : null}
       <button type="button" onClick={onOpen} className="flex w-full min-w-0 flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none">
-        <Icon className="size-7 text-foreground/45" strokeWidth={1.5} />
+        <Icon className={`size-7 ${isRector ? "text-[var(--accent)]/70" : "text-foreground/45"} ${isRector ? "mt-4" : ""}`} strokeWidth={1.5} />
         <span className="line-clamp-2 w-full [overflow-wrap:anywhere] text-[13px] text-foreground" title={file.name}>
           {file.name}
         </span>
@@ -719,6 +779,22 @@ function FileCard({
           <BrandTag name={file.brand_name} />
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
+          {/* Alternar jerarquía Rector/Normal (metadato del agente). */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleTier();
+            }}
+            className={`transition-all focus-visible:outline-none ${
+              isRector
+                ? "text-[var(--accent)] hover:text-foreground"
+                : "text-foreground/30 opacity-0 hover:text-[var(--accent)] group-hover:opacity-100 focus-visible:opacity-100"
+            }`}
+            title={isRector ? "Quitar Rector (volver a Normal)" : "Marcar como Rector"}
+          >
+            <Shield className="size-3.5" strokeWidth={1.5} fill={isRector ? "currentColor" : "none"} />
+          </button>
           {/* Download straight from the grid, without opening the preview. */}
           <a
             href={driveApi.fileUrl(file.url)}

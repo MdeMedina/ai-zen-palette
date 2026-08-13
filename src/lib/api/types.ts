@@ -214,6 +214,9 @@ export interface DriveFolder {
   updated_at: string;
 }
 
+/** Jerarquía del documento ante el agente. RECTOR = siempre en contexto de su marca. */
+export type DocTier = "RECTOR" | "NORMAL";
+
 export interface DriveFile {
   id: UUID;
   name: string;
@@ -226,6 +229,8 @@ export interface DriveFile {
   full_path: string; // "/Marketing/2026/brief.pdf"
   current_version_id: UUID | null;
   version_count: number;
+  /** RECTOR (siempre vigente para su marca) o NORMAL (por búsqueda). Default NORMAL. */
+  doc_tier: DocTier;
   created_at: string;
 }
 
@@ -268,6 +273,8 @@ export interface DriveTreeFile {
   /** History: 1 when the file has only ever been uploaded once. */
   version_count: number;
   current_version_id: UUID | null;
+  /** RECTOR (siempre vigente para su marca) o NORMAL (por búsqueda). */
+  doc_tier: DocTier;
 }
 
 export interface DriveTreeFolder {
